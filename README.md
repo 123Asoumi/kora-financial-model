@@ -12,7 +12,7 @@ KORA vérifie un **SMS**, un **message WhatsApp**, une **capture d'écran** ou u
 
 | Livrable | Où |
 |---|---|
-| Prototype utilisable | `web/` : application déployée sur Vercel (KORA-lite dans le navigateur, lecture de captures d'écran, dictée vocale) |
+| Prototype utilisable | `web/` : application déployée sur Vercel (KORA-lite dans le navigateur, lecture de captures d'écran, vocal français et fon, lecture à voix haute, installable et hors ligne) |
 | Prototype GPU | `notebooks/` : 5 notebooks Colab (données, cerveau AfroXLMR, reconnaissance vocale fon, démo, entraînement de la reconnaissance vocale fon sur J'aime Ma Langue) |
 | Résultats et comparaison avec une référence | `resultats/` et ci-dessous |
 | Reproductibilité | `python lite/entrainer_kora_lite.py` recalcule les métriques et le modèle de l'application en ~2 min sur CPU |
@@ -64,6 +64,12 @@ AUC arnaque / normal : **0,983**. **À détection égale (~88 %), KORA-lite fait
 - KORA analyse le **contenu** : un faux SMS identique au vrai ne se distingue que par l'**expéditeur**, ce qui demande une intégration opérateur (pilote).
 - Le fon écrit repose en partie sur des traductions automatiques. La reconnaissance vocale fon de la démo est sous licence non commerciale (voir `MODELES.md` pour la version commerciale).
 - KORA est une **aide à la vigilance**, pas une garantie.
+
+## Le fon : écouter, comprendre, parler
+
+Le dossier `space/` contient un **Space Hugging Face** (gratuit, CPU) que l'application appelle pour le fon :
+vocal fon → texte fon (`mms-300m-fongbe`) → traduction française (`nllb-fongbe-french-translation`) → analyse par KORA ;
+et dans l'autre sens, le conseil de KORA lu **en fon** (`mms-tts-fon`). Les messages en fon passent par ce service ; les messages en français restent sur le téléphone.
 
 ## Reproduire
 

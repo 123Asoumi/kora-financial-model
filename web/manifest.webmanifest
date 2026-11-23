@@ -1,0 +1,14 @@
+{
+  "name": "KORA — Vérifie un message avant de payer",
+  "short_name": "KORA",
+  "description": "Repère les arnaques Mobile Money dans un SMS, une capture ou un vocal.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0806",
+  "theme_color": "#0a0806",
+  "lang": "fr",
+  "icons": [
+    { "src": "icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
