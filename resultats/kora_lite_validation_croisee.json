@@ -1,0 +1,38 @@
+{
+  "donnees": [
+    "/home/claude/kora-repo/data/kora_fr.csv"
+  ],
+  "messages": 5100,
+  "auc_arnaque_vs_normal": 0.9829,
+  "f1_macro_5_categories": 0.8563,
+  "par_seuil": {
+    "0.3": {
+      "detection": 1.0,
+      "fausses_alertes": 0.3922
+    },
+    "0.4": {
+      "detection": 0.9967,
+      "fausses_alertes": 0.2504
+    },
+    "0.5": {
+      "detection": 0.9693,
+      "fausses_alertes": 0.1607
+    },
+    "0.6": {
+      "detection": 0.9329,
+      "fausses_alertes": 0.118
+    },
+    "0.7": {
+      "detection": 0.885,
+      "fausses_alertes": 0.0338
+    },
+    "0.8": {
+      "detection": 0.7511,
+      "fausses_alertes": 0.0066
+    }
+  },
+  "seuils": {
+    "arnaque": 0.7,
+    "suspect": 0.5
+  }
+}
