@@ -1,21 +1,19 @@
-"""KORA — service fon : écouter (voix -> texte), traduire (fon <-> français), parler (texte -> voix).
+"""KORA — service fon : traduction fon ⇄ français.
 
-Tourne sur un Space Hugging Face gratuit (CPU). L'application web KORA l'appelle avec @gradio/client.
+Tourne sur un Space Hugging Face gratuit (CPU). L'application web KORA l'appelle
+avec @gradio/client pour analyser un message écrit en fon et répondre en fon.
 """
 import re
 import unicodedata
 
 import gradio as gr
-import librosa
 import torch
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, VitsModel, pipeline
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
 torch.set_num_threads(2)
 
-# 1. Oreille fon
-oreille = pipeline("automatic-speech-recognition", model="Professor/mms-300m-fongbe", device=-1, chunk_length_s=20)
-
-# 2. Traducteur fon <-> français (version affinée pour le fon, sinon NLLB de base)
+# Traducteur fon ⇄ français : version affinée pour le fon, sinon NLLB de base.
+TRADUCTEUR = None
 for nom in ["nellaw/nllb-fongbe-french-translation", "facebook/nllb-200-distilled-600M"]:
     try:
         tok = AutoTokenizer.from_pretrained(nom, src_lang="fon_Latn")
@@ -25,16 +23,13 @@ for nom in ["nellaw/nllb-fongbe-french-translation", "facebook/nllb-200-distille
     except Exception as e:  # noqa: BLE001
         print("Traducteur indisponible :", nom, e)
 
-# 3. Voix fon
-voix_tok = AutoTokenizer.from_pretrained("facebook/mms-tts-fon")
-voix = VitsModel.from_pretrained("facebook/mms-tts-fon").eval()
-
 
 def _propre(t):
     return re.sub(r"\s+", " ", unicodedata.normalize("NFC", str(t))).strip()
 
 
 def traduire(texte, sens="fon→français"):
+    """Traduit un texte dans un sens ou dans l'autre. C'est la seule route utilisée par l'appli."""
     texte = _propre(texte)
     if not texte:
         return ""
@@ -47,43 +42,12 @@ def traduire(texte, sens="fon→français"):
     return tok.batch_decode(sortie, skip_special_tokens=True)[0]
 
 
-def ecouter(audio):
-    """Vocal (fichier) -> (texte fon, traduction française)."""
-    if not audio:
-        return "", ""
-    son, _ = librosa.load(audio, sr=16000, mono=True)
-    fon = _propre(oreille({"raw": son, "sampling_rate": 16000})["text"])
-    return fon, traduire(fon, "fon→français") if fon else ""
-
-
-def parler(texte_fon):
-    """Texte fon -> voix (taux d'échantillonnage, signal)."""
-    texte_fon = _propre(texte_fon)
-    if not texte_fon:
-        return None
-    enc = voix_tok(texte_fon, return_tensors="pt")
-    with torch.no_grad():
-        signal = voix(**enc).waveform[0].numpy()
-    return voix.config.sampling_rate, signal
-
-
-with gr.Blocks(title="KORA — voix fon") as demo:
-    gr.Markdown(f"# 🪕 KORA — voix fon\nTraducteur : `{TRADUCTEUR}`. Service utilisé par l'application KORA.")
-    with gr.Tab("Écouter"):
-        a = gr.Audio(type="filepath", sources=["microphone", "upload"], label="Vocal en fon")
-        b = gr.Button("Transcrire et traduire", variant="primary")
-        fon_txt, fr_txt = gr.Textbox(label="Texte fon"), gr.Textbox(label="Traduction française")
-        b.click(ecouter, a, [fon_txt, fr_txt], api_name="ecouter")
-    with gr.Tab("Traduire"):
-        t = gr.Textbox(label="Texte")
-        s = gr.Radio(["fon→français", "français→fon"], value="fon→français", label="Sens")
-        b2 = gr.Button("Traduire", variant="primary")
-        o = gr.Textbox(label="Traduction")
-        b2.click(traduire, [t, s], o, api_name="traduire")
-    with gr.Tab("Parler"):
-        t3 = gr.Textbox(label="Texte en fon")
-        b3 = gr.Button("Dire en fon", variant="primary")
-        o3 = gr.Audio(label="Voix fon")
-        b3.click(parler, t3, o3, api_name="parler")
+with gr.Blocks(title="KORA — traduction fon") as demo:
+    gr.Markdown(f"# 🪕 KORA — traduction fon\nTraducteur : `{TRADUCTEUR}`. Service utilisé par l'application KORA.")
+    t = gr.Textbox(label="Texte", lines=2)
+    s = gr.Radio(["fon→français", "français→fon"], value="fon→français", label="Sens")
+    b = gr.Button("Traduire", variant="primary")
+    o = gr.Textbox(label="Traduction")
+    b.click(traduire, [t, s], o, api_name="traduire")
 
 demo.queue(max_size=16).launch()

@@ -37,7 +37,7 @@ const pret = fetch("kora_lite.json")
     .catch(() => fil.insertAdjacentHTML("beforeend", `<p class="vide">Le modèle KORA n'a pas pu être chargé. Vérifie ta connexion et recharge la page.</p>`))
 fetch("fon.json").then((r) => r.json()).then((j) => (fonHumain = j)).catch(() => {})
 
-/* ---------- service fon (Hugging Face Space) ---------- */
+/* ---------- service fon : traduction (Hugging Face Space) ---------- */
 let clientFon = null
 async function serviceFon() {
     if (!SPACE_FON) throw new Error("Le fon n'est pas activé (config.js).")
@@ -46,15 +46,10 @@ async function serviceFon() {
     clientFon = await Client.connect(SPACE_FON)
     return clientFon
 }
-async function appelerFon(route, donnees) {
+async function traduire(texte, sens) {
     const c = await serviceFon()
-    const r = await c.predict(route, donnees)
-    return r.data
-}
-function etatService(texte, ok) {
-    const el = $("service-fon")
-    el.hidden = false
-    el.innerHTML = `Service fon : <b class="${ok ? "ok" : "ko"}">${echapper(texte)}</b>`
+    const r = await c.predict("/traduire", { texte, sens })
+    return r.data[0]
 }
 
 /* ---------- affichage d'une analyse ---------- */
@@ -66,7 +61,7 @@ function bulleAttente(texte) {
     return p
 }
 
-function afficher(texteAnalyse, { source, original, ctx } = {}) {
+function afficher(texteAnalyse, { source, original, ctx, enFon } = {}) {
     if (!kora) return null
     $("vide")?.remove()
     const contexte = ctx || lireContexte()
@@ -96,9 +91,9 @@ function afficher(texteAnalyse, { source, original, ctx } = {}) {
       ${r.indices.length ? `<h3>Qui l'envoie ?</h3><ul class="indices">${r.indices.map((x) => `<li><span aria-hidden="true">${x.sens === "danger" ? "⚠️" : "✅"}</span><span>${echapper(x.texte)}</span></li>`).join("")}</ul>` : ""}
       ${aContexte ? "" : `<p class="indice-sans">Astuce : dis à KORA qui t'a écrit (le nom ou le numéro, SMS ou WhatsApp) pour savoir si c'est le vrai opérateur ou quelqu'un qui prend son nom.</p>`}
       <p class="conseil"><b>Que faire :</b> ${echapper(r.conseil)}</p>
+      <div class="rep-fon" hidden></div>
       <div class="actions">
-        <button type="button" data-action="ecouter-fr">🔊 Écouter</button>
-        ${SPACE_FON ? `<button type="button" class="discret" data-action="ecouter-fon">🔊 En fon</button>` : ""}
+        ${SPACE_FON ? `<button type="button" data-action="fon">Voir la réponse en fon</button>` : ""}
         ${r.niveau === "sur" ? "" : `<button type="button" class="discret" data-action="partager">Prévenir un proche</button>`}
         <button type="button" class="discret" data-action="nouveau">Vérifier un autre message</button>
       </div>
@@ -112,9 +107,7 @@ function afficher(texteAnalyse, { source, original, ctx } = {}) {
     piloter({ emotion: r.emotion, bulle: BULLES[r.niveau], gratter: r.niveau === "sur" })
     moi.scrollIntoView({ behavior: calme() ? "auto" : "smooth", block: "start" })
 
-    const phraseFr = phraseVerdict(r)
-    rep.querySelector('[data-action="ecouter-fr"]').addEventListener("click", () => lireFrancais(phraseFr))
-    rep.querySelector('[data-action="ecouter-fon"]')?.addEventListener("click", (e) => lireFon(r, e.currentTarget))
+    rep.querySelector('[data-action="fon"]')?.addEventListener("click", (e) => montrerFon(r, rep, e.currentTarget))
     rep.querySelector('[data-action="partager"]')?.addEventListener("click", async (e) => {
         const msg = `⚠️ KORA a analysé ce message : ${TITRES[r.niveau]} (risque ${pct} %).\n« ${(original || texteAnalyse).slice(0, 160)} »\nConseil : ${r.conseil}\nVérifie toi aussi : ${location.origin}`
         try {
@@ -128,46 +121,39 @@ function afficher(texteAnalyse, { source, original, ctx } = {}) {
         $("message").focus()
         piloter({ emotion: "content", bulle: "Montre-moi le message !" })
     })
+
+    // Si le message d'origine était en fon, on affiche aussi la réponse en fon tout de suite.
+    if (enFon) montrerFon(r, rep, rep.querySelector('[data-action="fon"]'))
     return r
 }
-function phraseVerdict(r) {
-    const danger = r.indices.filter((x) => x.sens === "danger").map((x) => x.texte).join(" ")
-    return `${TITRES[r.niveau]}, risque ${Math.round(r.risque * 100)} pour cent. ${r.niveau === "sur" ? "" : r.raisons.join(" ")} ${danger} ${r.conseil}`
-}
 
-/* ---------- lecture à voix haute ---------- */
-function lireFrancais(texte) {
-    if (!("speechSynthesis" in window)) return
-    speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(texte)
-    u.lang = "fr-FR"
-    u.rate = 0.95
-    const fr = speechSynthesis.getVoices().find((v) => v.lang.startsWith("fr"))
-    if (fr) u.voice = fr
-    speechSynthesis.speak(u)
-}
-async function lireFon(r, bouton) {
-    const avant = bouton.textContent
-    bouton.disabled = true
-    bouton.textContent = "Préparation…"
+/* ---------- réponse en fon (texte) ---------- */
+async function montrerFon(r, rep, bouton) {
+    const zone = rep.querySelector(".rep-fon")
+    if (zone.dataset.fait) { zone.hidden = false; return }
+    if (bouton) { bouton.disabled = true; bouton.textContent = "Traduction en fon…" }
     try {
-        // traduction humaine si l'équipe l'a fournie (fon.json), sinon traduction automatique
-        let fon = [fonHumain.titres?.[r.niveau], fonHumain.conseils?.[r.categorie]].filter(Boolean).join(". ")
-        if (!fon) {
-            const [t] = await appelerFon("/traduire", { texte: `${TITRES[r.niveau]}. ${r.conseil}`, sens: "français→fon" })
-            fon = t
+        // Traduction humaine si l'équipe l'a fournie (fon.json), sinon traduction automatique du Space.
+        const titre = fonHumain.titres?.[r.niveau]
+        const conseil = fonHumain.conseils?.[r.categorie]
+        let fon
+        if (titre && conseil) {
+            fon = `${titre}. ${conseil}`
+        } else {
+            const frParts = [TITRES[r.niveau], ...(r.raisons || []), `Que faire : ${r.conseil}`].join(" ")
+            fon = await traduire(frParts, "français→fon")
         }
-        const [audio] = await appelerFon("/parler", { texte_fon: fon })
-        if (audio?.url) await new Audio(audio.url).play()
-        bouton.textContent = avant
+        zone.innerHTML = `<h3>Fɔngbe</h3><p>${echapper(fon)}</p>`
+        zone.dataset.fait = "1"
+        zone.hidden = false
+        if (bouton) { bouton.textContent = "Réponse en fon affichée"; bouton.disabled = true }
     } catch (_) {
-        bouton.textContent = "Fon indisponible"
+        if (bouton) { bouton.disabled = false; bouton.textContent = "Fon indisponible (réessaie)" }
     }
-    bouton.disabled = false
 }
 
-/* ---------- onglets et langue ---------- */
-const onglets = ["t-texte", "t-image", "t-voix"]
+/* ---------- onglets ---------- */
+const onglets = ["t-texte", "t-image"]
 function choisirOnglet(id) {
     for (const o of onglets) {
         const actif = o === id
@@ -177,15 +163,14 @@ function choisirOnglet(id) {
 }
 for (const o of onglets) $(o).addEventListener("click", () => choisirOnglet(o))
 
+/* ---------- langue du message (texte) ---------- */
 let langueTexte = "fr"
-function bascule(selecteur, attr, valeur) {
-    document.querySelectorAll(selecteur).forEach((b) => b.setAttribute("aria-pressed", String(b.dataset[attr] === valeur)))
-}
 document.querySelectorAll("[data-langue]").forEach((b) => b.addEventListener("click", () => {
     langueTexte = b.dataset.langue
-    bascule("[data-langue]", "langue", langueTexte)
+    document.querySelectorAll("[data-langue]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.langue === langueTexte)))
     $("message").placeholder = langueTexte === "fon" ? "Colle ici le message en fon…" : "Colle ici le SMS ou le message WhatsApp reçu…"
 }))
+
 /* ---------- qui t'a écrit ? ---------- */
 const contexte = { canal: "", repondre: "", premier: "" }
 function fixerContexte(champ, v) {
@@ -215,11 +200,11 @@ async function verifierTexte() {
     const attente = bulleAttente("KORA traduit le message en fon…")
     $("verifier").disabled = true
     try {
-        const [fr] = await appelerFon("/traduire", { texte, sens: "fon→français" })
+        const fr = await traduire(texte, "fon→français")
         attente.remove()
-        afficher(fr, { source: "Message en fon", original: texte })
+        afficher(fr, { source: "Message en fon", original: texte, enFon: true })
     } catch (_) {
-        attente.textContent = "Le service fon ne répond pas pour le moment. Réessaie dans une minute, ou colle la version française."
+        attente.textContent = "Le service fon ne répond pas pour le moment (il se réveille parfois en 1 à 2 minutes). Réessaie, ou colle la version française."
     }
     $("verifier").disabled = false
 }
@@ -236,6 +221,8 @@ for (const [nom, texte] of EXEMPLES) {
     b.type = "button"
     b.textContent = nom
     b.addEventListener("click", async () => {
+        langueTexte = "fr"
+        document.querySelectorAll("[data-langue]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.langue === "fr")))
         $("message").value = texte
         await pret
         afficher(texte, { source: `Exemple : ${nom}` })
@@ -284,321 +271,6 @@ document.addEventListener("paste", (e) => {
     const img = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"))
     if (img) { choisirOnglet("t-image"); lireImage(img.getAsFile()) }
 })
-
-/* ---------- discuter avec KORA (à l'oral, en français ou en fon) ---------- */
-// KORA mène la conversation : elle demande le message, puis qui l'a envoyé,
-// puis donne son verdict à voix haute et répond aux questions qui suivent.
-const Reco = window.SpeechRecognition || window.webkitSpeechRecognition
-let langueVoix = "fr"
-let ecoute = null
-let enregistreur = null
-let etape = null // null = pas commencé
-let conv = { message: "", original: "", ctx: {}, verdict: null }
-const cacheFon = new Map()
-
-const OUI = /\b(oui|ouais|ouai|yes|bien s[uû]r|exact|c'est [çc]a|[eɛ]+n)\b/i
-const NON = /\b(non|nan|no|jamais|pas du tout|a+o|ǎo)\b/i
-const NSP = /(sais pas|sait pas|aucune id[ée]e|peut-[êe]tre|je ne sais)/i
-
-const ETAPES = {
-    message: {
-        q: "Bonjour, je suis KORA. Lis-moi le message que tu as reçu, ou raconte-moi ce qu'on te demande.",
-        rapides: [],
-    },
-    expediteur: {
-        q: "Qui te l'a envoyé ? Dis-moi le nom affiché, ou s'il vient d'un numéro de téléphone.",
-        rapides: ["Un numéro de téléphone", "MobileMoney", "MTN", "Moov", "Un proche", "Je ne sais pas"],
-    },
-    canal: {
-        q: "Tu l'as reçu par SMS, sur WhatsApp, ou c'était un appel ?",
-        rapides: ["SMS", "WhatsApp", "Appel", "Autre"],
-    },
-    repondre: {
-        q: "Est-ce que tu peux répondre à ce message ?",
-        rapides: ["Oui", "Non", "Je ne sais pas"],
-    },
-    premier: {
-        q: "C'est la première fois que cette personne te contacte ?",
-        rapides: ["Oui, la première fois", "Non, je la connais", "Je ne sais pas"],
-    },
-    suite: {
-        q: "Tu as une autre question ? Tu peux dire : j'ai déjà payé, pourquoi, que faire, ou recommencer.",
-        rapides: ["J'ai déjà payé ou donné le code", "Pourquoi ?", "Que faire ?", "Recommencer"],
-    },
-}
-
-const URGENCE = "Pas de panique, agis vite. Un : appelle tout de suite le service client officiel de ton opérateur, avec le numéro écrit sur son site ou au dos de ta carte SIM, et demande de bloquer la transaction et ton compte. Deux : change ton code PIN. Trois : garde les captures et le numéro de l'escroc, puis porte plainte au commissariat ou auprès de la police chargée de la cybercriminalité. Quatre : préviens tes proches, l'escroc peut les contacter avec ton nom."
-
-function etatVoix(t) { $("etat-voix").textContent = t }
-function microActif(actif) {
-    $("micro").classList.toggle("ecoute", actif)
-    $("micro").setAttribute("aria-label", actif ? "Terminer et envoyer ma réponse" : "Parler à KORA")
-}
-
-function dire(texte) {
-    $("vide")?.remove()
-    const b = document.createElement("div")
-    b.className = "bulle-kora"
-    b.innerHTML = `<b>KORA</b>${echapper(texte)}`
-    fil.append(b)
-    b.scrollIntoView({ behavior: calme() ? "auto" : "smooth", block: "nearest" })
-    return parler(texte)
-}
-function moiDit(texte, traduction) {
-    const b = document.createElement("div")
-    b.className = "bulle-moi"
-    b.innerHTML = echapper(texte) + (traduction && traduction !== texte ? `<span class="traduction">Traduction : ${echapper(traduction)}</span>` : "")
-    fil.append(b)
-}
-
-// Parle, puis rend la main (la promesse se résout quand KORA a fini de parler)
-function parler(texte) {
-    if (langueVoix === "fon") return parlerFon(texte)
-    return new Promise((fin) => {
-        if (!("speechSynthesis" in window)) return fin()
-        speechSynthesis.cancel()
-        const u = new SpeechSynthesisUtterance(texte)
-        u.lang = "fr-FR"
-        u.rate = 1
-        const fr = speechSynthesis.getVoices().find((v) => v.lang.startsWith("fr"))
-        if (fr) u.voice = fr
-        u.onend = u.onerror = () => fin()
-        speechSynthesis.speak(u)
-        setTimeout(fin, 400 + texte.length * 90) // filet de sécurité si onend ne vient jamais
-    })
-}
-async function parlerFon(texte) {
-    try {
-        let fon = cacheFon.get(texte) || fonHumain.questions?.[texte]
-        if (!fon) [fon] = await appelerFon("/traduire", { texte, sens: "français→fon" })
-        cacheFon.set(texte, fon)
-        const [audio] = await appelerFon("/parler", { texte_fon: fon })
-        if (!audio?.url) return
-        await new Promise((fin) => { const a = new Audio(audio.url); a.onended = a.onerror = fin; a.play().catch(fin) })
-    } catch (_) {
-        etatService("la voix en fon ne répond pas, KORA écrit en français", false)
-    }
-}
-
-function proposer(liste) {
-    const zone = $("rapides")
-    zone.innerHTML = ""
-    for (const t of liste) {
-        const b = document.createElement("button")
-        b.type = "button"
-        b.textContent = t
-        b.addEventListener("click", () => repondre(t))
-        zone.append(b)
-    }
-}
-
-async function poser(nom) {
-    etape = nom
-    proposer(ETAPES[nom].rapides)
-    piloter({ emotion: "content", bulle: nom === "message" ? "Je t'écoute !" : "Dis-moi…" })
-    await dire(ETAPES[nom].q)
-    if (etape === nom) ecouter()
-}
-
-function nouvelleConv() {
-    conv = { message: "", original: "", ctx: { expediteur: "", canal: "", repondre: "", premier: "" }, verdict: null }
-}
-async function demarrer() {
-    nouvelleConv()
-    await pret
-    poser("message")
-}
-
-const SUIVANTE = { message: "expediteur", expediteur: "canal", canal: "repondre", repondre: "premier", premier: null }
-function ouiNon(t) { return NSP.test(t) ? "" : NON.test(t) ? "non" : OUI.test(t) ? "oui" : null }
-
-async function repondre(texte, traduction) {
-    const t = String(traduction || texte).trim()
-    if (!t || !etape) return
-    arreterEcoute()
-    moiDit(texte, traduction)
-    const c = conv.ctx
-    switch (etape) {
-        case "message":
-            conv.message = t
-            conv.original = traduction ? texte : ""
-            break
-        case "expediteur":
-            if (/num[ée]ro|inconnu|\d{6,}/i.test(t) && !/proche|ami|famille|fr[eè]re|s[oœ]eur|maman|papa/i.test(t))
-                c.expediteur = (t.match(/[\d\s+]{7,}/) || ["01 00 00 00 00"])[0].trim()
-            else if (/proche|ami|famille|fr[eè]re|s[oœ]eur|maman|papa|cousin|tante|oncle|coll[eè]gue/i.test(t)) { c.expediteur = ""; c.premier = "non" }
-            else if (!NSP.test(t)) c.expediteur = t
-            $("expediteur").value = c.expediteur
-            break
-        case "canal": {
-            const v = /whats|wa\b/i.test(t) ? "whatsapp" : /appel|t[ée]l[ée]phon|appel[ée]/i.test(t) ? "appel" : /sms|message|texto/i.test(t) ? "sms" : /autre|facebook|messenger|telegram|mail/i.test(t) ? "autre" : ""
-            c.canal = v
-            fixerContexte("canal", v)
-            if (v === "appel") c.repondre = "oui" // on peut toujours parler à quelqu'un qui appelle
-            break
-        }
-        case "repondre": {
-            const v = ouiNon(t)
-            if (v === null) return redemander()
-            c.repondre = v
-            fixerContexte("repondre", v)
-            break
-        }
-        case "premier": {
-            const v = /premi[eè]re/i.test(t) ? "oui" : /connai/i.test(t) ? "non" : ouiNon(t)
-            if (v === null) return redemander()
-            c.premier = v
-            fixerContexte("premier", v)
-            break
-        }
-        case "suite":
-            return questionSuite(t)
-    }
-    // on passe les questions déjà réglées (par ex. « un proche » répond déjà à « première fois ? »)
-    let prochaine = SUIVANTE[etape]
-    while (prochaine && c[prochaine] && prochaine !== "expediteur") prochaine = SUIVANTE[prochaine]
-    if (prochaine) return poser(prochaine)
-    return conclure()
-}
-
-function redemander() {
-    piloter({ emotion: "surpris", bulle: "Hein ?" })
-    dire("Je n'ai pas bien compris. Réponds par oui, par non, ou je ne sais pas.").then(() => etape && ecouter())
-}
-
-async function conclure() {
-    etape = "verdict"
-    proposer([])
-    const r = afficher(conv.message, { source: "Ce que tu m'as dit", original: conv.original, ctx: conv.ctx })
-    conv.verdict = r
-    if (!r) return
-    await parler(phraseVerdict(r))
-    poser("suite")
-}
-
-async function questionSuite(t) {
-    const r = conv.verdict
-    if (/recommenc|autre message|nouveau/i.test(t)) return demarrer()
-    let rep
-    if (/pay[ée]|donn[ée]|envoy[ée]|transf[ée]r|trop tard|d[ée]j[aà]/i.test(t)) {
-        piloter({ emotion: "triste", bulle: "On agit vite." })
-        rep = URGENCE
-    } else if (/pourquoi|comment tu sais|explique/i.test(t)) {
-        const tout = [...(r?.raisons || []), ...(r?.indices || []).map((x) => x.texte)]
-        rep = tout.length ? tout.join(" ") : "Je n'ai trouvé aucun signe d'arnaque : pas de demande de code, pas d'argent à envoyer, pas de lien, et l'expéditeur a l'air normal. Reste quand même prudent."
-    } else if (/quoi faire|que faire|je fais quoi|conseil|aide/i.test(t)) {
-        rep = r?.conseil || "Ne donne jamais ton code, et vérifie toujours auprès du service client officiel."
-    } else if (/merci|au revoir|c'est bon|ok|d'accord/i.test(t)) {
-        piloter({ emotion: "content", bulle: "À bientôt !", gratter: true })
-        etape = null
-        proposer(["Recommencer"])
-        $("rapides").firstChild.onclick = () => demarrer()
-        return dire("Avec plaisir. Souviens-toi : ton code, c'est comme la clé de ta maison, tu ne le donnes à personne.")
-    } else {
-        rep = "Je ne sais pas encore répondre à ça. Dis : j'ai déjà payé, pourquoi, que faire, ou recommencer."
-    }
-    await dire(rep)
-    if (etape === "suite") ecouter()
-}
-
-/* --- écoute --- */
-function arreterEcoute() {
-    if (ecoute) { ecoute.onend = null; try { ecoute.abort() } catch (_) {} ecoute = null; microActif(false) }
-}
-function ecouter() {
-    if (langueVoix === "fon") { etatVoix("Appuie sur le micro pour répondre en fon, ou touche une réponse ci-dessous."); return }
-    if (!Reco) { etatVoix("Ton navigateur ne comprend pas la voix : touche une réponse ou écris-la ci-dessous."); return }
-    arreterEcoute()
-    let final = ""
-    ecoute = new Reco()
-    ecoute.lang = "fr-FR"
-    ecoute.interimResults = true
-    ecoute.continuous = etape === "message" // le message peut être long
-    ecoute.onstart = () => { microActif(true); etatVoix(etape === "message" ? "J'écoute… Appuie sur le micro quand tu as fini." : "J'écoute…") }
-    ecoute.onresult = (ev) => {
-        let provisoire = ""
-        for (let i = ev.resultIndex; i < ev.results.length; i++) {
-            if (ev.results[i].isFinal) final += ev.results[i][0].transcript + " "
-            else provisoire += ev.results[i][0].transcript
-        }
-        etatVoix((final + provisoire).trim() || "J'écoute…")
-    }
-    ecoute.onerror = (ev) => {
-        if (ev.error === "not-allowed") etatVoix("Le micro est bloqué. Autorise-le dans les réglages du navigateur, ou écris ta réponse.")
-        else if (ev.error === "no-speech") etatVoix("Je n'ai rien entendu. Appuie sur le micro pour réessayer.")
-    }
-    ecoute.onend = () => {
-        microActif(false)
-        ecoute = null
-        const texte = final.trim()
-        if (texte) repondre(texte)
-    }
-    try { ecoute.start() } catch (_) {}
-}
-
-// Fon : enregistrement, puis le service fon transcrit et traduit
-async function enregistrerFon() {
-    if (enregistreur) { enregistreur.stop(); return }
-    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { etatVoix("Ton navigateur ne permet pas d'enregistrer. Touche une réponse ou écris-la."); return }
-    let flux
-    try { flux = await navigator.mediaDevices.getUserMedia({ audio: true }) } catch (_) {
-        etatVoix("Le micro est bloqué. Autorise-le dans les réglages du navigateur, ou écris ta réponse.")
-        return
-    }
-    serviceFon().catch(() => {})
-    const morceaux = []
-    enregistreur = new MediaRecorder(flux)
-    enregistreur.ondataavailable = (e) => e.data.size && morceaux.push(e.data)
-    enregistreur.onstart = () => { microActif(true); etatVoix("J'enregistre… Parle en fon, puis appuie à nouveau.") }
-    enregistreur.onstop = async () => {
-        microActif(false)
-        flux.getTracks().forEach((t) => t.stop())
-        enregistreur = null
-        const blob = new Blob(morceaux, { type: morceaux[0]?.type || "audio/webm" })
-        if (blob.size < 2000) { etatVoix("C'est trop court. Réessaie."); return }
-        $("micro").disabled = true
-        etatVoix("KORA écoute ta réponse en fon (10 à 30 secondes)…")
-        try {
-            const { handle_file } = await import("https://cdn.jsdelivr.net/npm/@gradio/client@2.8.0/+esm")
-            const [fon, fr] = await appelerFon("/ecouter", { audio: handle_file(blob) })
-            if (!fon) etatVoix("Je n'ai rien compris. Parle plus près du téléphone et réessaie.")
-            else { etatVoix(""); repondre(fon, fr || fon) }
-        } catch (_) {
-            etatVoix("Le service fon ne répond pas pour le moment. Touche une réponse ou écris-la.")
-        }
-        $("micro").disabled = false
-    }
-    enregistreur.start()
-}
-
-$("micro").addEventListener("click", () => {
-    if (!etape) return demarrer()
-    if (langueVoix === "fon") return enregistrerFon()
-    if (ecoute) { ecoute.stop(); return } // fin de la réponse : onend l'envoie
-    speechSynthesis?.cancel?.()
-    ecouter()
-})
-$("saisie").addEventListener("submit", (e) => {
-    e.preventDefault()
-    const t = $("saisie-texte").value.trim()
-    if (!t) return
-    $("saisie-texte").value = ""
-    if (!etape) { nouvelleConv(); etape = "message" }
-    repondre(t)
-})
-document.querySelectorAll("[data-voix]").forEach((b) => b.addEventListener("click", () => {
-    langueVoix = b.dataset.voix
-    bascule("[data-voix]", "voix", langueVoix)
-    arreterEcoute()
-    if (langueVoix === "fon") {
-        etatService("connexion…", true)
-        serviceFon().then(() => etatService("prêt", true)).catch(() => etatService("indisponible pour le moment (il se réveille parfois en 1 à 2 minutes)", false))
-        etatVoix("KORA te parle en fon. Appuie sur le micro pour répondre, ou touche une réponse.")
-    } else {
-        $("service-fon").hidden = true
-        etatVoix("Appuie sur le micro pour commencer : KORA te pose quelques questions, à l'oral.")
-    }
-}))
 
 /* ---------- application installable et hors ligne ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {})
