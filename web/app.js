@@ -15,6 +15,7 @@ let fonHumain = {} // traductions humaines : phrase française → phrase en fon
 let langue = "fr"
 let attente = null // question en cours : { type: "expediteur" | "nom" | "repondre" | "premier" }
 let dernier = null // dernier message analysé : { texte, original, ctx, r, niveau1 }
+let historique = [] // la discussion libre avec l'assistant, en français : [{ role, content }]
 
 const BULLES = { arnaque: "Eh!! Eyon l'arnaque c'est pas bien", suspect: "Méfie-toi…", sur: "Ça a l'air normal." }
 const COULEURS = { arnaque: "var(--alerte)", suspect: "var(--mefiance)", sur: "var(--sur)" }
@@ -231,6 +232,62 @@ async function traduire(texte, sens) {
     const c = await serviceFon()
     const r = await c.predict("/traduire", { texte, sens })
     return String(r.data[0] ?? "")
+}
+
+// L'assistant de KORA (modèle de langage dans le Space) : il répond aux questions, à partir du verdict.
+async function demanderAssistant(question) {
+    const c = await serviceFon()
+    const r = await c.predict("/discuter", { question, contexte: contexteVerdict(), historique: JSON.stringify(historique.slice(-8)) })
+    return String(r.data[0] ?? "").trim()
+}
+function contexteVerdict() {
+    if (!dernier) return ""
+    const { r, ctx } = dernier
+    const qui = [ctx.expediteur && `expéditeur : ${ctx.expediteur}`, ctx.canal && `reçu par : ${ctx.canal}`,
+        ctx.repondre && `on peut répondre : ${ctx.repondre}`, ctx.premier && `premier contact : ${ctx.premier}`].filter(Boolean).join(", ")
+    return [
+        `Message reçu : « ${dernier.texte.slice(0, 600)} »`,
+        `Verdict du modèle KORA : ${STATUTS[r.niveau]} (risque ${Math.round(r.risque * 100)} %), type : ${r.niveau === "sur" ? "message normal" : r.type}.`,
+        r.raisons.length ? `Raisons : ${r.raisons.join(" ")}` : "",
+        r.indices.length ? `Sur l'expéditeur : ${r.indices.map((x) => x.texte).join(" ")}` : "",
+        qui ? `Ce que l'utilisateur a dit de l'expéditeur : ${qui}.` : "",
+        `Conseil donné : ${r.conseil}`,
+    ].filter(Boolean).join("\n")
+}
+// Une question posée à KORA, plutôt qu'un message reçu à vérifier
+const DEBUT_QUESTION = /^(est[- ]ce|comment|pourquoi|que |qu'|quoi|qui |quand|combien|o[uù] |peux|puis|dois|je peux|je dois|j'ai|on m'a|il m'a|elle m'a|mon |ma |mes |c'est quoi|c'est normal|tu |toi|aide|explique|dis[- ]moi|si |et si|comment savoir|qu'est)/i
+// ce qui ressemble à un message reçu (numéro, montant, lien, long texte) est d'abord vérifié
+const RESSEMBLE_SMS = /\d[\d\s.]{6,}\d|\d+\s?(f|fcfa|francs?)\b|https?:|www\.|\.(top|xyz|site|online|click|link|info|com|bj)\b|f[ée]licitations|vous avez (re[çc]u|gagn)/i
+function estQuestion(fr) {
+    const t = fr.trim()
+    if (!(t.endsWith("?") || DEBUT_QUESTION.test(t))) return false
+    return t.length <= 220 && !RESSEMBLE_SMS.test(t)
+}
+async function converser(fr) {
+    const corps = msgKora()
+    const tape = reflechir(corps)
+    piloter({ emotion: "surpris", bulle: "Je réfléchis…" })
+    const patience = setTimeout(() => dire(corps, "Je réfléchis… La première fois, ça peut prendre jusqu'à une minute.", { classe: "doux", traduire: false }), 7000)
+    let reponse = ""
+    try {
+        reponse = await demanderAssistant(fr)
+        if (modeFon() && reponse) await enFon([reponse]).catch(() => {})
+    } catch (_) {
+        reponse = ""
+    }
+    clearTimeout(patience)
+    corps.querySelectorAll(".texte.doux").forEach((n) => n.remove())
+    tape.remove()
+    if (!reponse) {
+        dire(corps, "Je n'arrive pas à réfléchir pour le moment (le service se réveille parfois en une minute). Tu peux quand même m'envoyer un message à vérifier.", { traduire: false })
+        piloter({ emotion: "triste", bulle: "" })
+        return
+    }
+    historique.push({ role: "user", content: fr }, { role: "assistant", content: reponse })
+    dire(corps, reponse)
+    piloter({ emotion: "content", bulle: "" })
+    if (attente) return redemander(true)
+    if (dernier) suite(corps)
 }
 
 // Phrases de KORA en fon : traduction humaine (fon.json) d'abord, sinon automatique, gardée en mémoire.
@@ -518,13 +575,14 @@ async function demanderReponse(nom) {
     dire(corps, PH.qRepondre)
     puces(corps, PUCES_REPONDRE, (v, affiche) => { msgMoi(affiche); finirQuestion("repondre", v) })
 }
-async function redemander() {
+async function redemander(silencieux = false) {
     const listes = {
         expediteur: [PUCES_EXPEDITEUR, (v, affiche, fr) => { msgMoi(affiche); choisirExpediteur(v, fr) }],
         repondre: [PUCES_REPONDRE, (v, affiche) => { msgMoi(affiche); finirQuestion("repondre", v) }],
         premier: [PUCES_PREMIER, (v, affiche) => { msgMoi(affiche); finirQuestion("premier", v) }],
     }
     const [liste, choisir] = listes[attente.type] || listes.expediteur
+    if (silencieux) { puces(fil.lastElementChild.querySelector(".corps") || msgKora(), liste, choisir); return }
     const corps = await nouveauTour([PH.pasCompris])
     piloter({ emotion: "surpris", bulle: "Hein ?" })
     dire(corps, PH.pasCompris)
@@ -637,6 +695,8 @@ async function envoyer(brut) {
 
     // 1. réponse à une question de KORA
     if (attente && dernier) {
+        // une vraie question passe avant tout : « … sur WhatsApp, il peut encore me nuire ? » n'est pas une réponse
+        if (SPACE_FON && fr.length > 20 && estQuestion(fr)) { moi(); return converser(fr) }
         if (attente.type === "expediteur") {
             const choix = deviner(t)
             if (choix) { moi(); return choisirExpediteur(choix, fr) }
@@ -652,7 +712,8 @@ async function envoyer(brut) {
     // 2. question de suivi sur le dernier message
     if (dernier && fr.length < 70) {
         const intention = lireIntention(t)
-        if (intention) { attente = null; moi(); return repondreIntention(intention) }
+        const libre = SPACE_FON && fr.length > 25 && (intention === "pourquoi" || intention === "faire")
+        if (intention && !libre) { attente = null; moi(); return repondreIntention(intention) }
     }
     // 3. salutation
     if (fr.length < 25 && /^(bonjour|bonsoir|salut|hello|coucou|bjr|bsr|slt|yo)\b/.test(t)) {
@@ -662,7 +723,9 @@ async function envoyer(brut) {
         piloter({ emotion: "joyeux", bulle: "Bonjour !" })
         return
     }
-    // 4. nouveau message à vérifier
+    // 4. une question posée à KORA : l'assistant répond librement
+    if (SPACE_FON && estQuestion(fr)) { moi(); return converser(fr) }
+    // 5. sinon, c'est un message reçu à vérifier
     analyserMessage(fr, { deja: affiche, original: affiche ? texte : null })
 }
 
@@ -690,6 +753,7 @@ for (const [titre, texte] of EXEMPLES) {
 $("nouveau").addEventListener("click", () => {
     attente = null
     dernier = null
+    historique = []
     for (const n of [...fil.children]) if (n.id !== "accueil") n.remove()
     $("accueil").hidden = false
     app.classList.remove("actif")

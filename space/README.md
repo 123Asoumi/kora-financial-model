@@ -6,21 +6,22 @@ colorTo: gray
 sdk: gradio
 sdk_version: 5.49.1
 app_file: app.py
+python_version: "3.12"
 pinned: false
 license: cc-by-nc-4.0
-short_description: Traduction fon ⇄ français pour l'anti-arnaque KORA
+short_description: Traduction fon et discussion pour l'anti-arnaque KORA
 ---
 
-# KORA — traduction fon
+# KORA — service fon et discussion
 
-Service utilisé par l'application KORA (https://kora-0-01.vercel.app) pour comprendre un
-message écrit **en fon** et **répondre en fon**.
+Service utilisé par l'application KORA (https://kora-0-01.vercel.app).
 
-- `/traduire` (texte, sens) : une phrase par ligne, toutes traduites en un seul passage sur le GPU.
+- `/traduire` (texte, sens) : une phrase par ligne, toutes traduites en un seul passage GPU.
   - français → fon : `nellaw/nllb-fongbe-french-translation` (affiné pour ce sens uniquement)
-  - fon → français : `facebook/nllb-200-distilled-1.3B` (le modèle de nellaw ne sait pas faire ce sens)
+  - fon → français : `facebook/nllb-200-distilled-1.3B`
+- `/discuter` (question, contexte, historique) : l'assistant de KORA (`Qwen/Qwen3-4B-Instruct-2507`, Apache 2.0)
+  répond aux questions. Le verdict « arnaque ou pas » vient toujours du modèle KORA-lite, sur le téléphone.
 
-L'entraînement de l'oreille fon (reconnaissance vocale) sur les données **J'aime Ma Langue**
-reste dans le dépôt GitHub (notebooks 3 et 5).
+L'entraînement de l'oreille fon sur les données **J'aime Ma Langue** est dans le dépôt GitHub (notebooks 3 et 5).
 
-Licences : modèles de traduction CC-BY-NC-4.0 (usage de démonstration, non commercial).
+Licences : traducteurs CC-BY-NC-4.0 (démonstration, non commercial) ; Qwen3 Apache 2.0.
