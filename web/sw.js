@@ -1,6 +1,6 @@
 // Service worker : KORA fonctionne hors ligne une fois ouverte une première fois.
-const CACHE = "kora-v6"
-const LOCAL = ["./", "index.html", "app.js", "kora-engine.js", "config.js", "kora_lite.json", "fon.json", "mascotte.html", "manifest.webmanifest", "icone-192.png", "icone-512.png"]
+const CACHE = "kora-v7"
+const LOCAL = ["./", "index.html", "app.js", "kora-engine.js", "phrases.js", "config.js", "kora_lite.json", "fon.json", "mascotte.html", "manifest.webmanifest", "icone-192.png", "icone-512.png"]
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(LOCAL)).then(() => self.skipWaiting())))
 self.addEventListener("activate", (e) => e.waitUntil(
     caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())))

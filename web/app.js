@@ -1,5 +1,8 @@
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
+import {
+    STATUTS, PH, ETAPES_URGENCE, PUCES_EXPEDITEUR, PUCES_PREMIER, PUCES_REPONDRE, PUCES_SUITE, toutesLesPhrases,
+} from "./phrases.js"
 
 const $ = (id) => document.getElementById(id)
 const app = $("app")
@@ -8,12 +11,11 @@ const saisie = $("saisie")
 const mascotte = $("mascotte")
 
 let kora = null
-let fonHumain = { titres: {}, conseils: {} }
+let fonHumain = {} // traductions humaines : phrase française → phrase en fon (fon.json)
 let langue = "fr"
 let attente = null // question en cours : { type: "expediteur" | "nom" | "repondre" | "premier" }
-let dernier = null // dernier message analysé : { texte, original, ctx, r, niveau1, enFon }
+let dernier = null // dernier message analysé : { texte, original, ctx, r, niveau1 }
 
-const STATUTS = { arnaque: "Arnaque probable", suspect: "Message suspect", sur: "Pas de signe d'arnaque" }
 const BULLES = { arnaque: "Eh!! Eyon l'arnaque c'est pas bien", suspect: "Méfie-toi…", sur: "Ça a l'air normal." }
 const COULEURS = { arnaque: "var(--alerte)", suspect: "var(--mefiance)", sur: "var(--sur)" }
 const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@6/dist/tesseract.esm.min.js"
@@ -32,6 +34,7 @@ const echapper = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches
 const pause = (ms) => new Promise((ok) => setTimeout(ok, calme() ? 0 : ms))
 const tactile = () => matchMedia("(pointer: coarse)").matches
+const modeFon = () => langue === "fon"
 function el(tag, classe) { const e = document.createElement(tag); if (classe) e.className = classe; return e }
 function memoire(cle, valeur) {
     try { if (valeur === undefined) return localStorage.getItem(cle); localStorage.setItem(cle, valeur) } catch (_) { return null }
@@ -74,7 +77,9 @@ const pret = fetch("kora_lite.json")
     .then((r) => { if (!r.ok) throw new Error(); return r.json() })
     .then((m) => (kora = new Kora(m)))
     .catch(() => null)
-fetch("fon.json").then((r) => r.json()).then((j) => (fonHumain = j)).catch(() => {})
+fetch("fon.json").then((r) => r.json()).then((j) => {
+    for (const [fr, fon] of Object.entries(j.phrases || {})) if (fon && fon.trim()) fonHumain[fr] = fon.trim()
+}).catch(() => {})
 
 pret.then(async () => {
     clearInterval(minuteur)
@@ -121,7 +126,6 @@ function revoirOnboarding() {
 $("onb-suivant").addEventListener("click", () => (etapeOnb < etapesOnb.length - 1 ? montrerEtape(etapeOnb + 1) : finirOnboarding()))
 $("onb-passer").addEventListener("click", finirOnboarding)
 {
-    // balayage horizontal
     let x0 = null
     const fenetre = $("onb-fenetre")
     fenetre.addEventListener("pointerdown", (e) => { x0 = e.clientX })
@@ -133,7 +137,6 @@ $("onb-passer").addEventListener("click", finirOnboarding)
         if (dx > 50 && etapeOnb > 0) montrerEtape(etapeOnb - 1)
     })
 }
-
 function entrerDiscussion() {
     ecran("s-chat")
     app.classList.remove("onb")
@@ -141,6 +144,66 @@ function entrerDiscussion() {
     piloter({ emotion: "content", bulle: "Montre-moi le message !" })
     if (!tactile()) setTimeout(() => saisie.focus(), 450)
 }
+
+/* ================= service fon : traduction ================= */
+let clientFon = null
+async function serviceFon() {
+    if (!SPACE_FON) throw new Error("fon désactivé")
+    if (clientFon) return clientFon
+    const { Client } = await import(GRADIO)
+    clientFon = await Client.connect(SPACE_FON)
+    return clientFon
+}
+async function traduire(texte, sens) {
+    const c = await serviceFon()
+    const r = await c.predict("/traduire", { texte, sens })
+    return String(r.data[0] ?? "")
+}
+
+// Phrases de KORA en fon : traduction humaine (fon.json) d'abord, sinon automatique, gardée en mémoire.
+const cacheFon = new Map()
+const fonDe = (fr) => fonHumain[fr] || cacheFon.get(fr) || null
+async function enFon(phrases) {
+    const manque = [...new Set(phrases.filter((p) => p && !fonDe(p)))]
+    for (let i = 0; i < manque.length; i += 14) {
+        const lot = manque.slice(i, i + 14)
+        const lignes = (await traduire(lot.join("\n"), "français→fon")).split("\n")
+        lot.forEach((p, k) => { const f = (lignes[k] || "").trim(); if (f) cacheFon.set(p, f) })
+    }
+    return phrases.map(fonDe)
+}
+let prechauffage = null
+function prechaufferFon() {
+    // traduit d'avance toutes les phrases de KORA, en tâche de fond
+    if (!prechauffage && kora) prechauffage = enFon(toutesLesPhrases(kora.m.regles)).catch(() => { prechauffage = null })
+    return prechauffage
+}
+
+// Repérer un message écrit en fon : lettres propres au fon, ou plusieurs mots fon sans mots français
+const LETTRES_FON = /[ɛɔɖƐƆƉ]/
+const MOTS_FON = /(?:^|[\s,.!?])(akw[eɛ]|gb[eɛ]|ny[eɛ]|xw[eé]|hwenu|w[eɛ]|ɖ[oò]|n[uǔú]|b[oɔ]|kp[oɔ]n|w[aá]|y[iì]|mi|ji|ganj[eɛ]|towe|nɔ|nyi)(?=$|[\s,.!?])/gi
+const MOTS_FR = /(?:^|[\s,.!?'])(le|la|les|de|des|du|et|est|vous|tu|je|un|une|pour|sur|votre|ton|mon|pas|que|qui|avec|ce|à|en)(?=$|[\s,.!?])/gi
+function estFon(t) {
+    if (LETTRES_FON.test(t)) return true
+    return (t.match(MOTS_FON) || []).length >= 3 && (t.match(MOTS_FR) || []).length <= 1
+}
+
+function majLangue() {
+    $("langue-txt").textContent = modeFon() ? "FON" : "FR"
+    $("langue").setAttribute("aria-pressed", String(modeFon()))
+    $("langue").title = modeFon() ? "Écrire en français" : "Écrire en fon"
+    saisie.placeholder = modeFon() ? "Message en fon…" : "Message reçu…"
+}
+function activerFon() {
+    langue = "fon"
+    majLangue()
+    serviceFon().then(prechaufferFon).catch(() => {})
+}
+$("langue").addEventListener("click", () => {
+    if (modeFon()) { langue = "fr"; majLangue(); piloter({ emotion: "content", bulle: "On parle français." }) }
+    else { activerFon(); piloter({ emotion: "joyeux", bulle: "On parle fon !" }) }
+    saisie.focus()
+})
 
 /* ================= fil de discussion ================= */
 function passerActif() {
@@ -170,9 +233,20 @@ function msgKora() {
     defiler()
     return d.querySelector(".corps")
 }
-function dire(corps, texte, classe = "") {
+// Écrit une phrase de KORA. En mode fon : le fon en grand, le français en petit dessous.
+function bilingue(noeud, texte, traduire = true) {
+    if (!modeFon() || !traduire) { noeud.textContent = texte; return }
+    noeud.innerHTML = `<span class="fon"></span><span class="fr"></span>`
+    noeud.querySelector(".fr").textContent = texte
+    const zone = noeud.querySelector(".fon")
+    const deja = fonDe(texte)
+    if (deja) { zone.textContent = deja; return }
+    zone.textContent = "…"
+    enFon([texte]).then(([f]) => { if (f) zone.textContent = f; else zone.remove() }).catch(() => zone.remove())
+}
+function dire(corps, texte, { classe = "", traduire = true } = {}) {
     const p = el("p", `texte ${classe}`.trim())
-    p.textContent = texte
+    bilingue(p, texte, traduire)
     corps.append(p)
     defiler()
     return p
@@ -186,6 +260,7 @@ function reflechir(corps) {
     defiler()
     return t
 }
+// Réponses rapides. Le choix reçoit (valeur, libellé affiché, libellé français).
 function puces(corps, liste, choisir) {
     retirerPuces()
     const zone = el("div", "puces")
@@ -193,8 +268,10 @@ function puces(corps, liste, choisir) {
     for (const [label, valeur] of liste) {
         const b = el("button")
         b.type = "button"
-        b.textContent = label
-        b.addEventListener("click", () => { retirerPuces(); choisir(valeur, label) })
+        const affiche = (modeFon() && fonDe(label)) || label
+        b.textContent = affiche
+        if (affiche !== label) b.title = label
+        b.addEventListener("click", () => { retirerPuces(); choisir(valeur, affiche, label) })
         zone.append(b)
     }
     corps.append(zone)
@@ -205,23 +282,11 @@ function retirerPuces() {
     if (z) { z.classList.add("fini"); z.removeAttribute("id") }
 }
 
-/* ================= service fon (traduction) ================= */
-let clientFon = null
-async function serviceFon() {
-    if (!SPACE_FON) throw new Error("fon désactivé")
-    if (clientFon) return clientFon
-    const { Client } = await import(GRADIO)
-    clientFon = await Client.connect(SPACE_FON)
-    return clientFon
-}
-async function traduire(texte, sens) {
-    const c = await serviceFon()
-    const r = await c.predict("/traduire", { texte, sens })
-    return r.data[0]
-}
-
 /* ================= carte de verdict ================= */
-function carteVerdict(corps, r, { enFon = false, maj = false } = {}) {
+function phrasesCarte(r) {
+    return [STATUTS[r.niveau], r.niveau === "sur" ? PH.normal : r.type, ...r.raisons, ...r.indices.map((x) => x.texte), r.conseil]
+}
+function carteVerdict(corps, r, { maj = false } = {}) {
     const pct = Math.round(r.risque * 100)
     const pctTexte = Math.round(r.risqueTexte * 100)
     const art = el("article", "verdict")
@@ -230,16 +295,16 @@ function carteVerdict(corps, r, { enFon = false, maj = false } = {}) {
         `<div class="proba"><span>${echapper(kora.m.regles.noms[c])}</span><i><b style="width:${(r.probas[c] * 100).toFixed(1)}%"></b></i><span>${Math.round(r.probas[c] * 100)} %</span></div>`).join("")
     art.innerHTML = `
       <span class="statut">${STATUTS[r.niveau]} · ${pct} %</span>
-      <h2>${r.niveau === "sur" ? "Ça ressemble à un message normal" : echapper(r.type)}</h2>
+      <h2>${echapper(r.niveau === "sur" ? PH.normal : r.type)}</h2>
+      <div class="fon-bloc" hidden></div>
       <div class="jauge" role="img" aria-label="Risque estimé : ${pct} %"><span></span><span></span><span></span><div class="curseur"></div></div>
       <div class="jauge-legende"><span>Normal</span><span>Arnaque</span></div>
       ${maj && pct !== pctTexte ? `<p class="deux-risques">Le texte seul : ${pctTexte} %. Avec ce que tu m'as dit de l'expéditeur : ${pct} %.</p>` : ""}
       ${r.raisons.length ? `<h3>Pourquoi</h3><ul>${r.raisons.map((x) => `<li>${echapper(x)}</li>`).join("")}</ul>` : ""}
       ${r.indices.length ? `<h3>Qui l'envoie</h3><ul class="indices">${r.indices.map((x) => `<li><span aria-hidden="true">${x.sens === "danger" ? "⚠️" : "✅"}</span><span>${echapper(x.texte)}</span></li>`).join("")}</ul>` : ""}
       <p class="conseil"><b>Que faire :</b> ${echapper(r.conseil)}</p>
-      <div class="fon-bloc" hidden></div>
       <div class="actions">
-        ${SPACE_FON ? `<button type="button" data-a="fon">Voir en fon</button>` : ""}
+        ${SPACE_FON && !modeFon() ? `<button type="button" data-a="fon">Voir en fon</button>` : ""}
         ${r.niveau === "sur" ? "" : `<button type="button" class="discret" data-a="partager">Prévenir un proche</button>`}
       </div>
       <details class="curieux"><summary>Comment KORA a décidé</summary>
@@ -259,24 +324,22 @@ function carteVerdict(corps, r, { enFon = false, maj = false } = {}) {
             else { await navigator.clipboard.writeText(msg); e.currentTarget.textContent = "Alerte copiée" }
         } catch (_) {}
     })
-    if (enFon) afficherFon(r, art.querySelector(".fon-bloc"), boutonFon)
+    // en mode fon, le verdict est d'abord dit en fon, en haut de la carte
+    if (modeFon()) afficherFon(r, art.querySelector(".fon-bloc"))
     defiler()
     return art
 }
-
 async function afficherFon(r, zone, bouton) {
     if (zone.dataset.fait) { zone.hidden = false; return }
     zone.hidden = false
     zone.innerHTML = `<b>Fɔngbe</b>Traduction en fon… (la première fois, jusqu'à une minute)`
     if (bouton) bouton.disabled = true
     try {
-        const titre = fonHumain.titres?.[r.niveau]
-        const conseil = fonHumain.conseils?.[r.categorie]
-        const fon = titre && conseil
-            ? `${titre}. ${conseil}`
-            : await traduire([STATUTS[r.niveau], ...(r.raisons || []), `Que faire : ${r.conseil}`].join(" "), "français→fon")
-        zone.innerHTML = `<b>Fɔngbe</b>${echapper(fon)}`
+        const lignes = (await enFon(phrasesCarte(r))).filter(Boolean)
+        if (!lignes.length) throw new Error("vide")
+        zone.innerHTML = `<b>Fɔngbe</b>${lignes.map((l) => `<p>${echapper(l)}</p>`).join("")}`
         zone.dataset.fait = "1"
+        if (bouton) bouton.remove()
         defiler()
     } catch (_) {
         zone.innerHTML = `<b>Fɔngbe</b>Le service fon ne répond pas pour le moment. Réessaie dans une minute.`
@@ -285,50 +348,29 @@ async function afficherFon(r, zone, bouton) {
 }
 
 /* ================= analyse d'un nouveau message ================= */
-const QUESTION_EXPEDITEUR = [
-    ["Un nom (MTN, MobileMoney…)", "nom"],
-    ["Un numéro de téléphone", "numero"],
-    ["Sur WhatsApp", "whatsapp"],
-    ["Un proche", "proche"],
-    ["Je ne sais pas", "nsp"],
-]
-
-async function analyserMessage(texte, { deja = false, francais = false } = {}) {
+async function analyserMessage(texte, { deja = false, original = null } = {}) {
     attente = null
     retirerPuces()
-    const enFonSaisi = langue === "fon" && !francais
-    if (!deja) msgMoi(texte, { petit: enFonSaisi ? "Fɔngbe" : "" })
+    if (!deja) msgMoi(texte)
     const corps = msgKora()
     const tape = reflechir(corps)
     piloter({ emotion: "surpris", bulle: "Je regarde…" })
 
-    let fr = texte
-    let original = null
-    if (enFonSaisi) {
-        try { fr = await traduire(texte, "fon→français"); original = texte }
-        catch (_) {
-            tape.remove()
-            dire(corps, "Le service fon ne répond pas pour le moment (il se réveille parfois en une minute). Réessaie, ou écris le message en français.")
-            piloter({ emotion: "triste", bulle: "" })
-            return
-        }
-    }
-    await pause(650)
+    const ctx = { expediteur: "", canal: "", repondre: "", premier: "" }
+    const r = kora.analyserComplet(texte, ctx)
+    dernier = { texte, original, ctx, r, niveau1: r.niveau }
+    const question = r.niveau === "sur" ? PH.qExpediteurSur : PH.qExpediteur
+    // en mode fon, on traduit tout le tour d'un seul coup avant de répondre
+    if (modeFon()) await enFon([...phrasesCarte(r), question, ...PUCES_EXPEDITEUR.map(([l]) => l)]).catch(() => {})
+    else await pause(650)
     tape.remove()
 
-    const ctx = { expediteur: "", canal: "", repondre: "", premier: "" }
-    const r = kora.analyserComplet(fr, ctx)
-    dernier = { texte: fr, original, ctx, r, niveau1: r.niveau }
-    if (original) dire(corps, `J'ai compris : « ${fr} »`, "traduit")
-    carteVerdict(corps, r, { enFon: Boolean(original) })
+    carteVerdict(corps, r)
     piloter({ emotion: r.emotion, bulle: BULLES[r.niveau], gratter: r.niveau === "sur" })
-
-    await pause(450)
-    dire(corps, r.niveau === "sur"
-        ? "Pour en être sûr : qui t'a envoyé ce message ?"
-        : "Pour savoir si c'est le vrai opérateur ou quelqu'un qui prend son nom : qui t'a envoyé ce message ?")
+    await pause(400)
+    dire(corps, question)
     attente = { type: "expediteur" }
-    puces(corps, QUESTION_EXPEDITEUR, (v, label) => { msgMoi(label); choisirExpediteur(v, label) })
+    puces(corps, PUCES_EXPEDITEUR, (v, affiche, fr) => { msgMoi(affiche); choisirExpediteur(v, fr) })
 }
 
 /* ================= questions sur l'expéditeur ================= */
@@ -336,7 +378,8 @@ const OPERATEUR = /mobile ?money|momo|mtn|moov|celtiis|wave|flooz|banque|ecobank
 
 function deviner(t) {
     if (/sais pas|aucune id[ée]e|je ne sais/.test(t)) return "nsp"
-    if (/proche|\bami\b|amie|famille|fr[eè]re|s[oœ]eur|maman|papa|cousin|tante|oncle|coll[eè]gue|mon mari|ma femme|je (le|la) connais/.test(t)) return "proche"
+    if (/(ne|n')\s*(le|la|l'|les)?\s*connais (pas|point)|connais pas|inconnu|jamais vu|premi[eè]re fois/.test(t)) return "inconnu"
+    if (/proche|\bami\b|amie|famille|fr[eè]re|s[oœ]eur|maman|papa|m[eè]re|p[eè]re|cousin|tante|oncle|coll[eè]gue|mon mari|ma femme|je (le|la) connais/.test(t)) return "proche"
     if (/whats ?app|\bwa\b/.test(t)) return "whatsapp"
     if ((t.match(/\d/g) || []).length >= 7 || /num[ée]ro/.test(t)) return "numero"
     if (t.length <= 40 && (/\bnom\b/.test(t) || OPERATEUR.test(t))) return "nom"
@@ -347,73 +390,84 @@ function ouiNon(t) {
     if (/sais pas|je ne sais|peut-[êe]tre/.test(t)) return ""
     if (/premi[eè]re/.test(t)) return "oui"
     if (/\b(non|nan|no|jamais|connais)\b/.test(t)) return "non"
-    if (/\b(oui|ouais|yes|bien s[uû]r|exact)\b/.test(t)) return "oui"
+    if (/\b(oui|ouais|yes|bien s[uû]r|exact|en effet)\b/.test(t)) return "oui"
     return null
+}
+async function nouveauTour(phrases = []) {
+    const corps = msgKora()
+    const tape = reflechir(corps)
+    if (modeFon() && phrases.length) await enFon(phrases).catch(() => {})
+    else await pause(400)
+    tape.remove()
+    return corps
 }
 
 async function choisirExpediteur(choix, texte) {
     const ctx = dernier.ctx
-    const corps = msgKora()
-    const tape = reflechir(corps)
-    await pause(400)
-    tape.remove()
     if (choix === "nsp") {
         attente = null
-        dire(corps, "D'accord. Dans le doute, garde ce réflexe : ne donne jamais ton code secret, et vérifie auprès du service client officiel avant d'envoyer de l'argent.")
+        const corps = await nouveauTour([PH.nsp, ...PUCES_SUITE.map(([l]) => l)])
+        dire(corps, PH.nsp)
         return suite(corps)
     }
-    if (choix === "proche") { ctx.premier = "non"; return reAnalyser(corps) }
-    if (choix === "appel") { ctx.canal = "appel"; ctx.repondre = "oui"; return reAnalyser(corps) }
+    if (choix === "proche") { ctx.premier = "non"; return reAnalyser() }
+    if (choix === "inconnu") { ctx.premier = "oui"; return reAnalyser() }
+    if (choix === "appel") { ctx.canal = "appel"; ctx.repondre = "oui"; return reAnalyser() }
     if (choix === "numero") {
-        const tape2 = (texte.match(/\+?\d[\d\s.-]{6,}\d/) || [])[0]
-        ctx.expediteur = tape2 ? tape2.trim() : "+229 01 00 00 00 00"
+        const numero = (texte.match(/\+?\d[\d\s.-]{6,}\d/) || [])[0]
+        ctx.expediteur = numero ? numero.trim() : "+229 01 00 00 00 00"
         ctx.canal = ctx.canal || "sms"
-        return reAnalyser(corps)
+        return reAnalyser()
     }
     if (choix === "whatsapp") {
         ctx.canal = "whatsapp"
         ctx.repondre = "oui"
         attente = { type: "premier" }
-        dire(corps, "C'est la première fois que cette personne t'écrit ?")
-        return puces(corps, [["Oui, la première fois", "oui"], ["Non, je la connais", "non"], ["Je ne sais pas", ""]], (v, l) => { msgMoi(l); finirQuestion("premier", v) })
+        const corps = await nouveauTour([PH.qPremier, ...PUCES_PREMIER.map(([l]) => l)])
+        dire(corps, PH.qPremier)
+        return puces(corps, PUCES_PREMIER, (v, affiche) => { msgMoi(affiche); finirQuestion("premier", v) })
     }
     if (choix === "nom") {
         const nom = /^(un nom|nom)\b/i.test(texte.trim()) ? "" : texte.trim()
-        if (nom) return demanderReponse(corps, nom)
+        if (nom) return demanderReponse(nom)
         attente = { type: "nom" }
-        dire(corps, "Quel nom s'affiche comme expéditeur ?")
-        return puces(corps, [["MobileMoney", "MobileMoney"], ["MTN MoMo", "MTN MoMo"], ["Moov Money", "Moov Money"], ["Celtiis Cash", "Celtiis Cash"]], (v) => { msgMoi(v); choisirNom(v) })
+        const corps = await nouveauTour([PH.qNom])
+        dire(corps, PH.qNom)
+        return puces(corps, [["MobileMoney", "MobileMoney"], ["MTN MoMo", "MTN MoMo"], ["Moov Money", "Moov Money"], ["Celtiis Cash", "Celtiis Cash"]],
+            (v) => { msgMoi(v); demanderReponse(v) })
     }
 }
-async function choisirNom(nom) {
-    const corps = msgKora()
-    const tape = reflechir(corps)
-    await pause(350)
-    tape.remove()
-    demanderReponse(corps, nom)
-}
-function demanderReponse(corps, nom) {
+async function demanderReponse(nom) {
     dernier.ctx.expediteur = nom
     dernier.ctx.canal = dernier.ctx.canal || "sms"
     attente = { type: "repondre" }
-    dire(corps, "Peux-tu répondre à ce message ? Les vrais SMS automatiques des opérateurs ne permettent pas de répondre.")
-    puces(corps, [["Oui, je peux répondre", "oui"], ["Non", "non"], ["Je ne sais pas", ""]], (v, l) => { msgMoi(l); finirQuestion("repondre", v) })
+    const corps = await nouveauTour([PH.qRepondre, ...PUCES_REPONDRE.map(([l]) => l)])
+    dire(corps, PH.qRepondre)
+    puces(corps, PUCES_REPONDRE, (v, affiche) => { msgMoi(affiche); finirQuestion("repondre", v) })
 }
-async function finirQuestion(champ, valeur) {
+async function redemander() {
+    const listes = {
+        expediteur: [PUCES_EXPEDITEUR, (v, affiche, fr) => { msgMoi(affiche); choisirExpediteur(v, fr) }],
+        repondre: [PUCES_REPONDRE, (v, affiche) => { msgMoi(affiche); finirQuestion("repondre", v) }],
+        premier: [PUCES_PREMIER, (v, affiche) => { msgMoi(affiche); finirQuestion("premier", v) }],
+    }
+    const [liste, choisir] = listes[attente.type] || listes.expediteur
+    const corps = await nouveauTour([PH.pasCompris])
+    piloter({ emotion: "surpris", bulle: "Hein ?" })
+    dire(corps, PH.pasCompris)
+    puces(corps, liste, choisir)
+}
+function finirQuestion(champ, valeur) {
     dernier.ctx[champ] = valeur
-    const corps = msgKora()
-    reflechir(corps)
-    reAnalyser(corps)
+    reAnalyser()
 }
-async function reAnalyser(corps) {
+async function reAnalyser() {
     attente = null
-    const tape = corps.querySelector(".tape") || reflechir(corps)
-    await pause(500)
-    tape.remove()
     const r = kora.analyserComplet(dernier.texte, dernier.ctx)
-    const change = r.niveau !== dernier.niveau1
+    const intro = r.niveau !== dernier.niveau1 ? PH.change : PH.confirme
     dernier.r = r
-    dire(corps, change ? "Avec ce que tu m'as dit, mon avis change :" : "Avec ce que tu m'as dit, je confirme :")
+    const corps = await nouveauTour([intro, ...phrasesCarte(r), ...PUCES_SUITE.map(([l]) => l)])
+    dire(corps, intro)
     carteVerdict(corps, r, { maj: true })
     piloter({ emotion: r.emotion, bulle: BULLES[r.niveau], gratter: r.niveau === "sur" })
     await pause(300)
@@ -422,9 +476,9 @@ async function reAnalyser(corps) {
 
 /* ================= questions de suivi ================= */
 function suite(corps) {
-    const liste = [["J'ai déjà payé ou donné le code", "urgence"], ["Pourquoi ?", "pourquoi"], ["Que faire ?", "faire"]]
-    if (SPACE_FON) liste.push(["En fon", "fon"])
-    puces(corps, liste, (v, l) => { msgMoi(l); repondreIntention(v) })
+    const liste = [...PUCES_SUITE]
+    if (SPACE_FON && !modeFon()) liste.push(["En fon", "fon"])
+    puces(corps, liste, (v, affiche) => { msgMoi(affiche); repondreIntention(v) })
 }
 function lireIntention(t) {
     if (/(d[ée]j[àa]|j'ai) ?(pay|envoy|donn|transf|tap)|trop tard|donn[ée] (le|mon) code|j'ai pay/.test(t)) return "urgence"
@@ -436,35 +490,32 @@ function lireIntention(t) {
 }
 async function repondreIntention(type) {
     const r = dernier.r
-    const corps = msgKora()
-    const tape = reflechir(corps)
-    await pause(450)
-    tape.remove()
+    const raisons = [...r.raisons, ...r.indices.map((x) => x.texte)]
+    const aDire = {
+        urgence: [PH.urgence, ...ETAPES_URGENCE],
+        pourquoi: raisons.length ? raisons : [PH.aucun],
+        faire: [r.conseil],
+        merci: [PH.merci],
+        fon: [],
+    }[type]
+    const corps = await nouveauTour([...aDire, ...PUCES_SUITE.map(([l]) => l)])
     if (type === "urgence") {
         piloter({ emotion: "triste", bulle: "On agit vite." })
-        dire(corps, "Pas de panique, on agit vite :")
+        dire(corps, PH.urgence)
         const ol = el("ol", "etapes")
-        for (const etape of [
-            "Appelle tout de suite le service client officiel de ton opérateur (le numéro est sur son site ou sur ta puce) et demande de bloquer la transaction.",
-            "Change ton code secret Mobile Money.",
-            "Garde les captures et le numéro de l'escroc, puis porte plainte au commissariat ou auprès de la police chargée de la cybercriminalité.",
-            "Préviens tes proches : l'escroc peut les contacter en utilisant ton nom.",
-        ]) { const li = el("li"); li.textContent = etape; ol.append(li) }
+        for (const etape of ETAPES_URGENCE) { const li = el("li"); bilingue(li, etape); ol.append(li) }
         corps.append(ol)
         defiler()
-    } else if (type === "pourquoi") {
-        const tout = [...r.raisons, ...r.indices.map((x) => x.texte)]
-        dire(corps, tout.length ? tout.join(" ") : "Je n'ai trouvé aucun signe d'arnaque : pas de demande de code, pas d'argent à renvoyer, pas de lien piégé. Reste prudent quand même.")
-    } else if (type === "faire") {
-        dire(corps, r.conseil)
     } else if (type === "fon") {
         const bloc = el("div", "fon-bloc")
         corps.append(bloc)
         await afficherFon(r, bloc)
     } else if (type === "merci") {
         piloter({ emotion: "joyeux", bulle: "Avec plaisir !", gratter: true })
-        dire(corps, "Avec plaisir. Souviens-toi : ton code secret, c'est la clé de ta maison. Tu ne le donnes à personne. Envoie-moi un autre message quand tu veux.")
+        dire(corps, PH.merci)
         return
+    } else {
+        for (const phrase of aDire) dire(corps, phrase)
     }
     suite(corps)
 }
@@ -478,38 +529,68 @@ async function envoyer(brut) {
     await pret
     if (!kora) return
     retirerPuces()
-    const t = texte.toLowerCase()
+
+    // un message écrit en fon passe en mode fon tout seul
+    let annonceFon = false
+    if (!modeFon() && SPACE_FON && estFon(texte)) { activerFon(); annonceFon = true }
+
+    // en mode fon : on montre le message, puis on le traduit en français pour le comprendre
+    let fr = texte
+    let affiche = false
+    if (modeFon()) {
+        const bulleMoi = msgMoi(texte, { petit: "Fɔngbe" })
+        affiche = true
+        const corps = msgKora()
+        if (annonceFon) dire(corps, PH.fonActif, { traduire: false })
+        const tape = reflechir(corps)
+        piloter({ emotion: "surpris", bulle: "Je traduis le fon…" })
+        try {
+            fr = await traduire(texte, "fon→français")
+        } catch (_) {
+            tape.remove()
+            dire(corps, "Le service fon ne répond pas pour le moment (il se réveille parfois en une minute). Réessaie, ou écris en français.", { traduire: false })
+            piloter({ emotion: "triste", bulle: "" })
+            return
+        }
+        tape.remove()
+        if (!corps.children.length) corps.closest(".msg-kora").remove()
+        const trad = el("span", "petit")
+        trad.textContent = `Traduction : ${fr}`
+        bulleMoi.append(trad)
+        defiler()
+    }
+    const moi = () => { if (!affiche) msgMoi(texte) }
+    const t = fr.toLowerCase()
 
     // 1. réponse à une question de KORA
     if (attente && dernier) {
         if (attente.type === "expediteur") {
             const choix = deviner(t)
-            if (choix) { msgMoi(texte); return choisirExpediteur(choix, texte) }
-        } else if (attente.type === "nom" && texte.length <= 40) {
-            msgMoi(texte); return choisirNom(texte)
+            if (choix) { moi(); return choisirExpediteur(choix, fr) }
+        } else if (attente.type === "nom" && fr.length <= 40) {
+            moi(); return demanderReponse(fr)
         } else if (attente.type === "repondre" || attente.type === "premier") {
             const v = ouiNon(t)
-            if (v !== null) { msgMoi(texte); return finirQuestion(attente.type, v) }
+            if (v !== null) { moi(); return finirQuestion(attente.type, v) }
         }
+        // une réponse courte que KORA ne comprend pas : il repose sa question au lieu d'analyser
+        if (fr.length < 40 && !lireIntention(t)) { moi(); return redemander() }
     }
     // 2. question de suivi sur le dernier message
-    if (dernier && texte.length < 70) {
+    if (dernier && fr.length < 70) {
         const intention = lireIntention(t)
-        if (intention) { attente = null; msgMoi(texte); return repondreIntention(intention) }
+        if (intention) { attente = null; moi(); return repondreIntention(intention) }
     }
     // 3. salutation
-    if (texte.length < 25 && /^(bonjour|bonsoir|salut|hello|coucou|bjr|bsr|slt|yo)\b/.test(t)) {
-        msgMoi(texte)
-        const corps = msgKora()
-        const tape = reflechir(corps)
-        await pause(450)
-        tape.remove()
-        dire(corps, "Bonjour ! Colle-moi le message qui te paraît louche (SMS, WhatsApp ou capture d'écran). Je te dis si c'est une arnaque.")
+    if (fr.length < 25 && /^(bonjour|bonsoir|salut|hello|coucou|bjr|bsr|slt|yo)\b/.test(t)) {
+        moi()
+        const corps = await nouveauTour([PH.salut])
+        dire(corps, PH.salut)
         piloter({ emotion: "joyeux", bulle: "Bonjour !" })
         return
     }
     // 4. nouveau message à vérifier
-    analyserMessage(texte)
+    analyserMessage(fr, { deja: affiche, original: affiche ? texte : null })
 }
 
 function ajusterSaisie() {
@@ -523,27 +604,12 @@ saisie.addEventListener("keydown", (e) => {
 })
 $("formulaire").addEventListener("submit", (e) => { e.preventDefault(); envoyer(saisie.value) })
 
-// langue du message
-$("langue").addEventListener("click", () => {
-    langue = langue === "fr" ? "fon" : "fr"
-    const b = $("langue")
-    $("langue-txt").textContent = langue === "fon" ? "FON" : "FR"
-    b.setAttribute("aria-pressed", String(langue === "fon"))
-    b.title = langue === "fon" ? "Écrire en français" : "Écrire en fon"
-    saisie.placeholder = langue === "fon" ? "Message en fon…" : "Message reçu…"
-    if (langue === "fon") {
-        serviceFon().catch(() => {}) // réveille le service de traduction pendant que la personne écrit
-        piloter({ emotion: "joyeux", bulle: "On parle fon !" })
-    }
-    saisie.focus()
-})
-
 // exemples
 for (const [titre, texte] of EXEMPLES) {
     const b = el("button")
     b.type = "button"
     b.innerHTML = `<b>${echapper(titre)}</b><span>${echapper(texte)}</span>`
-    b.addEventListener("click", async () => { await pret; if (kora) analyserMessage(texte, { francais: true }) })
+    b.addEventListener("click", async () => { await pret; if (kora) analyserMessage(texte) })
     $("suggestions").append(b)
 }
 
@@ -568,7 +634,7 @@ async function lireImage(fichier) {
     attente = null
     msgMoi("", { image: URL.createObjectURL(fichier), petit: "Capture d'écran" })
     const corps = msgKora()
-    const etat = dire(corps, "Je lis la capture…", "doux")
+    const etat = dire(corps, "Je lis la capture…", { classe: "doux", traduire: false })
     const tape = reflechir(corps)
     piloter({ emotion: "surpris", bulle: "Je lis la capture…" })
     try {
@@ -588,7 +654,7 @@ async function lireImage(fichier) {
             return
         }
         etat.textContent = `J'ai lu : « ${texte.length > 240 ? `${texte.slice(0, 240)}…` : texte} »`
-        analyserMessage(texte, { deja: true, francais: true })
+        analyserMessage(texte, { deja: true })
     } catch (_) {
         tape.remove()
         etat.textContent = "La lecture de l'image a échoué. Vérifie ta connexion, ou copie le message ici."

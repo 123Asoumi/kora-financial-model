@@ -105,6 +105,18 @@ export class Kora {
 // Le même texte peut être vrai ou faux selon qui l'envoie. Ces règles sont
 // transparentes : chaque indice est affiché à l'utilisateur.
 // ---------------------------------------------------------------------------
+export const INDICES = {
+    transaction_numero: "Ce message imite un SMS de transaction, mais il vient d'un numéro ordinaire. Les vrais SMS de dépôt viennent de l'expéditeur officiel (un nom comme « MobileMoney »), jamais d'un numéro.",
+    operateur_numero: "La personne se présente comme un opérateur ou une banque, mais écrit depuis un numéro de téléphone ordinaire.",
+    appel: "Un opérateur ne t'appelle jamais pour te demander un code, ton PIN ou de l'argent.",
+    whatsapp: "Un opérateur ne te demande jamais un code ou de l'argent sur WhatsApp. N'importe qui peut prendre le nom « MTN » ou « Moov » sur WhatsApp.",
+    repondre: "Tu peux répondre à ce message : les vrais SMS automatiques des opérateurs ne permettent pas de répondre.",
+    premier: "C'est la première fois que cette personne te contacte, et elle te demande quelque chose.",
+    faux_nom: "L'expéditeur ressemble à un expéditeur officiel, mais un vrai opérateur ne t'envoie pas de lien et ne te demande jamais ton code. Les faux noms d'expéditeur existent.",
+    officiel: "Il vient d'un expéditeur officiel (un nom, et tu ne peux pas y répondre) : c'est typique d'un vrai SMS d'opérateur.",
+    proche: "Tu connais déjà cette personne. Attention quand même : un compte d'un proche peut être piraté. S'il te demande de l'argent en urgence, appelle-le pour vérifier.",
+}
+
 const OPERATEURS = /(mtn|momo|mobile ?money|moov|flooz|celtiis|wave|ecobank|\bboa\b|orabank|\buba\b|nsia|coris|banque|service client)/i
 const FORMAT_TRANSACTION = /(vous avez|tu as) re[çc]u|transfert re[çc]u|d[ée]p[ôo]t (de|effectu)|nouveau solde|solde (actuel|disponible)/i
 const DEMANDE = /(code|pin|otp|mot de passe)|(envoie|envoyez|renvoie|renvoyez|retourne|payez|paye|d[ée]pose)/i
@@ -135,30 +147,30 @@ export function analyserContexte(texte, risqueTexte, ctx = {}) {
     const danger = (poids, texteIndice) => { survie *= 1 - poids; indices.push({ texte: texteIndice, sens: "danger" }) }
 
     if (type === "numero" && formatTransaction)
-        danger(0.75, "Ce message imite un SMS de transaction, mais il vient d'un numéro ordinaire. Les vrais SMS de dépôt viennent de l'expéditeur officiel (un nom comme « MobileMoney »), jamais d'un numéro.")
+        danger(0.75, INDICES.transaction_numero)
     else if (type === "numero" && seDitOperateur)
-        danger(0.6, "La personne se présente comme un opérateur ou une banque, mais écrit depuis un numéro de téléphone ordinaire.")
+        danger(0.6, INDICES.operateur_numero)
     if ((canal === "whatsapp" || canal === "appel") && seDitOperateur && demande)
         danger(0.55, canal === "appel"
-            ? "Un opérateur ne t'appelle jamais pour te demander un code, ton PIN ou de l'argent."
-            : "Un opérateur ne te demande jamais un code ou de l'argent sur WhatsApp. N'importe qui peut prendre le nom « MTN » ou « Moov » sur WhatsApp.")
+            ? INDICES.appel
+            : INDICES.whatsapp)
     if (ctx.repondre === "oui" && (formatTransaction || nomOperateur))
-        danger(0.4, "Tu peux répondre à ce message : les vrais SMS automatiques des opérateurs ne permettent pas de répondre.")
+        danger(0.4, INDICES.repondre)
     if (ctx.premier === "oui" && (demande || risqueTexte >= 0.3))
-        danger(0.3, "C'est la première fois que cette personne te contacte, et elle te demande quelque chose.")
+        danger(0.3, INDICES.premier)
 
     let risque = 1 - survie
     const aucunDanger = indices.length === 0
     if (aucunDanger && type === "nom" && nomOperateur && canal === "sms" && ctx.repondre === "non") {
         if (/\blien\b|https?:|www\.|\.(xyz|top|site|online|click|link)\b|code|pin/i.test(t) && risqueTexte >= 0.5)
-            indices.push({ texte: "L'expéditeur ressemble à un expéditeur officiel, mais un vrai opérateur ne t'envoie pas de lien et ne te demande jamais ton code. Les faux noms d'expéditeur existent.", sens: "danger" })
+            indices.push({ texte: INDICES.faux_nom, sens: "danger" })
         else {
             risque *= 0.4
-            indices.push({ texte: "Il vient d'un expéditeur officiel (un nom, et tu ne peux pas y répondre) : c'est typique d'un vrai SMS d'opérateur.", sens: "rassure" })
+            indices.push({ texte: INDICES.officiel, sens: "rassure" })
         }
     } else if (aucunDanger && ctx.premier === "non" && !seDitOperateur) {
         risque *= 0.8
-        indices.push({ texte: "Tu connais déjà cette personne. Attention quand même : un compte d'un proche peut être piraté. S'il te demande de l'argent en urgence, appelle-le pour vérifier.", sens: "rassure" })
+        indices.push({ texte: INDICES.proche, sens: "rassure" })
     }
     return { risque: Math.min(0.999, Math.max(0.001, risque)), indices, type }
 }
