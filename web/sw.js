@@ -1,11 +1,27 @@
 // Service worker : KORA fonctionne hors ligne une fois ouverte une première fois.
-const CACHE = "kora-v7"
+const CACHE = "kora-v8"
+const PARTAGE = "kora-partage"
 const LOCAL = ["./", "index.html", "app.js", "kora-engine.js", "phrases.js", "config.js", "kora_lite.json", "fon.json", "mascotte.html", "manifest.webmanifest", "icone-192.png", "icone-512.png"]
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(LOCAL)).then(() => self.skipWaiting())))
 self.addEventListener("activate", (e) => e.waitUntil(
-    caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())))
+    caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE && k !== PARTAGE).map((k) => caches.delete(k)))).then(() => self.clients.claim())))
 self.addEventListener("fetch", (e) => {
     const url = new URL(e.request.url)
+    // « Partager → KORA » depuis une autre appli : on range l'image ou le texte, puis on ouvre KORA
+    if (e.request.method === "POST" && url.origin === location.origin && url.pathname.endsWith("/partage")) {
+        e.respondWith((async () => {
+            try {
+                const donnees = await e.request.formData()
+                const boite = await caches.open(PARTAGE)
+                const image = donnees.get("image")
+                const texte = ["title", "text", "url"].map((k) => donnees.get(k)).filter(Boolean).join("\n")
+                if (image && image.size) await boite.put("image", new Response(image, { headers: { "Content-Type": image.type || "image/png" } }))
+                else if (texte) await boite.put("texte", new Response(texte))
+            } catch (_) {}
+            return Response.redirect(new URL("./?partage=1", self.registration.scope).href, 303)
+        })())
+        return
+    }
     if (e.request.method !== "GET") return
     // le service fon (Hugging Face) n'est jamais mis en cache
     if (url.hostname.endsWith("hf.space") || url.hostname.endsWith("huggingface.co")) return

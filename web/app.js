@@ -64,7 +64,79 @@ function piloter({ emotion, bulle: texte, gratter } = {}) {
 function ecran(nom) {
     document.body.classList.remove("s-splash", "s-onb", "s-chat")
     document.body.classList.add(nom)
+    // en discussion, la mascotte devient une bulle ronde : on cadre son visage
+    envoyerMascotte({ cadre: nom === "s-chat" ? "tete" : "corps" })
+    if (nom === "s-chat") placerTete()
+    else fermerMenu()
 }
+
+/* ================= la bulle façon Messenger ================= */
+const TAILLE = 64
+let pos = null // { x: distance au bord gauche, y: distance au bas de l'écran }
+try { pos = JSON.parse(memoire("kora-bulle") || "null") } catch (_) { pos = null }
+const borne = (v, a, b) => Math.min(b, Math.max(a, v))
+function placerTete(coller = false) {
+    if (!pos) pos = { x: innerWidth - TAILLE - 8, y: 150 }
+    pos.y = borne(pos.y, 96, innerHeight - TAILLE - 80)
+    pos.x = borne(pos.x, 6, innerWidth - TAILLE - 6)
+    if (coller) pos.x = pos.x + TAILLE / 2 < innerWidth / 2 ? 8 : innerWidth - TAILLE - 8
+    const droite = pos.x + TAILLE / 2 >= innerWidth / 2
+    document.body.classList.toggle("cote-droit", droite)
+    document.body.classList.toggle("cote-gauche", !droite)
+    document.body.style.setProperty("--bx", `${pos.x}px`)
+    document.body.style.setProperty("--by", `${pos.y}px`)
+}
+{
+    const poignee = $("poignee")
+    let geste = null
+    poignee.addEventListener("pointerdown", (e) => {
+        geste = { x0: e.clientX, y0: e.clientY, x: pos.x, y: pos.y, bouge: false }
+        poignee.setPointerCapture(e.pointerId)
+    })
+    poignee.addEventListener("pointermove", (e) => {
+        if (!geste) return
+        const dx = e.clientX - geste.x0
+        const dy = e.clientY - geste.y0
+        if (!geste.bouge && Math.hypot(dx, dy) > 6) { geste.bouge = true; document.body.classList.add("glisse"); fermerMenu() }
+        if (geste.bouge) { pos.x = geste.x + dx; pos.y = geste.y - dy; placerTete() }
+    })
+    const fin = () => {
+        if (!geste) return
+        const bouge = geste.bouge
+        geste = null
+        document.body.classList.remove("glisse")
+        if (bouge) { placerTete(true); memoire("kora-bulle", JSON.stringify(pos)); envoyerMascotte({ emotion: "joyeux", gratter: true }) }
+        else basculerMenu()
+    }
+    poignee.addEventListener("pointerup", fin)
+    poignee.addEventListener("pointercancel", fin)
+    addEventListener("resize", () => { if (document.body.classList.contains("s-chat")) placerTete(true) })
+}
+function basculerMenu() {
+    const ouvert = document.body.classList.toggle("menu-ouvert")
+    $("poignee").setAttribute("aria-expanded", String(ouvert))
+    if (ouvert) { clearTimeout(effacerBulle); envoyerMascotte({ emotion: "surpris" }); $("menu-bulle").querySelector("button:not([hidden])")?.focus() }
+}
+function fermerMenu() {
+    document.body.classList.remove("menu-ouvert")
+    $("poignee")?.setAttribute("aria-expanded", "false")
+}
+document.addEventListener("pointerdown", (e) => {
+    if (document.body.classList.contains("menu-ouvert") && !e.target.closest("#menu-bulle, #poignee")) fermerMenu()
+})
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermerMenu() })
+if (navigator.mediaDevices?.getDisplayMedia && !matchMedia("(pointer: coarse)").matches)
+    $("menu-bulle").querySelector('[data-m="ecran"]').hidden = false
+$("menu-bulle").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-m]")
+    if (!b) return
+    fermerMenu()
+    const action = b.dataset.m
+    if (action === "capture") $("fichier").click()
+    else if (action === "ecran") partagerEcran()
+    else if (action === "ecrire") saisie.focus()
+    else if (action === "astuce") expliquerPartage()
+})
 piloter({ emotion: "joyeux", bulle: "Je me prépare…" })
 
 /* ================= chargement ================= */
@@ -92,7 +164,8 @@ pret.then(async () => {
     $("splash-etat").textContent = "Prêt."
     await new Promise((ok) => setTimeout(ok, Math.max(250, 1500 - (performance.now() - debut))))
     $("splash").classList.add("fini")
-    if (memoire("kora-onb")) entrerDiscussion()
+    const partage = new URLSearchParams(location.search).has("partage")
+    if (memoire("kora-onb") || partage) { entrerDiscussion(); if (partage) recevoirPartage() }
     else { ecran("s-onb"); montrerEtape(0) }
 })
 
@@ -626,13 +699,13 @@ $("nouveau").addEventListener("click", () => {
 
 /* ================= capture d'écran ================= */
 let ocr = null
-async function lireImage(fichier) {
+async function lireImage(fichier, etiquette = "Capture d'écran") {
     if (!fichier || !fichier.type.startsWith("image/")) return
     await pret
     if (!kora) return
     retirerPuces()
     attente = null
-    msgMoi("", { image: URL.createObjectURL(fichier), petit: "Capture d'écran" })
+    msgMoi("", { image: URL.createObjectURL(fichier), petit: etiquette })
     const corps = msgKora()
     const etat = dire(corps, "Je lis la capture…", { classe: "doux", traduire: false })
     const tape = reflechir(corps)
@@ -667,6 +740,56 @@ document.addEventListener("paste", (e) => {
     const img = [...(e.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"))
     if (img) { e.preventDefault(); lireImage(img.getAsFile()) }
 })
+
+/* ================= partager son écran (ordinateur) ================= */
+async function partagerEcran() {
+    let flux
+    try { flux = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false }) } catch (_) { return }
+    try {
+        const video = el("video")
+        video.muted = true
+        video.srcObject = flux
+        await video.play()
+        await new Promise((ok) => setTimeout(ok, 500))
+        const toile = el("canvas")
+        toile.width = video.videoWidth
+        toile.height = video.videoHeight
+        toile.getContext("2d").drawImage(video, 0, 0)
+        const image = await new Promise((ok) => toile.toBlob(ok, "image/png"))
+        if (image) lireImage(new File([image], "ecran.png", { type: "image/png" }), "Ce que tu m'as montré de ton écran")
+    } finally {
+        flux.getTracks().forEach((piste) => piste.stop())
+    }
+}
+
+/* ================= partager depuis une autre appli (Android, appli installée) ================= */
+async function expliquerPartage() {
+    const corps = await nouveauTour()
+    dire(corps, "Sur Android, installe KORA (bouton ⓘ en haut, puis « Installer l'appli »). Ensuite, depuis n'importe quelle appli : fais une capture d'écran du message, ou sélectionne son texte, appuie sur « Partager », puis choisis KORA. J'analyse tout de suite.", { traduire: false })
+    piloter({ emotion: "joyeux", bulle: "Partage-moi tes messages !" })
+}
+async function recevoirPartage() {
+    // le service worker a rangé ce qui a été partagé à KORA depuis une autre appli
+    if (!new URLSearchParams(location.search).has("partage") || !("caches" in window)) return false
+    history.replaceState(null, "", location.pathname)
+    try {
+        const boite = await caches.open("kora-partage")
+        const image = await boite.match("image")
+        const texte = await boite.match("texte")
+        await boite.delete("image")
+        await boite.delete("texte")
+        if (image) {
+            const blob = await image.blob()
+            lireImage(new File([blob], "partage.png", { type: blob.type || "image/png" }), "Partagé depuis une autre appli")
+            return true
+        }
+        if (texte) {
+            const contenu = (await texte.text()).trim()
+            if (contenu) { analyserMessage(contenu); return true }
+        }
+    } catch (_) {}
+    return false
+}
 
 /* ================= à propos ================= */
 function ouvrirApropos() { $("voile").hidden = false; $("fermer").focus() }
