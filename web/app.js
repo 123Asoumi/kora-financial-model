@@ -37,19 +37,32 @@ function memoire(cle, valeur) {
     try { if (valeur === undefined) return localStorage.getItem(cle); localStorage.setItem(cle, valeur) } catch (_) { return null }
 }
 
-/* ================= mascotte ================= */
+/* ================= mascotte (en bas à gauche de chaque écran) ================= */
 let mascottePrete = false
 let messageEnAttente = null
 let effacerBulle = 0
-mascotte.addEventListener("load", () => { mascottePrete = true; if (messageEnAttente) piloter(messageEnAttente) })
-function piloter(message) {
+const bulle = $("perso-bulle")
+mascotte.addEventListener("load", () => { mascottePrete = true; if (messageEnAttente) envoyerMascotte(messageEnAttente) })
+function envoyerMascotte(message) {
     if (!mascottePrete) { messageEnAttente = message; return }
     try { mascotte.contentWindow.postMessage({ kora: message }, "*") } catch (_) {}
-    // en discussion, la scène est petite : la bulle de la mascotte s'efface après quelques secondes
-    clearTimeout(effacerBulle)
-    if (message.bulle && app.classList.contains("actif"))
-        effacerBulle = setTimeout(() => { try { mascotte.contentWindow.postMessage({ kora: { bulle: "" } }, "*") } catch (_) {} }, 4500)
 }
+function piloter({ emotion, bulle: texte, gratter } = {}) {
+    // l'émotion va à la mascotte 3D ; la bulle est dessinée par la page, à côté d'elle
+    envoyerMascotte({ emotion, gratter, bulle: "" })
+    if (texte === undefined) return
+    clearTimeout(effacerBulle)
+    if (!texte) { bulle.classList.add("cachee"); return }
+    bulle.textContent = texte
+    bulle.classList.remove("cachee")
+    if (document.body.classList.contains("s-chat"))
+        effacerBulle = setTimeout(() => bulle.classList.add("cachee"), 4500)
+}
+function ecran(nom) {
+    document.body.classList.remove("s-splash", "s-onb", "s-chat")
+    document.body.classList.add(nom)
+}
+piloter({ emotion: "joyeux", bulle: "Je me prépare…" })
 
 /* ================= chargement ================= */
 const debut = performance.now()
@@ -73,9 +86,9 @@ pret.then(async () => {
     barre.style.width = "100%"
     $("splash-etat").textContent = "Prêt."
     await new Promise((ok) => setTimeout(ok, Math.max(250, 1500 - (performance.now() - debut))))
-    if (memoire("kora-onb")) entrerDiscussion()
-    else montrerEtape(0)
     $("splash").classList.add("fini")
+    if (memoire("kora-onb")) entrerDiscussion()
+    else { ecran("s-onb"); montrerEtape(0) }
 })
 
 /* ================= onboarding ================= */
@@ -94,7 +107,7 @@ function montrerEtape(i) {
 }
 function finirOnboarding() {
     memoire("kora-onb", "1")
-    if (etatAvantOnb === "actif") { app.classList.remove("onb"); app.classList.add("actif"); etatAvantOnb = null; piloter({ emotion: "content", bulle: "" }); return }
+    if (etatAvantOnb === "actif") { app.classList.remove("onb"); app.classList.add("actif"); etatAvantOnb = null; ecran("s-chat"); piloter({ emotion: "content", bulle: "" }); return }
     entrerDiscussion()
 }
 function revoirOnboarding() {
@@ -102,6 +115,7 @@ function revoirOnboarding() {
     etatAvantOnb = app.classList.contains("actif") ? "actif" : "vide"
     app.classList.remove("vide", "actif")
     app.classList.add("onb")
+    ecran("s-onb")
     montrerEtape(0)
 }
 $("onb-suivant").addEventListener("click", () => (etapeOnb < etapesOnb.length - 1 ? montrerEtape(etapeOnb + 1) : finirOnboarding()))
@@ -121,6 +135,7 @@ $("onb-passer").addEventListener("click", finirOnboarding)
 }
 
 function entrerDiscussion() {
+    ecran("s-chat")
     app.classList.remove("onb")
     if (!app.classList.contains("actif")) app.classList.add("vide")
     piloter({ emotion: "content", bulle: "Montre-moi le message !" })
@@ -150,7 +165,7 @@ function msgMoi(texte, { image, petit } = {}) {
 function msgKora() {
     passerActif()
     const d = el("div", "msg-kora")
-    d.innerHTML = `<span class="avatar" aria-hidden="true"></span><div class="corps"></div>`
+    d.innerHTML = `<div class="corps"></div>`
     fil.append(d)
     defiler()
     return d.querySelector(".corps")
@@ -512,7 +527,7 @@ $("formulaire").addEventListener("submit", (e) => { e.preventDefault(); envoyer(
 $("langue").addEventListener("click", () => {
     langue = langue === "fr" ? "fon" : "fr"
     const b = $("langue")
-    b.textContent = langue === "fon" ? "FON" : "FR"
+    $("langue-txt").textContent = langue === "fon" ? "FON" : "FR"
     b.setAttribute("aria-pressed", String(langue === "fon"))
     b.title = langue === "fon" ? "Écrire en français" : "Écrire en fon"
     saisie.placeholder = langue === "fon" ? "Message en fon…" : "Message reçu…"
