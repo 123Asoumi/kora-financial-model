@@ -4,8 +4,8 @@
   "description": "Repère les arnaques Mobile Money dans un SMS, un message ou une capture d'écran. Partage-lui un message depuis n'importe quelle appli.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0a0806",
-  "theme_color": "#0a0806",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "fr",
   "icons": [
     {

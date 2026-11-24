@@ -65,54 +65,11 @@ function piloter({ emotion, bulle: texte, gratter } = {}) {
 function ecran(nom) {
     document.body.classList.remove("s-splash", "s-onb", "s-chat")
     document.body.classList.add(nom)
-    // en discussion, la mascotte devient une bulle ronde : on cadre son visage
-    envoyerMascotte({ cadre: nom === "s-chat" ? "tete" : "corps" })
-    if (nom === "s-chat") placerTete()
-    else fermerMenu()
+    if (nom !== "s-chat") fermerMenu()
 }
 
-/* ================= la bulle façon Messenger ================= */
-const TAILLE = 64
-let pos = null // { x: distance au bord gauche, y: distance au bas de l'écran }
-try { pos = JSON.parse(memoire("kora-bulle") || "null") } catch (_) { pos = null }
-const borne = (v, a, b) => Math.min(b, Math.max(a, v))
-function placerTete(coller = false) {
-    if (!pos) pos = { x: innerWidth - TAILLE - 8, y: 150 }
-    pos.y = borne(pos.y, 96, innerHeight - TAILLE - 80)
-    pos.x = borne(pos.x, 6, innerWidth - TAILLE - 6)
-    if (coller) pos.x = pos.x + TAILLE / 2 < innerWidth / 2 ? 8 : innerWidth - TAILLE - 8
-    const droite = pos.x + TAILLE / 2 >= innerWidth / 2
-    document.body.classList.toggle("cote-droit", droite)
-    document.body.classList.toggle("cote-gauche", !droite)
-    document.body.style.setProperty("--bx", `${pos.x}px`)
-    document.body.style.setProperty("--by", `${pos.y}px`)
-}
-{
-    const poignee = $("poignee")
-    let geste = null
-    poignee.addEventListener("pointerdown", (e) => {
-        geste = { x0: e.clientX, y0: e.clientY, x: pos.x, y: pos.y, bouge: false }
-        poignee.setPointerCapture(e.pointerId)
-    })
-    poignee.addEventListener("pointermove", (e) => {
-        if (!geste) return
-        const dx = e.clientX - geste.x0
-        const dy = e.clientY - geste.y0
-        if (!geste.bouge && Math.hypot(dx, dy) > 6) { geste.bouge = true; document.body.classList.add("glisse"); fermerMenu() }
-        if (geste.bouge) { pos.x = geste.x + dx; pos.y = geste.y - dy; placerTete() }
-    })
-    const fin = () => {
-        if (!geste) return
-        const bouge = geste.bouge
-        geste = null
-        document.body.classList.remove("glisse")
-        if (bouge) { placerTete(true); memoire("kora-bulle", JSON.stringify(pos)); envoyerMascotte({ emotion: "joyeux", gratter: true }) }
-        else basculerMenu()
-    }
-    poignee.addEventListener("pointerup", fin)
-    poignee.addEventListener("pointercancel", fin)
-    addEventListener("resize", () => { if (document.body.classList.contains("s-chat")) placerTete(true) })
-}
+/* ================= le menu de la mascotte (la toucher l'ouvre) ================= */
+$("poignee").addEventListener("click", () => basculerMenu())
 function basculerMenu() {
     const ouvert = document.body.classList.toggle("menu-ouvert")
     $("poignee").setAttribute("aria-expanded", String(ouvert))

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>KORA — Vérifie un message avant de payer</title>
 <meta name="description" content="KORA repère les arnaques Mobile Money dans un SMS, un message ou une capture d'écran (français, fon) et t'explique quoi faire. L'analyse se fait sur ton téléphone.">
-<meta name="theme-color" content="#0a0806">
+<meta name="theme-color" content="#ffffff">
 <meta property="og:title" content="KORA — Vérifie un message avant de payer">
 <meta property="og:description" content="Envoie un SMS, un message ou une capture à KORA : il te dit si c'est une arnaque Mobile Money et quoi faire.">
 <meta property="og:image" content="https://kora-0-01.vercel.app/apercu.png">
@@ -20,10 +20,11 @@
 <style>
   /* Palette de la mascotte : bois de kora, peau crème, encre, sur fond noir */
   :root {
-    --noir: #0a0806;
-    --brun: #17110b;
-    --brun-2: #231a11;
-    --brun-3: #33261a;
+    --noir: #ffffff;
+    --brun: #f7f2ea;
+    --brun-2: #efe7da;
+    --brun-3: #e7dccb;
+    --titre: #1b2327;
     --bois: #c98543;
     --bois-clair: #e3a868;
     --bois-fonce: #8a5426;
@@ -32,10 +33,10 @@
     --alerte: #e5484d;
     --mefiance: #e8a23a;
     --sur: #3fb27f;
-    --texte: #f6e6c3;
-    --texte-doux: #b9a98c;
-    --discret: #8d7f66;
-    --ligne: rgba(246, 230, 195, .13);
+    --texte: #1b2327;
+    --texte-doux: #5d5244;
+    --discret: #84765f;
+    --ligne: rgba(27, 35, 39, .12);
     font-size: 17px;
   }
   * { box-sizing: border-box; }
@@ -52,7 +53,7 @@
   /* ---------- écran de chargement ---------- */
   .splash {
     position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
-    background: radial-gradient(640px 480px at 50% 42%, #24180c 0%, var(--noir) 72%);
+    background: radial-gradient(640px 480px at 50% 42%, #fbf1df 0%, var(--noir) 72%);
     transition: opacity .55s ease, visibility .55s;
   }
   .splash.fini { opacity: 0; visibility: hidden; }
@@ -60,7 +61,7 @@
   .cordes { display: flex; gap: 14px; height: 132px; margin-bottom: 8px; }
   .cordes i {
     display: block; width: 2px; border-radius: 2px;
-    background: linear-gradient(180deg, var(--creme) 0%, var(--bois) 100%);
+    background: linear-gradient(180deg, var(--bois-clair) 0%, var(--bois-fonce) 100%);
     animation: pince 2.2s ease-in-out infinite;
   }
   .cordes i:nth-child(1) { height: 70%; align-self: end; animation-delay: 0s; }
@@ -75,7 +76,7 @@
     74% { transform: translateX(2px); }
     79% { transform: translateX(-1px); }
   }
-  .splash-nom { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 52px; letter-spacing: .09em; margin: 0; color: var(--creme); line-height: 1; }
+  .splash-nom { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 52px; letter-spacing: .09em; margin: 0; color: var(--titre); line-height: 1; }
   .splash-slogan { margin: 0; color: var(--texte-doux); }
   .barre { width: 100%; height: 3px; border-radius: 3px; background: var(--brun-3); overflow: hidden; margin-top: 18px; }
   .barre span { display: block; height: 100%; width: 0; background: var(--bois); transition: width .35s ease; }
@@ -88,50 +89,39 @@
     flex: none; display: flex; align-items: center; justify-content: space-between;
     padding: calc(8px + env(safe-area-inset-top)) 12px 8px 18px;
   }
-  .marque { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 20px; color: var(--creme); letter-spacing: .03em; }
+  .marque { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 20px; color: var(--titre); letter-spacing: .03em; }
   .marque small { font-weight: 500; font-size: 11px; color: var(--bois); margin-left: 4px; letter-spacing: 0; }
   .tete-actions { display: flex; gap: 4px; }
   .icone-btn {
     width: 42px; height: 42px; border: 0; border-radius: 14px; background: transparent; color: var(--texte-doux);
     display: grid; place-items: center; cursor: pointer; flex: none;
   }
-  .icone-btn:hover { background: var(--brun-2); color: var(--creme); }
+  .icone-btn:hover { background: var(--brun-2); color: var(--titre); }
 
   /* ---------- la mascotte, en bas à gauche sur chaque écran ---------- */
   body { --pl: max(8px, calc((100vw - 860px) / 2 + 8px)); --pw: 150px; --ph: 190px; --pb: calc(28px + env(safe-area-inset-bottom)); }
   body.s-onb { --pw: 138px; --ph: 172px; --pb: calc(8px + env(safe-area-inset-bottom)); }
-  /* en discussion : la mascotte devient une bulle façon Messenger, qu'on déplace et qui se colle au bord */
-  body.s-chat { --pw: 64px; --ph: 64px; --bx: calc(100vw - 72px); --by: 140px; }
-  body.s-chat .perso {
-    left: var(--bx); bottom: var(--by); border-radius: 50%;
-    background: radial-gradient(circle at 50% 30%, #3b2a17 0%, #17110b 75%);
-    box-shadow: 0 0 0 3px var(--bois), 0 10px 24px rgba(0, 0, 0, .55);
-  }
+  /* en discussion : la mascotte est en bas à gauche, à côté de la barre ; la toucher ouvre son menu */
+  body.s-chat { --pw: 96px; --ph: 140px; --pb: calc(2px + env(safe-area-inset-bottom)); }
+  body.s-chat .fil { padding-bottom: 88px; }
   .poignee { display: none; }
   body.s-chat .poignee {
-    display: block; position: fixed; z-index: 72; left: var(--bx); bottom: var(--by); width: 64px; height: 64px;
-    border-radius: 50%; cursor: grab; touch-action: none; background: transparent; border: 0; padding: 0;
-    transition: left .45s cubic-bezier(.2, .8, .2, 1), bottom .45s cubic-bezier(.2, .8, .2, 1);
+    display: block; position: fixed; z-index: 72; left: var(--pl); bottom: var(--pb); width: var(--pw); height: var(--ph);
+    cursor: pointer; background: transparent; border: 0; padding: 0; border-radius: 40% 40% 24px 24px;
   }
-  body.glisse .perso, body.glisse .poignee, body.glisse .perso-bulle, body.glisse .menu-bulle { transition: none !important; }
-  body.glisse .poignee { cursor: grabbing; }
-  body.s-chat .perso-bulle { bottom: calc(var(--by) + 74px); max-width: min(240px, 70vw); }
-  body.s-chat.cote-gauche .perso-bulle { left: var(--bx); right: auto; border-radius: 16px 16px 16px 4px; }
-  body.s-chat.cote-droit .perso-bulle { left: auto; right: calc(100vw - var(--bx) - 64px); border-radius: 16px 16px 4px 16px; }
   .menu-bulle { display: none; }
   body.s-chat .menu-bulle {
-    position: fixed; z-index: 73; bottom: calc(var(--by) + 76px); display: flex; flex-direction: column; gap: 8px;
+    position: fixed; z-index: 73; left: var(--pl); bottom: calc(var(--pb) + var(--ph) - 4px);
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
     opacity: 0; transform: translateY(8px) scale(.97); pointer-events: none; transition: opacity .2s ease, transform .2s ease;
   }
-  body.s-chat.cote-gauche .menu-bulle { left: var(--bx); align-items: flex-start; }
-  body.s-chat.cote-droit .menu-bulle { right: calc(100vw - var(--bx) - 64px); align-items: flex-end; }
   body.menu-ouvert .menu-bulle { opacity: 1; transform: none; pointer-events: auto; }
   body.menu-ouvert .perso-bulle { opacity: 0; }
   .menu-bulle button {
     display: inline-flex; align-items: center; gap: 10px; border: 0; border-radius: 999px; padding: 11px 16px; cursor: pointer;
-    background: var(--creme); color: var(--encre); font-weight: 700; font-size: 15px; box-shadow: 0 8px 22px rgba(0, 0, 0, .45);
+    background: var(--titre); color: #fff8ea; font-weight: 700; font-size: 15px; box-shadow: 0 8px 22px rgba(27, 35, 39, .22);
   }
-  .menu-bulle button:hover { background: #fff3da; }
+  .menu-bulle button:hover { background: #2c383d; }
   .perso {
     position: fixed; z-index: 70; left: var(--pl); bottom: var(--pb); width: var(--pw); height: var(--ph);
     border: 0; background: transparent; display: block; color-scheme: normal;
@@ -155,17 +145,17 @@
   .onb-piste { display: flex; height: 100%; transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
   .onb-etape { flex: 0 0 100%; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding-right: 2px; overflow-y: auto; }
   .onb-etape { justify-content: center; }
-  .onb-etape h2 { font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(26px, 7.4vw, 40px); line-height: 1.14; margin: 0; color: var(--creme); text-wrap: balance; }
+  .onb-etape h2 { font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(26px, 7.4vw, 40px); line-height: 1.14; margin: 0; color: var(--titre); text-wrap: balance; }
   .onb-etape p { margin: 0; color: var(--texte-doux); font-size: 17.5px; max-width: 46ch; }
   .onb-etape .projet { font-size: 14px; color: var(--discret); }
   .illus { display: grid; gap: 8px; margin-top: 4px; }
-  .illus .sms { justify-self: start; max-width: 92%; background: var(--brun-3); color: var(--creme); padding: 10px 14px; border-radius: 18px 18px 18px 6px; font-size: 15.5px; }
+  .illus .sms { justify-self: start; max-width: 92%; background: var(--brun-3); color: var(--titre); padding: 10px 14px; border-radius: 18px 18px 18px 6px; font-size: 15.5px; }
   .illus .pastille { justify-self: start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
   .pastille::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  .p-arnaque { background: rgba(229, 72, 77, .16); color: #ff8f8f; }
-  .p-sur { background: rgba(63, 178, 127, .16); color: #7fdcb0; }
+  .p-arnaque { background: rgba(229, 72, 77, .12); color: #b3382c; }
+  .p-sur { background: rgba(63, 178, 127, .14); color: #1f6b42; }
   .entrees { display: flex; flex-wrap: wrap; gap: 8px; }
-  .entrees span { padding: 8px 14px; border-radius: 999px; background: var(--brun-2); color: var(--creme); font-weight: 700; font-size: 15px; box-shadow: inset 0 0 0 1px var(--ligne); }
+  .entrees span { padding: 8px 14px; border-radius: 999px; background: var(--brun-2); color: var(--titre); font-weight: 700; font-size: 15px; box-shadow: inset 0 0 0 1px var(--ligne); }
   .duo { display: grid; gap: 8px; }
   .duo div { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; border-radius: 16px; background: var(--brun-2); font-size: 15px; }
   .duo small { color: var(--discret); font-size: 13px; display: block; }
@@ -180,7 +170,7 @@
   .principal { border: 0; border-radius: 999px; padding: 13px 24px; background: var(--bois); color: var(--encre); font-weight: 800; cursor: pointer; }
   .principal:hover { background: var(--bois-clair); }
   .lien { border: 0; background: transparent; color: var(--texte-doux); font-weight: 700; cursor: pointer; padding: 10px 12px; border-radius: 999px; }
-  .lien:hover { color: var(--creme); }
+  .lien:hover { color: var(--titre); }
 
   /* ---------- fil de discussion ---------- */
   .fil {
@@ -188,7 +178,7 @@
     padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 18px;
   }
   .accueil { margin: auto 0; display: grid; gap: 8px; }
-  .accueil h1 { font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(22px, 5.6vw, 30px); line-height: 1.15; margin: 0; color: var(--creme); }
+  .accueil h1 { font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(22px, 5.6vw, 30px); line-height: 1.15; margin: 0; color: var(--titre); }
   .accueil p { margin: 0 0 8px; color: var(--texte-doux); }
   .suggestions { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 4px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
   .suggestions::-webkit-scrollbar { display: none; }
@@ -198,20 +188,20 @@
     display: grid; gap: 4px; align-content: start;
   }
   .suggestions button:hover { background: var(--brun-2); }
-  .suggestions b { color: var(--creme); font-size: 15.5px; line-height: 1.3; }
+  .suggestions b { color: var(--titre); font-size: 15.5px; line-height: 1.3; }
   .suggestions span { color: var(--discret); font-size: 13.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
   .msg-moi {
-    align-self: flex-end; max-width: 86%; background: var(--brun-3); color: var(--creme);
+    align-self: flex-end; max-width: 86%; background: var(--brun-3); color: var(--titre);
     padding: 11px 16px; border-radius: 22px 22px 6px 22px; white-space: pre-wrap; overflow-wrap: anywhere;
   }
   .msg-moi img { display: block; max-width: 230px; max-height: 280px; border-radius: 14px; margin: 2px 0 4px; }
   .msg-moi .petit { display: block; font-size: 13px; color: var(--texte-doux); margin-top: 4px; }
   .msg-kora { display: block; }
   .corps { display: grid; gap: 12px; min-width: 0; }
-  .corps > .texte { margin: 0; color: var(--creme); overflow-wrap: anywhere; }
+  .corps > .texte { margin: 0; color: var(--titre); overflow-wrap: anywhere; }
   .corps > .texte.doux, .corps > .texte.traduit { color: var(--texte-doux); font-size: 15px; }
-  .etapes { margin: 0; padding-left: 22px; display: grid; gap: 8px; color: var(--creme); }
+  .etapes { margin: 0; padding-left: 22px; display: grid; gap: 8px; color: var(--titre); }
   .texte .fon, .etapes .fon { display: block; }
   .texte .fr, .etapes .fr { display: block; margin-top: 3px; font-size: 13.5px; color: var(--discret); }
   .fon-bloc p { margin: 4px 0 0; }
@@ -224,14 +214,14 @@
 
   .puces { display: flex; flex-wrap: wrap; gap: 8px; }
   .puces button {
-    border: 1px solid rgba(201, 133, 67, .5); background: rgba(201, 133, 67, .1); color: var(--creme);
+    border: 1px solid rgba(201, 133, 67, .5); background: rgba(201, 133, 67, .1); color: var(--titre);
     border-radius: 999px; padding: 8px 15px; cursor: pointer; font-weight: 700; font-size: 15px;
   }
   .puces button:hover { background: rgba(201, 133, 67, .24); }
   .puces.fini { display: none; }
 
   /* carte de verdict */
-  .verdict { background: var(--creme); color: var(--encre); border-radius: 22px; padding: 16px 18px 14px; max-width: 620px; }
+  .verdict { background: #fbf2df; color: var(--encre); box-shadow: inset 0 0 0 1px #ecdcbc; border-radius: 22px; padding: 16px 18px 14px; max-width: 620px; }
   .statut {
     display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px;
     padding: 5px 12px 5px 10px; border-radius: 999px;
@@ -254,8 +244,8 @@
   .conseil { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--c) 13%, #fffaf0); }
   .fon-bloc { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #ecdcb8; color: var(--encre); }
   .fon-bloc b { display: block; font-family: Unbounded, sans-serif; font-size: 12px; color: var(--bois-fonce); margin-bottom: 2px; }
-  .corps > .fon-bloc { background: var(--brun-2); color: var(--creme); }
-  .corps > .fon-bloc b { color: var(--bois-clair); }
+  .corps > .fon-bloc { background: var(--brun-2); color: var(--titre); }
+  .corps > .fon-bloc b { color: var(--bois-fonce); }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .actions button { border: 0; border-radius: 999px; padding: 9px 15px; cursor: pointer; background: var(--encre); color: var(--creme); font-weight: 700; }
   .actions button.discret { background: transparent; color: var(--encre); box-shadow: inset 0 0 0 1.5px #cdbb98; }
@@ -267,12 +257,12 @@
   .proba i b { display: block; height: 100%; background: var(--bois-fonce); }
 
   /* ---------- barre de discussion ---------- */
-  .compo { flex: none; padding: 6px 12px calc(10px + env(safe-area-inset-bottom)); }
+  .compo { flex: none; padding: 6px 12px calc(10px + env(safe-area-inset-bottom)) calc(var(--pw) + 12px); }
   .barre-chat {
     display: flex; align-items: flex-end; gap: 4px; background: var(--brun); border-radius: 28px; padding: 6px;
-    box-shadow: inset 0 0 0 1px var(--ligne), 0 -12px 32px rgba(0, 0, 0, .35);
+    box-shadow: inset 0 0 0 1px var(--ligne), 0 -12px 32px rgba(27, 35, 39, .08);
   }
-  .barre-chat:focus-within { box-shadow: inset 0 0 0 1px rgba(227, 168, 104, .55), 0 -12px 32px rgba(0, 0, 0, .35); }
+  .barre-chat:focus-within { box-shadow: inset 0 0 0 1.5px var(--bois), 0 -12px 32px rgba(27, 35, 39, .08); }
   .barre-chat textarea {
     flex: 1; min-width: 0; border: 0; background: transparent; resize: none; outline: none;
     max-height: 168px; padding: 10px 6px; line-height: 1.45; color: var(--texte);
@@ -284,37 +274,38 @@
     background: var(--brun-2); color: var(--texte-doux); font-weight: 800; font-size: 13px; letter-spacing: .06em; cursor: pointer;
   }
   .tete-actions { align-items: center; }
-  .langue-btn[aria-pressed="true"] { background: rgba(201, 133, 67, .22); color: var(--bois-clair); }
+  .langue-btn[aria-pressed="true"] { background: rgba(201, 133, 67, .2); color: var(--bois-fonce); }
   .envoyer { width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--bois); color: var(--encre); display: grid; place-items: center; cursor: pointer; flex: none; }
   .envoyer:hover { background: var(--bois-clair); }
   .envoyer:disabled { background: var(--brun-3); color: #6d604c; cursor: default; }
   .mention { margin: 7px 0 0; text-align: center; font-size: 12.5px; color: var(--discret); }
 
   /* ---------- feuille « à propos » ---------- */
-  .voile { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .6); display: flex; align-items: flex-end; justify-content: center; }
+  .voile { position: fixed; inset: 0; z-index: 40; background: rgba(27, 35, 39, .35); display: flex; align-items: flex-end; justify-content: center; }
   .feuille {
     width: min(860px, 100%); max-height: 88dvh; overflow-y: auto; background: var(--brun);
     border-radius: 26px 26px 0 0; padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
-    box-shadow: inset 0 1px 0 var(--ligne); animation: monte .35s cubic-bezier(.2, .8, .2, 1);
+    box-shadow: 0 -10px 40px rgba(27, 35, 39, .12); animation: monte .35s cubic-bezier(.2, .8, .2, 1);
   }
   @keyframes monte { from { transform: translateY(40px); opacity: 0; } }
   .feuille-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .feuille h2 { font-family: Unbounded, sans-serif; font-size: 22px; margin: 0; color: var(--creme); }
-  .feuille h3 { font-size: 16px; margin: 20px 0 6px; color: var(--creme); }
+  .feuille h2 { font-family: Unbounded, sans-serif; font-size: 22px; margin: 0; color: var(--titre); }
+  .feuille h3 { font-size: 16px; margin: 20px 0 6px; color: var(--titre); }
   .feuille p, .feuille li { color: var(--texte-doux); }
   .feuille p { margin: 8px 0 0; }
   .feuille ul { margin: 0; padding-left: 20px; }
   .chiffres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
   .chiffres div { border-top: 2px solid var(--bois-fonce); padding-top: 8px; }
-  .chiffres strong { display: block; font-family: Unbounded, sans-serif; font-size: 20px; color: var(--creme); }
+  .chiffres strong { display: block; font-family: Unbounded, sans-serif; font-size: 20px; color: var(--titre); }
   .chiffres span { font-size: 13.5px; color: var(--texte-doux); line-height: 1.35; display: block; }
   .feuille a { color: var(--bois-clair); }
   .feuille-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-  .secondaire { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; background: var(--brun-3); color: var(--creme); font-weight: 700; }
+  .secondaire { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; background: var(--brun-3); color: var(--titre); font-weight: 700; }
 
   @media (min-width: 900px) {
     body { --pw: 200px; --ph: 250px; }
     body.s-onb { --pw: 190px; --ph: 236px; }
+    body.s-chat { --pw: 124px; --ph: 176px; }
     .suggestions { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
     .suggestions button { flex: 1 1 calc(50% - 10px); }
   }
@@ -326,7 +317,7 @@
 
 <iframe class="perso" id="mascotte" src="mascotte.html?embed&fond=transparent" title="KORA, la mascotte" tabindex="-1" allowtransparency="true"></iframe>
 <div class="perso-bulle cachee" id="perso-bulle" aria-hidden="true"></div>
-<button class="poignee" id="poignee" type="button" aria-label="KORA : ouvrir le menu (tu peux aussi la déplacer)" aria-expanded="false" aria-controls="menu-bulle"></button>
+<button class="poignee" id="poignee" type="button" aria-label="KORA : ouvrir le menu" aria-expanded="false" aria-controls="menu-bulle"></button>
 <div class="menu-bulle" id="menu-bulle" role="menu" aria-label="Que veux-tu montrer à KORA ?">
   <button type="button" role="menuitem" data-m="capture"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.5-4.5L6 21"/></svg>Envoyer une capture</button>
   <button type="button" role="menuitem" data-m="ecran" hidden><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Partager mon écran</button>
