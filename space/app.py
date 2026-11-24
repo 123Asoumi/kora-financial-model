@@ -1,16 +1,15 @@
 """KORA — service fon : traduction fon ⇄ français.
 
-Tourne sur un Space Hugging Face gratuit (CPU). L'application web KORA l'appelle
+Tourne sur un Space Hugging Face ZeroGPU (gratuit). L'application web KORA l'appelle
 avec @gradio/client pour analyser un message écrit en fon et répondre en fon.
 """
 import re
 import unicodedata
 
 import gradio as gr
+import spaces
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-
-torch.set_num_threads(2)
 
 # Traducteur fon ⇄ français : version affinée pour le fon, sinon NLLB de base.
 TRADUCTEUR = None
@@ -28,17 +27,20 @@ def _propre(t):
     return re.sub(r"\s+", " ", unicodedata.normalize("NFC", str(t))).strip()
 
 
+@spaces.GPU(duration=60)
 def traduire(texte, sens="fon→français"):
-    """Traduit un texte dans un sens ou dans l'autre. C'est la seule route utilisée par l'appli."""
+    """Traduit un texte dans un sens ou dans l'autre. Seule route utilisée par l'appli."""
     texte = _propre(texte)
     if not texte:
         return ""
     source, cible = ("fon_Latn", "fra_Latn") if sens.startswith("fon") else ("fra_Latn", "fon_Latn")
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    modele = traducteur.to(dev)
     tok.src_lang = source
-    enc = tok(texte, return_tensors="pt", truncation=True, max_length=256)
+    enc = tok(texte, return_tensors="pt", truncation=True, max_length=256).to(dev)
     with torch.no_grad():
-        sortie = traducteur.generate(**enc, forced_bos_token_id=tok.convert_tokens_to_ids(cible),
-                                     max_new_tokens=200, num_beams=3)
+        sortie = modele.generate(**enc, forced_bos_token_id=tok.convert_tokens_to_ids(cible),
+                                 max_new_tokens=200, num_beams=3)
     return tok.batch_decode(sortie, skip_special_tokens=True)[0]
 
 
