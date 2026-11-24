@@ -1,0 +1,3 @@
+texte,categorie,langue,canal
+"Bonjour je suis agent MTN, envoyez le code que vous allez recevoir. Mon numero XX XX XX XX",demande_code,fr,appel
+Vous avez recu 25000 FCFA de XXXX. Nouveau solde: XXXX FCFA,legitime,fr,sms
