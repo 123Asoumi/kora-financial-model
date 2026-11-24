@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>KORA — Vérifie un message avant de payer</title>
-<meta name="description" content="KORA repère les arnaques Mobile Money dans un SMS, un message ou une capture d'écran (français, fon), et t'explique quoi faire. L'analyse se fait sur ton téléphone.">
+<meta name="description" content="KORA repère les arnaques Mobile Money dans un SMS, un message ou une capture d'écran (français, fon) et t'explique quoi faire. L'analyse se fait sur ton téléphone.">
 <meta name="theme-color" content="#0a0806">
 <meta property="og:title" content="KORA — Vérifie un message avant de payer">
-<meta property="og:description" content="Colle un SMS, un message ou une capture : KORA te dit si c'est une arnaque Mobile Money et quoi faire.">
+<meta property="og:description" content="Envoie un SMS, un message ou une capture à KORA : il te dit si c'est une arnaque Mobile Money et quoi faire.">
 <meta property="og:image" content="https://kora-0-01.vercel.app/apercu.png">
 <meta property="og:url" content="https://kora-0-01.vercel.app/">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,238 +30,368 @@
     --creme: #f6e6c3;
     --encre: #1b2327;
     --alerte: #e5484d;
-    --mefiance: #f2b33d;
+    --mefiance: #e8a23a;
     --sur: #3fb27f;
     --texte: #f6e6c3;
     --texte-doux: #b9a98c;
+    --discret: #8d7f66;
     --ligne: rgba(246, 230, 195, .13);
-    --rayon-bulle: 22px;
     font-size: 17px;
   }
   * { box-sizing: border-box; }
-  html { background: var(--noir); }
+  html, body { margin: 0; height: 100%; background: var(--noir); }
   body {
-    margin: 0; min-height: 100vh; color: var(--texte);
-    font-family: "Atkinson Hyperlegible", system-ui, sans-serif; line-height: 1.5;
-    background: radial-gradient(900px 520px at 15% -8%, #2a1d10 0%, transparent 62%), var(--noir);
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    color: var(--texte); font-family: "Atkinson Hyperlegible", system-ui, sans-serif; line-height: 1.5;
+    overflow: hidden; -webkit-tap-highlight-color: transparent;
   }
-  button, textarea, input, select { font: inherit; color: inherit; }
-  :focus-visible { outline: 3px solid var(--bois-clair); outline-offset: 2px; border-radius: 8px; }
+  button, textarea, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--bois-clair); outline-offset: 2px; border-radius: 10px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  [hidden] { display: none !important; }
 
-  .entete { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px 4px; max-width: 1180px; margin: 0 auto; }
-  .marque { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 24px; letter-spacing: .02em; color: var(--creme); text-decoration: none; }
-  .marque small { font-weight: 500; font-size: 13px; color: var(--bois); margin-left: 4px; }
-  .entete-droite { display: flex; align-items: center; gap: 10px; }
-  .prive { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--texte-doux); }
-  .prive svg { flex: none; }
-  .installer { display: none; border: 0; border-radius: 999px; padding: 8px 14px; background: var(--brun-3); color: var(--creme); cursor: pointer; font-weight: 700; font-size: 14px; }
-  .installer.visible { display: inline-block; }
-  @media (max-width: 460px) { .prive span { display: none; } }
-
-  .page { max-width: 1180px; margin: 0 auto; padding: 0 20px 40px; display: grid; gap: 22px; }
-  @media (min-width: 900px) {
-    .page { grid-template-columns: 420px 1fr; align-items: start; gap: 40px; padding-top: 12px; }
-    .scene { position: sticky; top: 16px; }
+  /* ---------- écran de chargement ---------- */
+  .splash {
+    position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+    background: radial-gradient(640px 480px at 50% 42%, #24180c 0%, var(--noir) 72%);
+    transition: opacity .55s ease, visibility .55s;
   }
-
-  .scene { display: grid; gap: 14px; }
-  .mascotte { width: 100%; height: 310px; border: 0; border-radius: 28px; display: block; background: #120d08; box-shadow: inset 0 0 0 1px var(--ligne); }
-  @media (min-width: 900px) { .mascotte { height: 520px; } }
-  .titre {
-    font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(26px, 5.4vw, 38px);
-    line-height: 1.12; margin: 6px 0 0; color: var(--creme); letter-spacing: -.01em; text-wrap: balance;
+  .splash.fini { opacity: 0; visibility: hidden; }
+  .splash-coeur { display: grid; justify-items: center; gap: 10px; width: min(300px, 78vw); }
+  .cordes { display: flex; gap: 14px; height: 132px; margin-bottom: 8px; }
+  .cordes i {
+    display: block; width: 2px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--creme) 0%, var(--bois) 100%);
+    animation: pince 2.2s ease-in-out infinite;
   }
-  .sous-titre { margin: 0; color: var(--texte-doux); max-width: 40ch; }
-
-  .conversation { display: grid; gap: 14px; }
-  .fil { display: grid; gap: 14px; }
-  .bulle-moi {
-    justify-self: end; max-width: 88%; background: var(--brun-3); border-radius: var(--rayon-bulle) var(--rayon-bulle) 6px var(--rayon-bulle);
-    padding: 12px 16px; white-space: pre-wrap; overflow-wrap: anywhere;
+  .cordes i:nth-child(1) { height: 70%; align-self: end; animation-delay: 0s; }
+  .cordes i:nth-child(2) { height: 85%; align-self: end; animation-delay: .14s; }
+  .cordes i:nth-child(3) { height: 100%; animation-delay: .28s; }
+  .cordes i:nth-child(4) { height: 85%; align-self: end; animation-delay: .42s; }
+  .cordes i:nth-child(5) { height: 70%; align-self: end; animation-delay: .56s; }
+  @keyframes pince {
+    0%, 60%, 100% { transform: translateX(0); opacity: .75; }
+    64% { transform: translateX(4px); opacity: 1; }
+    69% { transform: translateX(-3px); }
+    74% { transform: translateX(2px); }
+    79% { transform: translateX(-1px); }
   }
-  .bulle-moi .source { display: block; font-size: 13px; color: var(--texte-doux); margin-bottom: 4px; }
-  .bulle-moi .traduction { display: block; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--ligne); color: var(--texte-doux); font-size: 15px; }
+  .splash-nom { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 52px; letter-spacing: .09em; margin: 0; color: var(--creme); line-height: 1; }
+  .splash-slogan { margin: 0; color: var(--texte-doux); }
+  .barre { width: 100%; height: 3px; border-radius: 3px; background: var(--brun-3); overflow: hidden; margin-top: 18px; }
+  .barre span { display: block; height: 100%; width: 0; background: var(--bois); transition: width .35s ease; }
+  .splash-etat { margin: 0; min-height: 1.4em; font-size: 14px; color: var(--discret); text-align: center; }
+  .splash-etat button { margin-top: 10px; }
 
-  .reponse {
-    justify-self: start; width: min(100%, 640px); background: var(--creme); color: var(--encre);
-    border-radius: var(--rayon-bulle) var(--rayon-bulle) var(--rayon-bulle) 6px; padding: 18px 20px 16px;
-    border-left: 10px solid var(--c, var(--sur));
+  /* ---------- coquille de l'application ---------- */
+  .app { height: 100dvh; max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; position: relative; }
+  .tete {
+    flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: calc(8px + env(safe-area-inset-top)) 12px 8px 18px;
   }
-  .reponse h2 { font-family: Unbounded, sans-serif; font-size: 22px; line-height: 1.2; margin: 0 0 4px; color: var(--encre); }
-  .reponse .type { margin: 0 0 14px; color: #5a4f3e; }
-  .jauge { position: relative; height: 14px; border-radius: 99px; overflow: hidden; display: grid; grid-template-columns: 50fr 20fr 30fr; }
+  .marque { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 20px; color: var(--creme); letter-spacing: .03em; }
+  .marque small { font-weight: 500; font-size: 11px; color: var(--bois); margin-left: 4px; letter-spacing: 0; }
+  .tete-actions { display: flex; gap: 4px; }
+  .icone-btn {
+    width: 42px; height: 42px; border: 0; border-radius: 14px; background: transparent; color: var(--texte-doux);
+    display: grid; place-items: center; cursor: pointer; flex: none;
+  }
+  .icone-btn:hover { background: var(--brun-2); color: var(--creme); }
+
+  .scene {
+    flex: none; position: relative; overflow: hidden; margin: 0 12px; border-radius: 28px;
+    height: clamp(170px, 32dvh, 330px); background: #0d0b09;
+    transition: height .6s cubic-bezier(.2, .8, .2, 1);
+  }
+  .scene iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  .app.onb .scene { height: 42dvh; }
+  .app.actif .scene { height: 140px; }
+  .app.onb .tete-actions, .app.onb .fil, .app.onb .compo { display: none; }
+  .app:not(.onb) .onboarding { display: none; }
+
+  /* ---------- onboarding ---------- */
+  .onboarding { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 18px 22px calc(18px + env(safe-area-inset-bottom)); }
+  .onb-fenetre { flex: 1; min-height: 0; overflow: hidden; touch-action: pan-y; }
+  .onb-piste { display: flex; height: 100%; transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+  .onb-etape { flex: 0 0 100%; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding-right: 2px; overflow-y: auto; }
+  .onb-etape h2 { font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(23px, 6.2vw, 32px); line-height: 1.14; margin: 0; color: var(--creme); text-wrap: balance; }
+  .onb-etape p { margin: 0; color: var(--texte-doux); font-size: 16.5px; max-width: 48ch; }
+  .onb-etape .projet { font-size: 14px; color: var(--discret); }
+  .illus { display: grid; gap: 8px; margin-top: 4px; }
+  .illus .sms { justify-self: start; max-width: 92%; background: var(--brun-3); color: var(--creme); padding: 10px 14px; border-radius: 18px 18px 18px 6px; font-size: 15.5px; }
+  .illus .pastille { justify-self: start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+  .pastille::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .p-arnaque { background: rgba(229, 72, 77, .16); color: #ff8f8f; }
+  .p-sur { background: rgba(63, 178, 127, .16); color: #7fdcb0; }
+  .entrees { display: flex; flex-wrap: wrap; gap: 8px; }
+  .entrees span { padding: 8px 14px; border-radius: 999px; background: var(--brun-2); color: var(--creme); font-weight: 700; font-size: 15px; box-shadow: inset 0 0 0 1px var(--ligne); }
+  .duo { display: grid; gap: 8px; }
+  .duo div { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; border-radius: 16px; background: var(--brun-2); font-size: 15px; }
+  .duo small { color: var(--discret); font-size: 13px; display: block; }
+  .onb-bas { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; }
+  .points { display: flex; gap: 6px; }
+  .points i { width: 8px; height: 8px; border-radius: 99px; background: var(--brun-3); transition: width .3s, background .3s; }
+  .points i.on { width: 26px; background: var(--bois); }
+  .onb-boutons { display: flex; align-items: center; gap: 6px; }
+  .principal { border: 0; border-radius: 999px; padding: 13px 24px; background: var(--bois); color: var(--encre); font-weight: 800; cursor: pointer; }
+  .principal:hover { background: var(--bois-clair); }
+  .lien { border: 0; background: transparent; color: var(--texte-doux); font-weight: 700; cursor: pointer; padding: 10px 12px; border-radius: 999px; }
+  .lien:hover { color: var(--creme); }
+
+  /* ---------- fil de discussion ---------- */
+  .fil {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 18px;
+  }
+  .accueil { margin-top: auto; display: grid; gap: 8px; }
+  .accueil h1 { font-family: Unbounded, sans-serif; font-weight: 700; font-size: clamp(22px, 5.6vw, 30px); line-height: 1.15; margin: 0; color: var(--creme); }
+  .accueil p { margin: 0 0 8px; color: var(--texte-doux); }
+  .suggestions { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 2px 2px 4px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; scrollbar-width: none; }
+  .suggestions::-webkit-scrollbar { display: none; }
+  .suggestions button {
+    flex: 0 0 210px; scroll-snap-align: start; text-align: left; border: 0; cursor: pointer;
+    background: var(--brun); border-radius: 18px; padding: 14px 15px; box-shadow: inset 0 0 0 1px var(--ligne);
+    display: grid; gap: 4px; align-content: start;
+  }
+  .suggestions button:hover { background: var(--brun-2); }
+  .suggestions b { color: var(--creme); font-size: 15.5px; line-height: 1.3; }
+  .suggestions span { color: var(--discret); font-size: 13.5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .msg-moi {
+    align-self: flex-end; max-width: 86%; background: var(--brun-3); color: var(--creme);
+    padding: 11px 16px; border-radius: 22px 22px 6px 22px; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .msg-moi img { display: block; max-width: 230px; max-height: 280px; border-radius: 14px; margin: 2px 0 4px; }
+  .msg-moi .petit { display: block; font-size: 13px; color: var(--texte-doux); margin-top: 4px; }
+  .msg-kora { display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--bois) url("icone-192.png") center / cover; box-shadow: 0 0 0 2px var(--brun-3); }
+  .corps { display: grid; gap: 12px; min-width: 0; padding-top: 4px; }
+  .corps > .texte { margin: 0; color: var(--creme); overflow-wrap: anywhere; }
+  .corps > .texte.doux, .corps > .texte.traduit { color: var(--texte-doux); font-size: 15px; }
+  .etapes { margin: 0; padding-left: 22px; display: grid; gap: 8px; color: var(--creme); }
+  .etapes li::marker { color: var(--bois); font-weight: 700; }
+  .tape { display: inline-flex; gap: 5px; padding: 10px 0 6px; }
+  .tape i { width: 8px; height: 8px; border-radius: 50%; background: var(--texte-doux); animation: point 1.2s ease-in-out infinite; }
+  .tape i:nth-child(2) { animation-delay: .15s; }
+  .tape i:nth-child(3) { animation-delay: .3s; }
+  @keyframes point { 0%, 60%, 100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-4px); } }
+
+  .puces { display: flex; flex-wrap: wrap; gap: 8px; }
+  .puces button {
+    border: 1px solid rgba(201, 133, 67, .5); background: rgba(201, 133, 67, .1); color: var(--creme);
+    border-radius: 999px; padding: 8px 15px; cursor: pointer; font-weight: 700; font-size: 15px;
+  }
+  .puces button:hover { background: rgba(201, 133, 67, .24); }
+  .puces.fini { display: none; }
+
+  /* carte de verdict */
+  .verdict { background: var(--creme); color: var(--encre); border-radius: 22px; padding: 16px 18px 14px; max-width: 620px; }
+  .statut {
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px;
+    padding: 5px 12px 5px 10px; border-radius: 999px;
+    background: color-mix(in srgb, var(--c) 17%, #fff8ea); color: color-mix(in srgb, var(--c) 72%, #1b1208);
+  }
+  .statut::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+  .verdict h2 { font-family: Unbounded, sans-serif; font-size: 19px; line-height: 1.25; margin: 10px 0 12px; color: var(--encre); }
+  .jauge { position: relative; height: 12px; border-radius: 99px; overflow: hidden; display: grid; grid-template-columns: 50fr 20fr 30fr; }
   .jauge span:nth-child(1) { background: #cfe5d3; }
   .jauge span:nth-child(2) { background: #f5ddae; }
   .jauge span:nth-child(3) { background: #f2c1bd; }
-  .curseur { position: absolute; top: -3px; width: 6px; height: 20px; border-radius: 3px; background: var(--encre); left: calc(var(--risque, 0) * 1% - 3px); transition: left .9s cubic-bezier(.2, .8, .2, 1); }
-  .jauge-legende { display: flex; justify-content: space-between; font-size: 13px; color: #6b5f4b; margin: 6px 0 14px; }
-  .jauge-legende b { color: var(--encre); }
-  .reponse h3 { font-size: 16px; margin: 14px 0 6px; }
-  .reponse ul { margin: 0; padding-left: 20px; }
-  .reponse li { margin: 4px 0; }
-  .conseil { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--c) 14%, #fffaf0); }
+  .curseur { position: absolute; top: -3px; width: 6px; height: 18px; border-radius: 3px; background: var(--encre); left: calc(var(--risque, 0) * 1% - 3px); transition: left .9s cubic-bezier(.2, .8, .2, 1); }
+  .jauge-legende { display: flex; justify-content: space-between; font-size: 13px; color: #6b5f4b; margin: 6px 0 2px; }
+  .deux-risques { font-size: 14px; color: #5a4f3e; margin: 8px 0 0; }
+  .verdict h3 { font-size: 15px; margin: 14px 0 6px; }
+  .verdict ul { margin: 0; padding-left: 20px; }
+  .verdict li { margin: 4px 0; }
+  .indices { list-style: none; padding: 0 !important; }
+  .indices li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  .conseil { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--c) 13%, #fffaf0); }
+  .fon-bloc { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #ecdcb8; color: var(--encre); }
+  .fon-bloc b { display: block; font-family: Unbounded, sans-serif; font-size: 12px; color: var(--bois-fonce); margin-bottom: 2px; }
+  .corps > .fon-bloc { background: var(--brun-2); color: var(--creme); }
+  .corps > .fon-bloc b { color: var(--bois-clair); }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-  .actions button { border: 0; border-radius: 999px; padding: 9px 15px; cursor: pointer; background: var(--encre); color: var(--creme); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .actions button { border: 0; border-radius: 999px; padding: 9px 15px; cursor: pointer; background: var(--encre); color: var(--creme); font-weight: 700; }
   .actions button.discret { background: transparent; color: var(--encre); box-shadow: inset 0 0 0 1.5px #cdbb98; }
-  .actions button:disabled { opacity: .55; cursor: wait; }
+  .actions button:disabled { opacity: .55; cursor: default; }
   details.curieux { margin-top: 12px; font-size: 14px; color: #5a4f3e; }
   details.curieux summary { cursor: pointer; font-weight: 700; color: var(--encre); }
-  .proba { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 44px; align-items: center; gap: 8px; margin: 6px 0; }
+  .proba { display: grid; grid-template-columns: minmax(110px, 190px) 1fr 44px; align-items: center; gap: 8px; margin: 6px 0; }
   .proba i { display: block; height: 8px; border-radius: 99px; background: #e2d3b3; overflow: hidden; }
   .proba i b { display: block; height: 100%; background: var(--bois-fonce); }
-  .vide { color: var(--texte-doux); border: 1.5px dashed var(--ligne); border-radius: var(--rayon-bulle); padding: 18px; margin: 0; }
-  .attente { justify-self: start; color: var(--texte-doux); font-style: italic; }
 
-  .compositeur { background: var(--brun); border-radius: 26px; padding: 14px; box-shadow: inset 0 0 0 1px var(--ligne); }
-  .onglets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--noir); border-radius: 16px; padding: 4px; margin-bottom: 12px; }
-  .onglets button { border: 0; background: transparent; border-radius: 12px; padding: 10px 6px; cursor: pointer; color: var(--texte-doux); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; }
-  .onglets button[aria-selected="true"] { background: var(--brun-3); color: var(--creme); }
-  .panneau[hidden] { display: none; }
-  textarea { width: 100%; min-height: 120px; resize: vertical; border: 0; border-radius: 18px 18px 18px 6px; background: var(--brun-2); padding: 14px 16px; color: var(--texte); line-height: 1.45; }
-  textarea::placeholder { color: #8d7f66; }
-  .rangee { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
-  .principal { margin-left: auto; border: 0; border-radius: 999px; padding: 12px 22px; cursor: pointer; background: var(--bois); color: var(--encre); font-weight: 700; font-size: 17px; }
-  .principal:hover { background: var(--bois-clair); }
-  .principal:disabled { opacity: .5; cursor: wait; }
-  .secondaire { border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; background: transparent; color: var(--texte); box-shadow: inset 0 0 0 1.5px var(--ligne); }
-  .langue { display: inline-flex; background: var(--noir); border-radius: 999px; padding: 3px; }
-  .langue button { border: 0; background: transparent; border-radius: 999px; padding: 7px 14px; cursor: pointer; color: var(--texte-doux); font-weight: 700; font-size: 15px; }
-  .langue button[aria-pressed="true"] { background: var(--bois); color: var(--encre); }
-  .exemples { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; }
-  .exemples::-webkit-scrollbar { display: none; }
-  .exemples button { flex: none; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; font-size: 15px; background: rgba(201, 133, 67, .16); color: var(--creme); }
-  .depot { display: grid; place-items: center; text-align: center; gap: 6px; min-height: 150px; padding: 18px; border-radius: 18px; border: 2px dashed var(--brun-3); color: var(--texte-doux); cursor: pointer; background: var(--brun-2); }
-  .depot.survol { border-color: var(--bois); }
-  .depot img { max-height: 180px; max-width: 100%; border-radius: 10px; }
-  .voix-tete { display: flex; justify-content: center; margin-bottom: 4px; }
-  .micro { width: 96px; height: 96px; border-radius: 50%; border: 0; cursor: pointer; display: grid; place-items: center; background: var(--bois); color: var(--encre); margin: 10px auto 6px; }
-  .micro.ecoute { background: var(--alerte); color: white; animation: battre 1.2s ease-in-out infinite; }
-  .micro:disabled { opacity: .5; cursor: wait; }
-  @keyframes battre { 50% { box-shadow: 0 0 0 14px rgba(229, 72, 77, .2); } }
-  .centre { text-align: center; color: var(--texte-doux); margin: 4px 0; }
-  .etat { min-height: 1.5em; color: var(--texte-doux); font-size: 15px; margin: 8px 0 0; }
-  .service { font-size: 13px; color: var(--texte-doux); text-align: center; }
-  .service b.ok { color: var(--sur); } .service b.ko { color: var(--mefiance); }
+  /* ---------- barre de discussion ---------- */
+  .compo { flex: none; padding: 6px 12px calc(10px + env(safe-area-inset-bottom)); }
+  .barre-chat {
+    display: flex; align-items: flex-end; gap: 4px; background: var(--brun); border-radius: 28px; padding: 6px;
+    box-shadow: inset 0 0 0 1px var(--ligne), 0 -12px 32px rgba(0, 0, 0, .35);
+  }
+  .barre-chat:focus-within { box-shadow: inset 0 0 0 1px rgba(227, 168, 104, .55), 0 -12px 32px rgba(0, 0, 0, .35); }
+  .barre-chat textarea {
+    flex: 1; min-width: 0; border: 0; background: transparent; resize: none; outline: none;
+    max-height: 168px; padding: 10px 6px; line-height: 1.45; color: var(--texte);
+  }
+  .barre-chat textarea::placeholder { color: var(--discret); }
+  .langue-btn {
+    height: 42px; min-width: 54px; padding: 0 10px; border: 0; border-radius: 999px; flex: none;
+    background: var(--brun-2); color: var(--texte-doux); font-weight: 800; font-size: 13px; letter-spacing: .06em; cursor: pointer;
+  }
+  .langue-btn[aria-pressed="true"] { background: rgba(201, 133, 67, .22); color: var(--bois-clair); }
+  .envoyer { width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--bois); color: var(--encre); display: grid; place-items: center; cursor: pointer; flex: none; }
+  .envoyer:hover { background: var(--bois-clair); }
+  .envoyer:disabled { background: var(--brun-3); color: #6d604c; cursor: default; }
+  .mention { margin: 7px 0 0; text-align: center; font-size: 12.5px; color: var(--discret); }
 
-  .contexte { margin-top: 12px; border-top: 1px solid var(--ligne); padding-top: 10px; }
-  .contexte summary { cursor: pointer; font-weight: 700; color: var(--creme); list-style: none; display: flex; align-items: center; gap: 8px; }
-  .contexte summary::-webkit-details-marker { display: none; }
-  .contexte summary::before { content: "+"; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--brun-3); font-size: 16px; }
-  .contexte[open] summary::before { content: "−"; }
-  .contexte summary { flex-wrap: wrap; }
-  .contexte summary small { font-weight: 400; color: var(--texte-doux); flex-basis: 100%; padding-left: 30px; }
-  .champ { display: grid; gap: 6px; margin-top: 12px; }
-  .champ > span { font-size: 15px; color: var(--texte-doux); }
-  .champ input { border: 0; border-radius: 12px; padding: 11px 14px; background: var(--brun-2); color: var(--texte); }
-  .choix { display: flex; flex-wrap: wrap; gap: 6px; }
-  .choix button { border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; background: var(--brun-2); color: var(--texte-doux); font-weight: 700; font-size: 15px; }
-  .choix button[aria-pressed="true"] { background: var(--bois); color: var(--encre); }
-  .indices { list-style: none; padding: 0 !important; margin: 0; }
-  .indices li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
-  .indice-sans { margin: 12px 0 0; font-size: 14px; color: #6b5f4b; }
-  .deux-risques { font-size: 14px; color: #6b5f4b; margin: -8px 0 12px; }
-  .rep-fon { margin: 14px 0 0; padding: 14px 16px; background: var(--brun-2); border-radius: 12px; }
-  .rep-fon h3 { margin: 0 0 4px; font-family: Unbounded, sans-serif; font-size: 13px; color: var(--bois); }
-  .rep-fon p { margin: 0; line-height: 1.5; }
-  .bulle-kora { justify-self: start; max-width: 88%; background: var(--creme); color: var(--encre); border-radius: var(--rayon-bulle) var(--rayon-bulle) var(--rayon-bulle) 6px; padding: 12px 16px; }
-  .bulle-kora b { font-family: Unbounded, sans-serif; font-size: 13px; display: block; color: var(--bois-fonce); margin-bottom: 2px; }
-  .discussion-controles { display: grid; gap: 10px; }
-  .reponse-rapide { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-  .reponse-rapide button { border: 0; border-radius: 999px; padding: 9px 16px; cursor: pointer; background: rgba(201, 133, 67, .18); color: var(--creme); font-weight: 700; }
-  .saisie { display: flex; gap: 8px; }
-  .saisie input { flex: 1; border: 0; border-radius: 999px; padding: 11px 16px; background: var(--brun-2); color: var(--texte); }
-  .saisie button { border: 0; border-radius: 999px; padding: 10px 16px; background: var(--brun-3); color: var(--creme); cursor: pointer; font-weight: 700; }
-  .preuves { max-width: 1180px; margin: 0 auto; padding: 8px 20px 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-  .preuves div { border-top: 2px solid var(--bois-fonce); padding-top: 10px; }
-  .preuves strong { display: block; font-family: Unbounded, sans-serif; font-size: 22px; color: var(--creme); }
-  .preuves span { color: var(--texte-doux); font-size: 15px; }
-  .pied { max-width: 1180px; margin: 0 auto; padding: 18px 20px 40px; color: var(--texte-doux); font-size: 14px; }
-  .pied a { color: var(--bois-clair); }
-  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  /* ---------- feuille « à propos » ---------- */
+  .voile { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .6); display: flex; align-items: flex-end; justify-content: center; }
+  .feuille {
+    width: min(860px, 100%); max-height: 88dvh; overflow-y: auto; background: var(--brun);
+    border-radius: 26px 26px 0 0; padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
+    box-shadow: inset 0 1px 0 var(--ligne); animation: monte .35s cubic-bezier(.2, .8, .2, 1);
+  }
+  @keyframes monte { from { transform: translateY(40px); opacity: 0; } }
+  .feuille-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .feuille h2 { font-family: Unbounded, sans-serif; font-size: 22px; margin: 0; color: var(--creme); }
+  .feuille h3 { font-size: 16px; margin: 20px 0 6px; color: var(--creme); }
+  .feuille p, .feuille li { color: var(--texte-doux); }
+  .feuille p { margin: 8px 0 0; }
+  .feuille ul { margin: 0; padding-left: 20px; }
+  .chiffres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+  .chiffres div { border-top: 2px solid var(--bois-fonce); padding-top: 8px; }
+  .chiffres strong { display: block; font-family: Unbounded, sans-serif; font-size: 20px; color: var(--creme); }
+  .chiffres span { font-size: 13.5px; color: var(--texte-doux); line-height: 1.35; display: block; }
+  .feuille a { color: var(--bois-clair); }
+  .feuille-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .secondaire { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; background: var(--brun-3); color: var(--creme); font-weight: 700; }
+
+  @media (min-width: 900px) {
+    .app.actif .scene { height: 170px; }
+    .suggestions { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+    .suggestions button { flex: 1 1 calc(50% - 10px); }
+  }
+  @media (max-width: 380px) { .chiffres { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
-<header class="entete">
-  <a class="marque" href="./">KORA<small>0.01</small></a>
-  <div class="entete-droite">
-    <div class="prive">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-      <span>Analyse faite sur ton téléphone</span>
-    </div>
-    <button class="installer" id="installer" type="button">Installer l'appli</button>
+
+<div class="splash" id="splash" role="status" aria-live="polite">
+  <div class="splash-coeur">
+    <div class="cordes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <p class="splash-nom">KORA</p>
+    <p class="splash-slogan">Vérifie avant de payer.</p>
+    <div class="barre" aria-hidden="true"><span id="barre"></span></div>
+    <p class="splash-etat" id="splash-etat">Préparation du modèle…</p>
   </div>
-</header>
+</div>
 
-<main class="page">
-  <section class="scene" aria-label="KORA">
-    <iframe class="mascotte" id="mascotte" src="mascotte.html?embed&fond=dark" title="KORA, la mascotte, qui réagit au verdict"></iframe>
-    <h1 class="titre">Un doute sur un message ? Montre-le à KORA avant de payer.</h1>
-    <p class="sous-titre">SMS, message ou capture d'écran, en français ou en fon : KORA regarde le message et qui l'envoie, repère les arnaques au Mobile Money et t'explique quoi faire — et te répond en fon.</p>
-  </section>
-
-  <section class="conversation" aria-label="Vérification">
-    <div class="fil" id="fil" aria-live="polite">
-      <p class="vide" id="vide">Colle ci-dessous le message reçu, ou essaie un exemple. KORA te répondra ici.</p>
+<div class="app onb" id="app">
+  <header class="tete">
+    <span class="marque">KORA<small>0.01</small></span>
+    <div class="tete-actions">
+      <button class="icone-btn" id="nouveau" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+      <button class="icone-btn" id="apropos-btn" type="button" aria-label="À propos de KORA" title="À propos de KORA">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5"/></svg>
+      </button>
     </div>
+  </header>
 
-    <div class="compositeur">
-      <div class="onglets" role="tablist" aria-label="Type de message">
-        <button role="tab" aria-selected="true" aria-controls="p-texte" id="t-texte">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</button>
-        <button role="tab" aria-selected="false" aria-controls="p-image" id="t-image">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Capture</button>
-      </div>
+  <div class="scene" id="scene">
+    <iframe id="mascotte" src="mascotte.html?embed&fond=dark" title="KORA, la mascotte, qui réagit au verdict" tabindex="-1"></iframe>
+  </div>
 
-      <div class="panneau" id="p-texte" role="tabpanel" aria-labelledby="t-texte">
-        <label class="sr" for="message">Message reçu</label>
-        <textarea id="message" placeholder="Colle ici le SMS ou le message WhatsApp reçu…"></textarea>
-        <div class="rangee">
-          <div class="langue" role="group" aria-label="Langue du message">
-            <button type="button" aria-pressed="true" data-langue="fr">Français</button>
-            <button type="button" aria-pressed="false" data-langue="fon">Fon</button>
+  <section class="onboarding" id="onboarding" aria-label="Présentation de KORA">
+    <div class="onb-fenetre" id="onb-fenetre">
+      <div class="onb-piste" id="onb-piste">
+        <article class="onb-etape" aria-label="Étape 1 sur 3">
+          <h2>Une arnaque arrive par SMS. KORA la repère.</h2>
+          <p>Faux agent, faux dépôt, fausse offre de crédit : envoie le message à KORA, il te dit si c'est une arnaque, avant que tu paies.</p>
+          <div class="illus" aria-hidden="true">
+            <span class="sms">Bjr c'est l'agent MTN, envoie-moi le code que tu vas recevoir stp</span>
+            <span class="pastille p-arnaque">Arnaque probable</span>
           </div>
-          <button class="secondaire" id="coller" type="button">Coller</button>
-          <button class="principal" id="verifier" type="button">Vérifier le message</button>
-        </div>
-        <div class="rangee exemples" id="exemples" aria-label="Exemples"></div>
+          <p class="projet">Projet du GPU Challenge 2026 · Epitech Bénin</p>
+        </article>
+        <article class="onb-etape" aria-label="Étape 2 sur 3">
+          <h2>Écris comme tu veux.</h2>
+          <p>Colle un SMS ou un message WhatsApp, envoie une capture d'écran, écris en français ou en fon. KORA t'explique pourquoi et te répond aussi en fon.</p>
+          <div class="illus entrees" aria-hidden="true"><span>SMS</span><span>WhatsApp</span><span>Capture d'écran</span><span>Fɔngbe</span></div>
+        </article>
+        <article class="onb-etape" aria-label="Étape 3 sur 3">
+          <h2>KORA regarde aussi qui t'écrit.</h2>
+          <p>Un vrai SMS de dépôt ne vient jamais d'un numéro ordinaire : KORA te pose la question. Et tout se passe sur ton téléphone.</p>
+          <div class="illus duo" aria-hidden="true">
+            <div><span>MobileMoney<small>expéditeur officiel</small></span><span class="pastille p-sur">Sûr</span></div>
+            <div><span>+229 01 66 12 34 56<small>numéro ordinaire, même texte</small></span><span class="pastille p-arnaque">Arnaque</span></div>
+          </div>
+        </article>
       </div>
-
-      <div class="panneau" id="p-image" role="tabpanel" aria-labelledby="t-image" hidden>
-        <label class="depot" id="depot" for="fichier">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-          <span id="depot-texte">Choisis une capture d'écran du message, colle-la, ou glisse-la ici</span>
-        </label>
-        <input type="file" id="fichier" accept="image/*" class="sr">
-        <p class="etat" id="etat-image"></p>
+    </div>
+    <div class="onb-bas">
+      <div class="points" id="points" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+      <div class="onb-boutons">
+        <button class="lien" id="onb-passer" type="button">Passer</button>
+        <button class="principal" id="onb-suivant" type="button">Suivant</button>
       </div>
-
-      <details class="contexte" id="contexte" open>
-        <summary>Qui t'a écrit ? <small>recommandé, pour savoir si c'est le vrai opérateur</small></summary>
-        <label class="champ"><span>Nom affiché ou numéro de l'expéditeur</span>
-          <input id="expediteur" autocomplete="off" placeholder="Ex. MobileMoney, MTN, +229 01 66 12 34 56"></label>
-        <div class="champ"><span>Reçu par</span>
-          <div class="choix" data-champ="canal"><button type="button" data-v="sms">SMS</button><button type="button" data-v="whatsapp">WhatsApp</button><button type="button" data-v="appel">Appel</button><button type="button" data-v="autre">Autre</button></div></div>
-        <div class="champ"><span>Peux-tu répondre à ce message ?</span>
-          <div class="choix" data-champ="repondre"><button type="button" data-v="oui">Oui</button><button type="button" data-v="non">Non</button><button type="button" data-v="">Je ne sais pas</button></div></div>
-        <div class="champ"><span>Avez-vous déjà échangé avant ?</span>
-          <div class="choix" data-champ="premier"><button type="button" data-v="non">Oui, je le connais</button><button type="button" data-v="oui">Non, c'est la première fois</button><button type="button" data-v="">Je ne sais pas</button></div></div>
-      </details>
     </div>
   </section>
-</main>
 
-<section class="preuves" aria-label="Ce que KORA sait faire">
-  <div><strong>97 %</strong><span>des arnaques de nos tests signalées comme suspectes ou dangereuses</span></div>
-  <div><strong>5× moins</strong><span>de fausses alertes que des règles simples, à détection égale</span></div>
-  <div><strong>566 Ko</strong><span>le modèle tient dans le téléphone : aucun message n'est envoyé</span></div>
-</section>
+  <main class="fil" id="fil" aria-live="polite" aria-label="Discussion avec KORA">
+    <div class="accueil" id="accueil">
+      <h1>Un message te paraît louche ?</h1>
+      <p>Envoie-le à KORA. Il te dit si c'est une arnaque Mobile Money, et quoi faire.</p>
+      <div class="suggestions" id="suggestions" aria-label="Exemples de messages"></div>
+    </div>
+  </main>
 
-<footer class="pied">
-  <p>KORA-lite 0.01 a été entraîné sur 5 100 messages inspirés des arnaques réelles au Bénin. C'est une aide à la vigilance, pas une garantie : en cas de doute, appelle le service client officiel de ton opérateur. Le fon passe par un service de traduction séparé ; ces messages-là quittent le téléphone.</p>
-  <p>Équipe KORA, GPU Challenge 2026 (Epitech Bénin, cas d'usage n°7). <a href="https://github.com/123Asoumi/kora-financial-model">Code source</a></p>
-</footer>
+  <footer class="compo">
+    <form class="barre-chat" id="formulaire">
+      <button type="button" class="icone-btn" id="joindre" aria-label="Envoyer une capture d'écran" title="Envoyer une capture d'écran">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.5-4.5L6 21"/></svg>
+      </button>
+      <input type="file" id="fichier" accept="image/*" class="sr" tabindex="-1">
+      <label class="sr" for="saisie">Message à vérifier</label>
+      <textarea id="saisie" rows="1" placeholder="Message reçu…" enterkeyhint="send"></textarea>
+      <button type="button" class="langue-btn" id="langue" aria-pressed="false" title="Écrire en fon">FR</button>
+      <button type="submit" class="envoyer" id="envoyer" aria-label="Envoyer" disabled>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </form>
+    <p class="mention">KORA peut se tromper. En cas de doute, appelle le service client officiel de ton opérateur.</p>
+  </footer>
+</div>
+
+<div class="voile" id="voile" hidden>
+  <section class="feuille" role="dialog" aria-modal="true" aria-labelledby="apropos-titre">
+    <div class="feuille-tete">
+      <h2 id="apropos-titre">À propos de KORA</h2>
+      <button class="icone-btn" id="fermer" type="button" aria-label="Fermer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <p>KORA est une IA anti-arnaque Mobile Money. Elle lit un message, regarde qui l'envoie, dit s'il s'agit d'une arnaque, explique pourquoi et donne le bon réflexe.</p>
+    <div class="chiffres">
+      <div><strong>98 %</strong><span>des arnaques de nos tests signalées</span></div>
+      <div><strong>5× moins</strong><span>de fausses alertes qu'une liste de mots-clés</span></div>
+      <div><strong>570 Ko</strong><span>le modèle tient dans ton téléphone</span></div>
+    </div>
+    <h3>Comment KORA décide</h3>
+    <ul>
+      <li>Un modèle entraîné sur des milliers de messages lit le texte.</li>
+      <li>Des règles claires vérifient l'expéditeur : nom officiel ou numéro ordinaire, SMS ou WhatsApp, premier contact.</li>
+      <li>Les raisons affichées sont toujours vérifiables : KORA n'invente rien.</li>
+    </ul>
+    <h3>Tes données</h3>
+    <p>L'analyse se fait sur ton téléphone. Seuls les messages écrits en fon passent par notre service de traduction.</p>
+    <h3>L'équipe</h3>
+    <p>Quatre étudiants, deux en informatique et deux en finance, pour le GPU Challenge 2026 (Epitech Bénin, cas d'usage n°7). <a href="https://github.com/123Asoumi/kora-financial-model" target="_blank" rel="noopener">Code source</a></p>
+    <div class="feuille-actions">
+      <button class="secondaire" id="revoir" type="button">Revoir la présentation</button>
+      <button class="secondaire" id="installer" type="button" hidden>Installer l'appli</button>
+    </div>
+  </section>
+</div>
 
 <script type="module" src="app.js"></script>
 </body>
