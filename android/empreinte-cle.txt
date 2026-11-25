@@ -3,3 +3,4 @@
 # Coller ici l'empreinte SHA-256, sur une ligne sans « # » : celle affichée par le workflow « Publier une version »,
 # ou celle donnée par : keytool -list -v -keystore kora-lite.jks -alias kora-lite  (ligne « SHA256: »).
 # Les deux formats sont acceptés. Ensuite, toute APK signée avec une autre clé sera refusée.
+57acbe4255713a551f935447429b2846fc8efb9f4c7140a0acb8e09e38c8c409

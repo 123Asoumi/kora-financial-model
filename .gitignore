@@ -8,3 +8,7 @@ node_modules/
 
 # Données externes dont la licence n'est pas publiée : téléchargées, jamais versionnées
 data/externes/brut/
+
+# Keystore de signature Android : SECRET, ne jamais versionner
+*.jks
+*.keystore
