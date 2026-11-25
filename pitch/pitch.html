@@ -174,7 +174,7 @@ h2 { font-size: 150px; }
     </div>
     <div class="slot-mascotte a z" style="--d:.3s"><div class="disque"></div></div>
   </div>
-  <div class="pied"><span>KORA-lite 1.0.0</span><span>01</span></div>
+  <div class="pied"><span>KORA-lite 1.0.2</span><span>01</span></div>
 </section>
 
 <!-- 2 · problème -->
@@ -182,7 +182,7 @@ h2 { font-size: 150px; }
   <div class="meta"><span>Le problème</span><span>Mobile Money au Bénin</span></div>
   <div class="corps">
     <div class="col" style="flex:1.05">
-      <h2 class="a" style="--d:.1s;font-size:132px">Une erreur de numéro<br>peut coûter <em data-count="509000" data-fmt="fcfa">509 000</em> FCFA</h2>
+      <h2 class="a" style="--d:.1s;font-size:132px">Une erreur de numéro<br>peut coûter <em data-count="509000" data-fmt="fcfa">509 000</em> FCFA</h2>
       <p class="a" style="--d:.5s;font-size:30px;line-height:1.35;margin-top:44px;max-width:900px">Mai 2026, devant la CRIET : un homme encaisse l'argent destiné à un cambiste en se faisant passer pour lui.</p>
     </div>
     <div class="col" style="display:grid;gap:26px;flex:.8">
@@ -354,7 +354,7 @@ function viderMinuteurs() { minuteurs.forEach(clearTimeout); minuteurs.forEach(c
 function compter(el) {
   const cible = parseFloat(el.dataset.count), dec = +(el.dataset.dec || 0), fcfa = el.dataset.fmt === "fcfa"
   const debut = performance.now(), duree = 1600
-  const fmt = (v) => fcfa ? Math.round(v).toLocaleString("fr-FR").replace(/ /g, " ") : v.toFixed(dec).replace(".", ",")
+  const fmt = (v) => fcfa ? Math.round(v).toLocaleString("fr-FR").replace(/ /g, " ") /* espace insécable : le nombre ne se coupe jamais en deux */ : v.toFixed(dec).replace(".", ",")
   const pas = (t) => { const p = Math.min(1, (t - debut) / duree); el.textContent = fmt(cible * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(pas) }
   requestAnimationFrame(pas)
 }
