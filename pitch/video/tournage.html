@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>KORA-lite — tournage de la vidéo de démo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@500;600;700&display=swap">
+<style>
+/* Page de tournage : elle pilote la VRAIE application (iframe vers web/) et pose dessus les titres animés.
+   Elle est enregistrée par enregistrer.py ; ne pas l'ouvrir pour la démo en direct. */
+:root { --violet: #4B1FC4; --nuit: #24096B; --orange: #FF8A2B; --rouge: #D92D20; --vert: #0B7A43; --titre: "Archivo", Impact, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0e0526; font-family: "Inter", system-ui, sans-serif; }
+#scene { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+  background: radial-gradient(1300px 900px at 82% 8%, #6A3BEA 0%, var(--violet) 38%, var(--nuit) 100%); color: #fff; }
+.rond { position: absolute; border-radius: 50%; }
+.r1 { width: 760px; height: 760px; right: -220px; top: -260px; background: #6A3BEA; opacity: .35; animation: flotte 9s ease-in-out infinite; }
+.r2 { width: 520px; height: 520px; left: -200px; bottom: -220px; background: var(--orange); opacity: .22; animation: flotte 11s ease-in-out -4s infinite; }
+@keyframes flotte { 50% { transform: translate(30px, 40px) scale(1.06); } }
+
+/* légendes à gauche */
+.cap { position: absolute; left: 110px; top: 0; bottom: 0; width: 960px; display: flex; flex-direction: column; justify-content: center; opacity: 0; pointer-events: none; }
+.cap.on { opacity: 1; }
+.cap .etiq { font: 800 34px var(--titre); color: var(--orange); letter-spacing: .04em; text-transform: uppercase; }
+.cap h2 { font: 900 124px/.9 var(--titre); text-transform: uppercase; letter-spacing: -.035em; margin: 22px 0 30px; }
+.cap h2 em { font-style: normal; color: var(--orange); }
+.cap p { font: 600 38px/1.3 "Inter"; max-width: 800px; color: #E6DDFF; }
+.cap > * { opacity: 0; transform: translateY(60px); }
+.cap.on > * { animation: monte .8s cubic-bezier(.2,.8,.2,1) both; }
+.cap.on h2 { animation-delay: .12s; } .cap.on p { animation-delay: .3s; }
+.cap.sortie > * { animation: sort .45s ease-in both !important; }
+@keyframes monte { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: none; } }
+@keyframes sort { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-90px); } }
+
+/* téléphone */
+#tel { position: absolute; left: 1180px; top: 58px; width: 480px; height: 964px; border-radius: 70px; background: #120a2e; padding: 16px;
+  box-shadow: 0 60px 100px -30px rgba(0,0,0,.65); transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .6s; }
+#tel.cache { opacity: 0; transform: translateX(240px) scale(.9); }
+#tel.centre { transform: translateX(-380px); }
+#ecran { position: relative; width: 448px; height: 932px; border-radius: 56px; overflow: hidden; background: #F6F3FF; }
+#app { position: absolute; left: 0; top: 0; width: 390px; height: 811px; border: 0; transform: scale(1.1487); transform-origin: top left; }
+
+/* faux SMS reçu */
+#sms { position: absolute; left: 16px; right: 16px; top: -170px; background: rgba(255,255,255,.97); color: #1E1535; border-radius: 28px; padding: 18px 22px; box-shadow: 0 24px 40px -18px rgba(0,0,0,.55); transition: top .55s cubic-bezier(.2,.8,.2,1), opacity .4s, transform .5s; z-index: 5; }
+#sms.vient { top: 60px; }
+#sms.part { top: 640px; opacity: 0; transform: scale(.7); }
+#sms .de { display: flex; align-items: center; gap: 10px; font: 700 19px "Inter"; color: #5E5478; margin-bottom: 8px; }
+#sms .de i { width: 30px; height: 30px; border-radius: 9px; background: #FFCC00; display: inline-block; }
+#sms .txt { font: 600 24px/1.3 "Inter"; }
+#sms.tremble { animation: tremble .5s ease 2; }
+@keyframes tremble { 25% { transform: translateX(-8px) rotate(-1deg); } 75% { transform: translateX(8px) rotate(1deg); } }
+
+/* tampons */
+.tampon { position: absolute; left: 1010px; top: 150px; z-index: 6; font: 900 96px var(--titre); letter-spacing: -.03em; padding: 6px 32px; border-radius: 28px; color: #fff; transform: scale(0) rotate(-12deg); opacity: 0; }
+.tampon.rouge { background: var(--rouge); } .tampon.vert { background: var(--vert); }
+.tampon.pop { animation: pop .7s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes pop { 0% { transform: scale(0) rotate(-18deg); opacity: 0; } 100% { transform: scale(1) rotate(-6deg); opacity: 1; } }
+.tampon.fin { opacity: 0 !important; transition: opacity .4s; animation: none; }
+
+/* carte fon de secours */
+#fon { position: absolute; left: 1010px; top: 700px; z-index: 6; width: 420px; background: #fff; color: #1E1535; border-radius: 30px; padding: 24px 28px; font: 700 26px/1.3 "Inter"; opacity: 0; transform: translateY(40px); transition: all .6s cubic-bezier(.2,.8,.2,1); }
+#fon.on { opacity: 1; transform: none; } #fon b { display: block; color: var(--violet); font: 900 22px var(--titre); text-transform: uppercase; margin-bottom: 8px; }
+
+/* écrans de titre */
+.plein { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: center; padding: 0 140px;
+  background: radial-gradient(1300px 900px at 82% 8%, #6A3BEA 0%, var(--violet) 38%, var(--nuit) 100%); opacity: 0; pointer-events: none; transition: opacity .6s; }
+.plein.on { opacity: 1; }
+.plein h1 { font: 900 190px/.88 var(--titre); text-transform: uppercase; letter-spacing: -.04em; }
+.plein h1 em { font-style: normal; color: var(--orange); }
+.plein .sous { margin-top: 44px; font: 700 44px/1.3 "Inter"; color: #FFD9AE; }
+.plein .lien { margin-top: 50px; align-self: flex-start; font: 900 70px var(--titre); background: #fff; color: var(--violet); border-radius: 999px; padding: 24px 62px; }
+.plein > * { opacity: 0; transform: translateY(70px); }
+.plein.on > * { animation: monte .9s cubic-bezier(.2,.8,.2,1) both; }
+.plein.on > :nth-child(2) { animation-delay: .25s; } .plein.on > :nth-child(3) { animation-delay: .5s; }
+#barre { position: absolute; left: 0; top: 0; height: 8px; background: var(--orange); width: 0; z-index: 30; }
+</style>
+</head>
+<body>
+<div id="scene">
+  <div class="rond r1"></div><div class="rond r2"></div>
+  <div id="barre"></div>
+
+  <div class="cap" id="c1"><span class="etiq">01 · Le piège</span><h2>Un SMS<br><em>qui presse</em></h2><p>Un faux agent MTN réclame le code reçu par SMS.</p></div>
+  <div class="cap" id="c2"><span class="etiq">02 · Le réflexe</span><h2>On le donne<br><em>à KORA</em></h2><p>Le message est analysé dans le téléphone.</p></div>
+  <div class="cap" id="c3"><span class="etiq">03 · Le verdict</span><h2>Arnaque<br><em>probable</em></h2><p>Les raisons, et le bon réflexe : ne donne jamais un code.</p></div>
+  <div class="cap" id="c4"><span class="etiq">04 · Le vrai SMS</span><h2>KORA ne<br><em>crie pas au loup</em></h2><p>Un vrai SMS de dépôt reste au vert.</p></div>
+  <div class="cap" id="c5"><span class="etiq">05 · En fon</span><h2>Aussi dans<br><em>ta langue</em></h2><p>KORA répond en fon, la première langue du Bénin.</p></div>
+
+  <div id="tel"><div id="ecran">
+    <iframe id="app" title="KORA-lite" src="../../web/index.html?partage"></iframe>
+    <div id="sms"><div class="de"><i></i>SMS · +229 01 66 12 34 56</div><div class="txt">Bjr c'est l'agent MTN, j'ai fait une erreur sur ton compte, envoie moi le code que tu vas recevoir stp</div></div>
+  </div></div>
+  <div class="tampon rouge" id="t99">99 %</div>
+  <div class="tampon vert" id="tvert">NORMAL</div>
+  <div id="fon"><b>En fon</b><span id="fon-txt"></span></div>
+
+  <div class="plein" id="p0"><h1>Une arnaque,<br><em>20 secondes</em><br>pour réagir</h1><div class="sous">KORA-lite · la démo</div></div>
+  <div class="plein" id="p9"><h1>Vérifie<br><em>avant de payer.</em></h1><div class="sous">Essayez KORA-lite sur votre téléphone</div><div class="lien">kora-0-01.vercel.app</div></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id)
+const wait = (ms) => new Promise((ok) => setTimeout(ok, ms))
+const marks = []
+const mark = (nom) => marks.push([nom, Date.now() / 1000])
+window.__marks = marks
+const frame = $("app")
+const doc = () => frame.contentDocument
+const el = (id) => doc().getElementById(id)
+async function until(fn, max = 20000) { const t = Date.now(); while (Date.now() - t < max) { try { const v = fn(); if (v) return v } catch (_) {} await wait(80) } return null }
+
+function cap(n) { document.querySelectorAll(".cap.on").forEach((c) => { c.classList.add("sortie"); setTimeout(() => c.classList.remove("on", "sortie"), 450) }); if (n) setTimeout(() => $("c" + n).classList.add("on"), 480) }
+async function taper(texte, vitesse = 34) {
+  const ta = el("saisie"); ta.focus(); ta.value = ""
+  for (const c of texte) { ta.value += c; ta.dispatchEvent(new Event("input", { bubbles: true })); await wait(vitesse) }
+}
+async function repondreQuestions() { // l'appli demande qui envoie le message : on répond comme un utilisateur
+  for (let k = 0; k < 3; k++) {
+    await wait(1300)
+    const b = [...doc().querySelectorAll(".puces:not(.fini) button")]
+    const choix = b.find((x) => /^Un nom/i.test(x.textContent)) || b.find((x) => /^(MobileMoney|MTN MoMo|Moov Money)/.test(x.textContent)) || b.find((x) => /^Par SMS|^SMS$/.test(x.textContent))
+    if (!choix) break
+    mark("clic"); choix.click()
+  }
+}
+
+window.__pret = false
+frame.addEventListener("load", async () => {
+  await until(() => document.querySelector("#app") && doc().body.classList.contains("s-chat"), 30000)
+  await wait(1500); window.__pret = true
+})
+
+window.__run = async function () {
+  mark("debut")
+  const barre = $("barre"); barre.style.transition = "width 75s linear"; barre.style.width = "100%"
+  $("tel").classList.add("cache"); $("p0").classList.add("on")
+  await wait(4200)
+  // 01 · le piège
+  $("p0").classList.remove("on"); $("tel").classList.remove("cache"); cap(1); mark("c1")
+  await wait(1500); $("sms").classList.add("vient"); mark("sms")
+  await wait(700); $("sms").classList.add("tremble")
+  await wait(3600)
+  // 02 · on le donne à KORA
+  cap(2); mark("c2"); $("sms").classList.add("part"); mark("copie")
+  await wait(900)
+  await taper("Bjr c'est l'agent MTN, j'ai fait une erreur sur ton compte, envoie moi le code que tu vas recevoir stp", 30)
+  await wait(500); mark("envoi"); doc().getElementById("formulaire").requestSubmit()
+  await until(() => doc().querySelector(".verdict"), 25000); mark("verdict")
+  // 03 · le verdict
+  cap(3); await wait(500); $("t99").classList.add("pop"); mark("tampon")
+  await wait(2200)
+  const fil = el("fil"); fil.scrollTo({ top: fil.scrollHeight, behavior: "smooth" }); mark("defile")
+  await wait(5200); $("t99").classList.add("fin");
+  // 04 · le vrai SMS
+  cap(4); mark("c4")
+  el("nouveau").click(); mark("nouveau"); await wait(1400)
+  await taper("Vous avez reçu 25 000 FCFA de DOSSOU Koffi (01 97 00 00 00). Nouveau solde : 31 500 FCFA. ID transaction : 7A3F9C21B0.", 24)
+  await wait(400); mark("envoi2"); doc().getElementById("formulaire").requestSubmit()
+  await until(() => doc().querySelector(".verdict"), 25000)
+  mark("vert"); $("tvert").classList.add("pop")
+  await wait(2600); await repondreQuestions()
+  await wait(1200); $("tvert").classList.add("fin")
+  // 05 · en fon
+  cap(5); mark("c5")
+  // le fon passe par un service en ligne : on ne dépend pas du réseau pendant la prise, on l'explique par une carte
+  $("fon-txt").textContent = "Écris en fon : KORA comprend, analyse, puis te répond dans ta langue."
+  $("fon").classList.add("on"); mark("fon"); await wait(5600)
+  // fin
+  cap(0); $("tel").classList.add("cache"); $("p9").classList.add("on"); mark("fin")
+  await wait(6500); mark("fini")
+  window.__fini = true
+}
+</script>
+</body>
+</html>
