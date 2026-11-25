@@ -185,6 +185,10 @@ h2 { font-size: 150px; }
 .puces li::before { content: ""; position: absolute; left: 0; top: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--orange); }
 .c-blanc .puces li::before { background: var(--rouge); }
 
+/* modèle économique : sources de revenus */
+.pastilles { display: flex; gap: 22px; margin-top: 36px; }
+.pastilles span { font: 800 30px var(--titre); text-transform: uppercase; letter-spacing: -.01em; padding: 18px 36px; border-radius: 999px; background: var(--encre); color: #fff; }
+
 /* diapo pilote : trois colonnes */
 .trois { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 30px; width: 100%; }
 .trois .carte { min-height: 560px; }
@@ -376,7 +380,24 @@ python -m pytest tests/</div>
   <div class="pied"><span>KORA-lite</span><span>08</span></div>
 </section>
 
-<!-- 9 · faisabilité du pilote -->
+<!-- 9 · modèle économique -->
+<section class="slide clair" data-notes="0:30 · QUI PAIE ? Modèle B2B2C : KORA reste gratuit pour les particuliers et les commerçants ; le financement vient des partenaires (opérateurs, banques, microfinances) par une licence annuelle, des frais d'intégration ou des partenariats de prévention. À dire clairement : aucun accord n'est signé à ce jour, ce sont des partenaires potentiels. L'intérêt pour eux : moins de réclamations, moins d'incidents, plus de confiance dans le Mobile Money.">
+  <div class="meta"><span>Le modèle économique</span><span>B2B2C</span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+    <h2 class="a" style="--d:.1s;font-size:92px;margin-bottom:40px">Gratuit pour vous,<br><em>financé par les partenaires</em></h2>
+    <div class="trajet" style="grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr) 60px minmax(0,1fr)">
+      <div class="carte c-orange a z" style="--d:.4s;min-height:320px"><span class="num">01 · ILS PAIENT</span><h3 style="font-size:46px">Opérateurs,<br>banques</h3><p>MTN, Moov, Celtiis, microfinances.</p></div>
+      <div class="fl a" style="--d:.6s">→</div>
+      <div class="carte c-violet a z" style="--d:.7s;min-height:320px"><span class="num">02 · LE PRODUIT</span><h3 style="font-size:46px">KORA-lite</h3><p>Analyse le message dans le téléphone.</p></div>
+      <div class="fl a" style="--d:.9s">→</div>
+      <div class="carte c-blanc a z" style="--d:1s;min-height:320px"><span class="num">03 · GRATUIT</span><h3 style="font-size:46px">Particuliers,<br>commerçants</h3><p>Aucun abonnement.</p></div>
+    </div>
+    <div class="pastilles a" style="--d:1.2s"><span>Licence annuelle</span><span>Frais d'intégration</span><span>Partenariats de prévention</span></div>
+  </div>
+  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>09</span></div>
+</section>
+
+<!-- 10 · faisabilité du pilote -->
 <section class="slide sombre" data-notes="0:40 · LES MOYENS ET LES VALIDATIONS. Ce qui existe déjà est utilisable aujourd'hui. Ce qu'il faut pour un pilote est listé, sans surprise : un opérateur, des messages béninois, des relecteurs fon, un GPU. Les objectifs chiffrés sont des cibles à atteindre pendant le pilote, pas des résultats.">
   <div class="meta"><span>Le pilote · de la démo au terrain</span><span class="critere">Faisabilité d'un pilote <b>20 pts</b></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
@@ -398,10 +419,10 @@ python -m pytest tests/</div>
         <li>Objectif : au moins 85 % des arnaques signalées et au plus 5 % de fausses alertes sur des SMS béninois</li></ul></div>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>09</span></div>
+  <div class="pied"><span>KORA-lite</span><span>10</span></div>
 </section>
 
-<!-- 8 · merci -->
+<!-- 11 · merci -->
 <section class="slide sombre" data-emo="amoureux" data-notes="0:10 · Terminez sur la phrase. Ajoutez les noms de l'équipe et un QR code vers l'application.">
   <div class="meta"><span>GPU Challenge 2026 · Epitech Bénin</span><span>Cas d'usage n°7 · arnaques financières numériques</span></div>
   <div class="corps">
@@ -416,7 +437,7 @@ python -m pytest tests/</div>
       <figure class="a z" style="--d:.75s"><img src="equipe/satignon.png" alt="Fresnel SATIGNON" style="object-position:50% 25%"><figcaption><b>Fresnel SATIGNON</b><span>Ingénierie logicielle</span></figcaption></figure>
     </div>
   </div>
-  <div class="pied"><span>Essayez KORA-lite sur votre téléphone</span><span>10</span></div>
+  <div class="pied"><span>Essayez KORA-lite sur votre téléphone</span><span>11</span></div>
 </section>
 </main>
 
