@@ -63,6 +63,16 @@ for s in [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]:
     }
 print(json.dumps(metriques, indent=2, ensure_ascii=False))
 
+# Référence simple : les règles seules (kora_lib.SIGNAUX), sans modèle
+nb_signaux = df["texte"].map(lambda t: len(kora_lib.detecter_signaux(t))).values
+reference_regles = {
+    ("au_moins_1_signal" if k == 1 else f"au_moins_{k}_signaux"): {
+        "detection": round(float((nb_signaux[arnaque] >= k).mean()), 4),
+        "fausses_alertes": round(float((nb_signaux[~arnaque] >= k).mean()), 4),
+    } for k in (1, 2)
+}
+print("Référence règles seules :", json.dumps(reference_regles, ensure_ascii=False))
+
 # 2. Seuils (réglés dans kora_lib)
 seuils = {"arnaque": kora_lib.SEUIL_ARNAQUE, "suspect": kora_lib.SEUIL_SUSPECT}
 
@@ -92,5 +102,5 @@ with open(sortie_web, "w", encoding="utf-8") as f:
     json.dump(modele, f, ensure_ascii=False, separators=(",", ":"))
 os.makedirs(os.path.join(RACINE, "resultats"), exist_ok=True)
 with open(os.path.join(RACINE, "resultats", "kora_lite_validation_croisee.json"), "w", encoding="utf-8") as f:
-    json.dump({"donnees": fichiers, "messages": int(len(df)), **metriques, "seuils": seuils}, f, ensure_ascii=False, indent=2)
+    json.dump({"donnees": [os.path.relpath(os.path.abspath(f), RACINE) for f in fichiers], "messages": int(len(df)), **metriques, "reference_regles_seules": reference_regles, "seuils": seuils}, f, ensure_ascii=False, indent=2)
 print(f"✅ {sortie_web} ({os.path.getsize(sortie_web) // 1024} Ko)")

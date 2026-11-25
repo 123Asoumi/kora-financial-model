@@ -1,6 +1,6 @@
 {
   "donnees": [
-    "/home/claude/kora-repo/data/kora_fr.csv"
+    "data/kora_fr.csv"
   ],
   "messages": 5342,
   "auc_arnaque_vs_normal": 0.9856,
@@ -29,6 +29,16 @@
     "0.8": {
       "detection": 0.7364,
       "fausses_alertes": 0.0039
+    }
+  },
+  "reference_regles_seules": {
+    "au_moins_1_signal": {
+      "detection": 0.87,
+      "fausses_alertes": 0.2085
+    },
+    "au_moins_2_signaux": {
+      "detection": 0.4643,
+      "fausses_alertes": 0.0182
     }
   },
   "seuils": {
