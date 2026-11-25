@@ -32,7 +32,7 @@ const EXEMPLES = [
 ]
 
 const echapper = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c])
-const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches
+const calme = () => document.body.classList.contains("calme") || matchMedia("(prefers-reduced-motion: reduce)").matches
 const pause = (ms) => new Promise((ok) => setTimeout(ok, calme() ? 0 : ms))
 const tactile = () => matchMedia("(pointer: coarse)").matches
 const modeFon = () => langue === "fon"
@@ -380,8 +380,9 @@ function travail(corps, etapes) {
 const CLE_HISTO = "kora-historique"
 function lireHisto() { try { return JSON.parse(memoire(CLE_HISTO) || "[]") } catch (_) { return [] } }
 function noterHisto(texte, r) {
+    if (!reglages.histo) return
     const liste = lireHisto()
-    liste.unshift({ t: Date.now(), niveau: r.niveau, pct: Math.round(r.risque * 100), extrait: texte.slice(0, 140) })
+    liste.unshift({ t: Date.now(), niveau: r.niveau, pct: Math.round(r.risque * 100), extrait: texte.slice(0, 600) })
     memoire(CLE_HISTO, JSON.stringify(liste.slice(0, 30)))
 }
 function afficherHisto() {
@@ -396,11 +397,8 @@ function afficherHisto() {
         ol.append(li)
     }
 }
-$("historique-btn").addEventListener("click", () => { afficherHisto(); $("voile-histo").hidden = false; $("fermer-histo").focus() })
-$("fermer-histo").addEventListener("click", () => { $("voile-histo").hidden = true })
-$("voile-histo").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.hidden = true })
-$("vider-histo").addEventListener("click", () => { memoire(CLE_HISTO, "[]"); afficherHisto() })
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("voile-histo").hidden = true })
+$("fermer-histo").addEventListener("click", () => fermerFeuille($("voile-histo")))
+$("vider-histo").addEventListener("click", () => { memoire(CLE_HISTO, "[]"); afficherHisto(); majReprendre(); toast("Historique effacé") })
 
 function reflechir(corps) {
     const t = el("div", "tape")
@@ -513,6 +511,7 @@ async function analyserMessage(texte, { deja = false, original = null } = {}) {
     const r = kora.analyserComplet(texte, ctx)
     dernier = { texte, original, ctx, r, niveau1: r.niveau }
     noterHisto(original || texte, r)
+    majReprendre()
     const question = r.niveau === "sur" ? PH.qExpediteurSur : PH.qExpediteur
     await suivi.jusquauBout(modeFon() ? 160 : 230)
     // en mode fon, on traduit tout le tour d'un seul coup avant de répondre
@@ -922,11 +921,150 @@ async function recevoirPartage() {
     return false
 }
 
+/* ================= menu, feuilles et paramètres (structure reprise de Dan) ================= */
+const CLE_REGLAGES = "kora-reglages"
+const REGLAGES_DEFAUT = { grand: false, calme: false, histo: true }
+const reglages = (() => { try { return { ...REGLAGES_DEFAUT, ...JSON.parse(memoire(CLE_REGLAGES) || "{}") } } catch (_) { return { ...REGLAGES_DEFAUT } } })()
+function sauverReglages() { memoire(CLE_REGLAGES, JSON.stringify(reglages)) }
+function appliquerReglages() {
+    document.body.classList.toggle("grand", reglages.grand)
+    document.body.classList.toggle("calme", reglages.calme)
+    majReprendre()
+}
+let finToast = 0
+function toast(texte) {
+    const t = $("toast")
+    t.textContent = texte
+    t.hidden = false
+    clearTimeout(finToast)
+    finToast = setTimeout(() => { t.hidden = true }, 2600)
+}
+
+// le menu
+function ouvrirTiroir() {
+    $("tiroir").hidden = false
+    $("voile-tiroir").hidden = false
+    $("menu-btn").setAttribute("aria-expanded", "true")
+    fermerMenu()
+    $("fermer-tiroir").focus()
+}
+function fermerTiroir() {
+    $("tiroir").hidden = true
+    $("voile-tiroir").hidden = true
+    $("menu-btn").setAttribute("aria-expanded", "false")
+}
+$("menu-btn").addEventListener("click", ouvrirTiroir)
+$("fermer-tiroir").addEventListener("click", () => { fermerTiroir(); $("menu-btn").focus() })
+$("voile-tiroir").addEventListener("click", fermerTiroir)
+
+// les feuilles (historique, arnaques, paramètres, à propos)
+function ouvrirFeuille(voile) { voile.hidden = false; voile.querySelector("[data-fermer], .icone-btn")?.focus() }
+function fermerFeuille(voile) { voile.hidden = true }
+for (const voile of document.querySelectorAll(".voile")) {
+    voile.addEventListener("click", (e) => { if (e.target === voile) fermerFeuille(voile) })
+    voile.querySelector("[data-fermer]")?.addEventListener("click", () => { fermerFeuille(voile); $("menu-btn").focus() })
+}
+document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return
+    document.querySelectorAll(".voile:not([hidden])").forEach(fermerFeuille)
+    if (!$("tiroir").hidden) fermerTiroir()
+})
+
+const ALLER = {
+    discussion: () => saisie.focus(),
+    historique: () => { afficherHisto(); ouvrirFeuille($("voile-histo")) },
+    arnaques: () => ouvrirFeuille($("voile-arnaques")),
+    reglages: () => { remplirReglages(); ouvrirFeuille($("voile-reglages")) },
+    apropos: () => ouvrirApropos(),
+}
+document.querySelectorAll("[data-nav]").forEach((b) => b.addEventListener("click", () => { fermerTiroir(); ALLER[b.dataset.nav]() }))
+
+// les arnaques courantes
+const CATALOGUE = [
+    ["Le faux agent", "Il se dit agent MTN ou Moov et te demande un code reçu par SMS.", 0],
+    ["L'argent « envoyé par erreur »", "On te demande de renvoyer une somme qui n'est jamais arrivée.", 1],
+    ["Le prêt rapide", "Un crédit sans garantie… à condition de payer des frais d'abord.", 2],
+    ["Le faux gain", "Tu aurais gagné à un tirage : il faut payer pour retirer.", 3],
+    ["Le compte « bloqué »", "Un lien pour « réactiver » ton compte, qui vole tes accès.", 4],
+    ["Le faux SMS de dépôt", "Un message imite un vrai dépôt, mais vient d'un numéro ordinaire.", 5],
+]
+for (const [titre, desc, i] of CATALOGUE) {
+    const b = el("button")
+    b.type = "button"
+    b.innerHTML = `<b>${echapper(titre)}</b><span>${echapper(desc)}</span><em>Voir KORA l'analyser</em>`
+    b.addEventListener("click", async () => { fermerFeuille($("voile-arnaques")); await pret; if (kora) analyserMessage(EXEMPLES[i][1]) })
+    $("catalogue").append(b)
+}
+
+// paramètres
+function remplirReglages() {
+    document.querySelector(`input[name="r-langue"][value="${modeFon() ? "fon" : "fr"}"]`).checked = true
+    $("r-grand").checked = reglages.grand
+    $("r-calme").checked = reglages.calme
+    $("r-histo").checked = reglages.histo
+    $("r-effacer").textContent = "Effacer mes données"
+    delete $("r-effacer").dataset.confirmer
+}
+document.querySelectorAll('input[name="r-langue"]').forEach((r) => r.addEventListener("change", () => {
+    if (r.value === "fon" && !modeFon()) { activerFon(); toast("KORA te répond en fon") }
+    if (r.value === "fr" && modeFon()) { langue = "fr"; majLangue(); toast("KORA te répond en français") }
+}))
+$("r-grand").addEventListener("change", (e) => { reglages.grand = e.target.checked; sauverReglages(); appliquerReglages(); toast(reglages.grand ? "Texte agrandi" : "Taille normale") })
+$("r-calme").addEventListener("change", (e) => { reglages.calme = e.target.checked; sauverReglages(); appliquerReglages(); toast(reglages.calme ? "Animations réduites" : "Animations activées") })
+$("r-histo").addEventListener("change", (e) => {
+    reglages.histo = e.target.checked
+    if (!reglages.histo) memoire(CLE_HISTO, "[]")
+    sauverReglages(); appliquerReglages()
+    toast(reglages.histo ? "Historique activé" : "Historique désactivé et effacé")
+})
+$("r-revoir").addEventListener("click", () => { fermerFeuille($("voile-reglages")); revoirOnboarding() })
+$("r-effacer").addEventListener("click", (e) => {
+    const b = e.currentTarget
+    if (!b.dataset.confirmer) { b.dataset.confirmer = "1"; b.textContent = "Toucher encore pour confirmer"; return }
+    memoire(CLE_HISTO, "[]")
+    Object.assign(reglages, REGLAGES_DEFAUT)
+    sauverReglages(); appliquerReglages(); remplirReglages()
+    toast("Tes données sont effacées")
+})
+
+// accueil : reprendre là où tu en étais
+function majReprendre() {
+    const liste = reglages.histo ? lireHisto().slice(0, 2) : []
+    $("reprendre").hidden = !liste.length
+    const ol = $("reprendre-liste")
+    ol.innerHTML = ""
+    for (const h of liste) {
+        const li = el("li")
+        li.tabIndex = 0
+        li.setAttribute("role", "button")
+        li.innerHTML = `<span class="statut" style="--c:${COULEURS[h.niveau]}">${STATUTS[h.niveau]} · ${h.pct} %</span><q>${echapper(h.extrait)}</q>`
+        const relancer = async () => { await pret; if (kora) analyserMessage(h.extrait) }
+        li.addEventListener("click", relancer)
+        li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); relancer() } })
+        ol.append(li)
+    }
+}
+// le conseil du jour
+const CONSEILS = [
+    ["Aucun agent ne te demandera ton code.", "Ni MTN, ni Moov, ni Celtiis. Un code secret ne se donne jamais, même à quelqu'un qui connaît ton nom."],
+    ["Vérifie ton solde, pas le SMS.", "Un faux SMS de dépôt peut imiter un vrai. Compose le code USSD de ton opérateur pour voir ton vrai solde."],
+    ["Un vrai prêt ne demande pas de frais d'avance.", "Payer pour recevoir un crédit, c'est le signe d'une arnaque."],
+    ["Les opérateurs écrivent sous leur nom.", "Un message officiel vient de « MobileMoney » ou « MoovMoney », pas d'un numéro ordinaire en 01."],
+    ["L'urgence est un piège.", "« Vite », « tout de suite », « dernier délai » : l'escroc veut t'empêcher de réfléchir. Prends le temps de vérifier."],
+    ["Un lien pour débloquer ton compte ? N'y va pas.", "Ton opérateur ne t'enverra jamais vers un site en .top ou .xyz pour réactiver ton compte."],
+    ["Tu t'es fait avoir ? Agis vite.", "Appelle le service client officiel de ton opérateur pour bloquer la transaction, puis change ton code."],
+]
+{
+    const jour = Math.floor(Date.now() / 86400000)
+    const [titre, texte] = CONSEILS[jour % CONSEILS.length]
+    $("conseil-jour").innerHTML = `<span class="ampoule" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2Z"/></svg></span><b>${echapper(titre)}</b><p>${echapper(texte)}</p><small>Le conseil de KORA</small>`
+}
+appliquerReglages()
+
 /* ================= à propos ================= */
 function ouvrirApropos() { $("voile").hidden = false; $("fermer").focus() }
 function fermerApropos() { $("voile").hidden = true }
-$("apropos-btn").addEventListener("click", ouvrirApropos)
-$("fermer").addEventListener("click", () => { fermerApropos(); $("apropos-btn").focus() })
+$("fermer").addEventListener("click", () => { fermerApropos(); $("menu-btn").focus() })
 $("voile").addEventListener("click", (e) => { if (e.target === $("voile")) fermerApropos() })
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("voile").hidden) fermerApropos() })
 $("revoir").addEventListener("click", revoirOnboarding)

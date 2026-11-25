@@ -356,7 +356,80 @@
   .histo q { color: var(--titre); quotes: "« " " »"; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .histo time { font-size: 13px; color: var(--discret); }
   .histo-vide { color: var(--discret); text-align: center; padding: 24px 0; }
-  @media (max-width: 380px) { .idees { grid-template-columns: 1fr; } }
+  @media (max-width: 380px) { .catalogue { grid-template-columns: 1fr; } .idees { grid-template-columns: 1fr; } }
+
+
+  /* ---------- menu (structure reprise de Dan) ---------- */
+  .voile-tiroir { position: fixed; inset: 0; z-index: 84; background: rgba(27, 35, 39, .35); animation: fondu .2s ease; }
+  @keyframes fondu { from { opacity: 0; } }
+  .tiroir {
+    position: fixed; z-index: 85; top: 0; bottom: 0; right: 0; width: min(340px, 88vw); overflow-y: auto;
+    background: var(--brun); display: flex; flex-direction: column; gap: 4px;
+    padding: calc(12px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+    box-shadow: -18px 0 50px rgba(27, 35, 39, .14); animation: glisse .3s cubic-bezier(.2, .8, .2, 1);
+  }
+  @keyframes glisse { from { transform: translateX(40px); opacity: 0; } }
+  .tiroir-tete { display: flex; align-items: center; justify-content: space-between; padding: 0 0 10px 6px; }
+  .tiroir-rubrique { margin: 14px 8px 4px; font-size: 13px; font-weight: 700; color: var(--discret); }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; text-align: left; border: 0; background: transparent; cursor: pointer;
+    padding: 11px 10px; border-radius: 16px; color: var(--titre); font-weight: 700;
+  }
+  .nav-item svg { flex: none; width: 38px; height: 38px; padding: 9px; border-radius: 12px; background: var(--noir); color: var(--bois-fonce); box-shadow: inset 0 0 0 1px var(--ligne); }
+  .nav-item small { display: block; font-weight: 400; font-size: 13.5px; color: var(--discret); line-height: 1.3; margin-top: 1px; }
+  .nav-item:hover, .nav-item[aria-current="page"] { background: var(--brun-2); }
+  .aide-carte { margin-top: auto; background: var(--titre); color: #fff8ea; border-radius: 20px; padding: 16px; display: grid; gap: 6px; }
+  .aide-carte p { margin: 0; color: #d8c9ae; font-size: 14.5px; }
+  .lien-fort { justify-self: start; margin-top: 4px; border: 0; border-radius: 999px; padding: 9px 15px; background: var(--bois); color: var(--encre); font-weight: 800; cursor: pointer; }
+
+  /* ---------- accueil : reprendre là où tu en étais, conseil du jour ---------- */
+  .histo.court { margin-top: 6px; }
+  .histo.court li { cursor: pointer; padding: 10px 12px; }
+  .histo.court li:hover { background: var(--brun); }
+  .conseil-jour { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start; padding: 14px 16px; border-radius: 20px; background: var(--creme); margin-top: 8px; }
+  .conseil-jour .ampoule { grid-row: span 2; width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: var(--bois); color: var(--encre); }
+  .conseil-jour b { color: var(--titre); }
+  .conseil-jour p { margin: 0; color: var(--texte-doux); font-size: 15px; }
+  .conseil-jour small { grid-column: 2; font-size: 12.5px; font-weight: 700; color: var(--bois-fonce); }
+
+  /* ---------- catalogue des arnaques ---------- */
+  .catalogue { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+  .catalogue button { display: grid; gap: 6px; align-content: start; text-align: left; border: 0; cursor: pointer; padding: 15px; border-radius: 18px; background: var(--noir); box-shadow: inset 0 0 0 1px var(--ligne); }
+  .catalogue button:hover { box-shadow: inset 0 0 0 1.5px var(--bois); }
+  .catalogue b { color: var(--titre); font-size: 15.5px; line-height: 1.3; }
+  .catalogue span { color: var(--texte-doux); font-size: 14px; line-height: 1.4; }
+  .catalogue em { font-style: normal; font-weight: 700; font-size: 13px; color: var(--bois-fonce); }
+
+  /* ---------- paramètres ---------- */
+  .choix { display: flex; gap: 8px; }
+  .choix label { flex: 1; cursor: pointer; }
+  .choix input { position: absolute; opacity: 0; }
+  .choix span { display: block; text-align: center; padding: 11px; border-radius: 14px; background: var(--noir); box-shadow: inset 0 0 0 1px var(--ligne); font-weight: 700; color: var(--titre); }
+  .choix input:checked + span { background: var(--titre); color: #fff8ea; }
+  .choix input:focus-visible + span { outline: 3px solid var(--bois-clair); outline-offset: 2px; }
+  .interrupteur { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--ligne); cursor: pointer; color: var(--titre); font-weight: 700; }
+  .interrupteur small { display: block; font-weight: 400; font-size: 13.5px; color: var(--discret); }
+  .interrupteur input { position: absolute; opacity: 0; }
+  .interrupteur i { flex: none; width: 46px; height: 28px; border-radius: 99px; background: var(--brun-3); position: relative; transition: background .2s; }
+  .interrupteur i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: transform .2s; }
+  .interrupteur input:checked + i { background: var(--bois); }
+  .interrupteur input:checked + i::after { transform: translateX(18px); }
+  .interrupteur input:focus-visible + i { outline: 3px solid var(--bois-clair); outline-offset: 2px; }
+  .aide { font-size: 13.5px; }
+  .secondaire.danger { background: transparent; color: #b3382c; box-shadow: inset 0 0 0 1.5px rgba(229, 72, 77, .45); }
+
+  /* ---------- message bref ---------- */
+  .toast {
+    position: fixed; z-index: 90; left: 50%; top: calc(70px + env(safe-area-inset-top)); transform: translateX(-50%);
+    background: var(--titre); color: #fff8ea; padding: 11px 18px; border-radius: 999px; font-weight: 700; font-size: 15px;
+    box-shadow: 0 10px 30px rgba(27, 35, 39, .2); animation: descend .25s ease; max-width: calc(100vw - 32px);
+  }
+  @keyframes descend { from { transform: translate(-50%, -8px); opacity: 0; } }
+
+  /* ---------- réglages appliqués ---------- */
+  body.grand .fil, body.grand .feuille { zoom: 1.14; }
+  body.grand .barre-chat textarea { font-size: 19px; }
+  body.calme *, body.calme *::before, body.calme *::after { animation: none !important; transition: none !important; }
 
   @media (min-width: 900px) {
     body { --pw: 200px; --ph: 250px; }
@@ -401,14 +474,11 @@
     <div class="tete-actions">
       <button type="button" class="langue-btn" id="langue" aria-pressed="false" title="Écrire en fon">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.6 3.8 6 3.8 9.5s-1.2 6.9-3.8 9.5c-2.6-2.6-3.8-6-3.8-9.5S9.4 5.1 12 2.5Z"/></svg><span id="langue-txt">FR</span></button>
-      <button class="icone-btn" id="historique-btn" type="button" aria-label="Mes vérifications" title="Mes vérifications">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
-      </button>
       <button class="icone-btn" id="nouveau" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
       </button>
-      <button class="icone-btn" id="apropos-btn" type="button" aria-label="À propos de KORA" title="À propos de KORA">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5"/></svg>
+      <button class="icone-btn" id="menu-btn" type="button" aria-label="Menu" title="Menu" aria-expanded="false" aria-controls="tiroir">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
       </button>
     </div>
   </header>
@@ -455,6 +525,11 @@
       <h1>Un message te paraît louche ?</h1>
       <p>Envoie-le à KORA. Il te dit si c'est une arnaque Mobile Money, et quoi faire. Tu peux aussi lui poser tes questions.</p>
       <div class="idees" id="idees" aria-label="Par où commencer"></div>
+      <section class="reprendre" id="reprendre" hidden>
+        <h2 class="rubrique">Tes dernières vérifications</h2>
+        <ol class="histo court" id="reprendre-liste"></ol>
+      </section>
+      <aside class="conseil-jour" id="conseil-jour" aria-label="Le conseil de KORA"></aside>
       <h2 class="rubrique">Ou essaie un exemple</h2>
       <div class="suggestions" id="suggestions" aria-label="Exemples de messages"></div>
     </div>
@@ -475,6 +550,63 @@
     <p class="mention">KORA peut se tromper. En cas de doute, appelle le service client officiel de ton opérateur.</p>
   </footer>
 </div>
+
+<div class="voile-tiroir" id="voile-tiroir" hidden></div>
+<nav class="tiroir" id="tiroir" aria-label="Menu de KORA" hidden>
+  <div class="tiroir-tete">
+    <span class="marque">KORA<small>0.01</small></span>
+    <button class="icone-btn" id="fermer-tiroir" type="button" aria-label="Fermer le menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <p class="tiroir-rubrique">Mon espace</p>
+  <button type="button" class="nav-item" data-nav="discussion"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Discussion<small>Vérifier un message, poser une question</small></span></button>
+  <button type="button" class="nav-item" data-nav="historique" id="historique-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span>Mes vérifications<small>Gardées sur ce téléphone</small></span></button>
+  <button type="button" class="nav-item" data-nav="arnaques"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></svg><span>Les arnaques courantes<small>Les reconnaître avant qu'il soit trop tard</small></span></button>
+  <p class="tiroir-rubrique">Préférences</p>
+  <button type="button" class="nav-item" data-nav="reglages"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span>Paramètres<small>Langue, taille du texte, historique</small></span></button>
+  <button type="button" class="nav-item" data-nav="apropos" id="apropos-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5"/></svg><span>À propos de KORA<small>Le projet, les chiffres, l'équipe</small></span></button>
+  <div class="aide-carte">
+    <b>Un doute sur un message ?</b>
+    <p>Ne paie rien et ne donne aucun code avant d'avoir vérifié avec KORA.</p>
+    <button type="button" class="lien-fort" data-nav="discussion">Vérifier un message</button>
+  </div>
+</nav>
+
+<div class="voile" id="voile-arnaques" hidden>
+  <section class="feuille" role="dialog" aria-modal="true" aria-labelledby="arnaques-titre">
+    <div class="feuille-tete">
+      <h2 id="arnaques-titre">Les arnaques courantes</h2>
+      <button class="icone-btn" data-fermer type="button" aria-label="Fermer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <p>Les pièges les plus fréquents sur Mobile Money au Bénin. Touche une carte pour voir KORA analyser un exemple.</p>
+    <div class="catalogue" id="catalogue"></div>
+  </section>
+</div>
+
+<div class="voile" id="voile-reglages" hidden>
+  <section class="feuille" role="dialog" aria-modal="true" aria-labelledby="reglages-titre">
+    <div class="feuille-tete">
+      <h2 id="reglages-titre">Paramètres</h2>
+      <button class="icone-btn" data-fermer type="button" aria-label="Fermer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <h3>Langue</h3>
+    <div class="choix" role="radiogroup" aria-label="Langue de KORA">
+      <label><input type="radio" name="r-langue" value="fr"><span>Français</span></label>
+      <label><input type="radio" name="r-langue" value="fon"><span>Fɔngbe</span></label>
+    </div>
+    <p class="aide">En fon, KORA traduit ses réponses avec un service en ligne : il faut une connexion.</p>
+    <h3>Affichage</h3>
+    <label class="interrupteur"><span>Texte plus grand<small>Pour lire plus facilement</small></span><input type="checkbox" id="r-grand"><i aria-hidden="true"></i></label>
+    <label class="interrupteur"><span>Moins d'animations<small>La mascotte et l'interface bougent moins</small></span><input type="checkbox" id="r-calme"><i aria-hidden="true"></i></label>
+    <h3>Mes données</h3>
+    <label class="interrupteur"><span>Garder l'historique<small>La liste de tes vérifications, sur ce téléphone uniquement</small></span><input type="checkbox" id="r-histo"><i aria-hidden="true"></i></label>
+    <p class="aide">L'analyse se fait sur ton téléphone. Seuls les messages en fon et tes questions à l'assistant passent par notre service en ligne.</p>
+    <div class="feuille-actions">
+      <button class="secondaire" id="r-revoir" type="button">Revoir la présentation</button>
+      <button class="secondaire danger" id="r-effacer" type="button">Effacer mes données</button>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <div class="voile" id="voile-histo" hidden>
   <section class="feuille" role="dialog" aria-modal="true" aria-labelledby="histo-titre">
