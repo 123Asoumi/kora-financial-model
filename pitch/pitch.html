@@ -191,6 +191,21 @@ h2 { font-size: 150px; }
 .trois li::before { content: ""; position: absolute; left: 0; top: 7px; width: 20px; height: 20px; border-radius: 50%; background: currentColor; opacity: .9; }
 .trois li b { font-weight: 800; }
 
+/* navigation visible : flèches gauche / droite et compteur */
+.nav { position: fixed; top: 50%; z-index: 15; width: 64px; height: 64px; margin-top: -32px; border: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer; background: rgba(255,255,255,.18); color: #fff;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px -10px rgba(0,0,0,.45);
+  transition: opacity .25s, transform .15s, background .2s; }
+.nav:hover { background: rgba(255,138,43,.9); }
+.nav:active { transform: scale(.92); }
+.nav:disabled { opacity: 0; pointer-events: none; }
+.nav.clair { background: rgba(30,21,53,.14); color: var(--encre); }
+.nav.clair:hover { background: var(--violet); color: #fff; }
+#prec { left: 18px; } #suiv { right: 18px; }
+#compteur { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 15; padding: 6px 16px; border-radius: 999px;
+  font: 700 15px var(--texte); background: rgba(14,5,38,.55); color: #fff; letter-spacing: .04em; }
+@media (max-width: 700px) { .nav { width: 48px; height: 48px; margin-top: -24px; } #prec { left: 8px; } #suiv { right: 8px; } }
+
 /* commandes */
 #progres { position: fixed; left: 0; top: 0; height: 6px; background: var(--orange); width: 0; transition: width .5s ease; z-index: 10; }
 #notes { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(14,5,38,.94); color: #fff; padding: 22px 40px; font: 500 20px/1.45 var(--texte); display: none; }
@@ -417,7 +432,10 @@ python -m pytest tests/</div>
 </main>
 
 <div id="notes" aria-live="polite"></div>
-<div id="aide">← → pour naviguer · F plein écran · N notes</div>
+<button class="nav" id="prec" type="button" aria-label="Diapo précédente"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="nav" id="suiv" type="button" aria-label="Diapo suivante"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+<div id="compteur" aria-live="polite">1 / 10</div>
+<div id="aide">← → ou glisser pour changer de diapo · F plein écran · N notes</div>
 
 <script>
 const scene = document.getElementById("scene")
@@ -462,6 +480,11 @@ function aller(n) {
   document.getElementById("progres").style.width = `${((i + 1) / slides.length) * 100}%`
   const s = slides[i]
   notes.textContent = s.dataset.notes || ""
+  // flèches et compteur visibles, adaptés au fond de la diapo
+  document.getElementById("compteur").textContent = `${i + 1} / ${slides.length}`
+  for (const b of document.querySelectorAll(".nav")) b.classList.toggle("clair", s.classList.contains("clair"))
+  document.getElementById("prec").disabled = i === 0
+  document.getElementById("suiv").disabled = i === slides.length - 1
   s.querySelectorAll("[data-count]").forEach((el) => setTimeout(() => compter(el), 600))
   const slot = s.querySelector(".slot-mascotte")
   if (slot) poserMascotte(slot, s.dataset.emo || "content")
@@ -482,7 +505,9 @@ addEventListener("keydown", (e) => {
   else if (e.key === "f" || e.key === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.()
   else if (e.key === "n" || e.key === "N") notes.classList.toggle("on")
 })
-addEventListener("click", (e) => { if (e.target.closest("a")) return; aller(e.clientX > innerWidth / 2 ? i + 1 : i - 1) })
+document.getElementById("prec").addEventListener("click", (e) => { e.stopPropagation(); aller(i - 1) })
+document.getElementById("suiv").addEventListener("click", (e) => { e.stopPropagation(); aller(i + 1) })
+addEventListener("click", (e) => { if (e.target.closest("a, .nav")) return; aller(e.clientX > innerWidth / 2 ? i + 1 : i - 1) })
 let x0 = null
 addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX }, { passive: true })
 addEventListener("touchend", (e) => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) aller(i + (dx < 0 ? 1 : -1)); x0 = null })
