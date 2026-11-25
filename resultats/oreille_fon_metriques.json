@@ -1,0 +1,15 @@
+{
+  "modele": "Professor/mms-300m-fongbe",
+  "corpus": "JaimeMaLangue/JML-fon-speech-v1",
+  "archive": "audio_transcribed_000.tar (premiers enregistrements)",
+  "n_enregistrements": 300,
+  "voix": 91,
+  "minutes_audio": 39.8,
+  "WER_avec_tons": 0.825,
+  "CER_avec_tons": 0.3294,
+  "WER_sans_tons": 0.5367,
+  "CER_sans_tons": 0.2014,
+  "secondes_calcul_par_seconde_audio": 0.2121,
+  "materiel": "processeur",
+  "note": "ε grec (écrit par le modèle) unifié avec ɛ (lettre fon de JML). Le modèle n'écrit presque jamais les tons (36 transcriptions sur 300 en ont) : le score à retenir est « sans tons »."
+}

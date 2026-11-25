@@ -70,6 +70,9 @@ print(f"✅ {len(echantillon)} enregistrements · {echantillon['duration'].sum()
 # 3. Transcrire et mesurer (cellule 9)
 def nettoyer(texte, garder_tons=True):
     t = unicodedata.normalize("NFC", str(texte)).lower()
+    # le modèle écrit « ε » (epsilon grec, U+03B5) là où JML écrit « ɛ » (lettre fon, U+025B) :
+    # même son, autre caractère. On les unifie, sinon chaque mot avec ɛ compte comme une erreur.
+    t = t.replace("ε", "ɛ")
     t = re.sub(r"[\"“”«»,.;:!?()\[\]…\-–]", " ", t)
     t = re.sub(r"\s+", " ", t).strip()
     return t if garder_tons else enlever_tons(t)

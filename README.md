@@ -92,6 +92,10 @@ Mesuré sur les 267 vrais messages (`python lite/comparer_sources.py`, détails 
 
 Le sondage [Mobile Money Phone Scam Survey](https://www.kaggle.com/datasets/togbemismadjisosthne/mobile-money-phone-scam-survey-dataset) (Ngaoundéré, Cameroun) confirme les cibles de KORA : **39 % des personnes interrogées ont déjà été victimes** d'une arnaque Mobile Money, le plus souvent par un **faux agent au téléphone** (200 cas) ou un **faux message de retrait ou de dépôt** (154 cas). 46 % ne savent pas reconnaître une tentative d'arnaque, et 88 % veulent être mieux formés. Détails : `resultats/sondage_mobile_money.json`.
 
+### L'oreille fon, mesurée sur de vraies voix béninoises
+
+`python lite/evaluer_oreille_fon.py` (même protocole que le notebook 3) : le modèle `Professor/mms-300m-fongbe`, **sans adaptation**, transcrit 300 enregistrements de J'aime Ma Langue (40 minutes, 91 voix, enregistrées au téléphone). Il se trompe sur **un mot sur deux** (WER 53,7 %) et sur **un caractère sur cinq** (CER 20,1 %), sans compter les tons, qu'il n'écrit presque jamais. C'est loin des 9,48 % annoncés sur ALFFA, un corpus enregistré en studio : sur des voix de téléphone, l'oreille fon n'est pas encore assez fiable pour juger un vocal. C'est ce que doit améliorer l'entraînement sur J'aime Ma Langue (notebook 5, GPU), **pas encore lancé**. L'oreille fon n'est pas dans l'application.
+
 ### Comparaison avec la référence simple et avec le modèle GPU
 | Modèle | Détection | Fausses alertes | Source |
 |---|---|---|---|
@@ -99,7 +103,7 @@ Le sondage [Mobile Money Phone Scam Survey](https://www.kaggle.com/datasets/togb
 | Référence simple : règles seules (au moins 1 signal), synthétique | 87,0 % | 20,8 % | idem |
 | KORA-lite, vrais messages, seuil 50 % / 70 % | 89,7 % / 71,3 % | 6,1 % / 1,1 % | ci-dessus |
 | KORA AfroXLMR (GPU) | *à compléter après l'exécution Colab* | | `resultats/metriques_cerveau.csv` |
-| Reconnaissance vocale fon, WER sur voix de téléphone (J'aime Ma Langue) | *à compléter après l'exécution Colab* | | `resultats/oreille_fon_*.json` |
+| Reconnaissance vocale fon (`mms-300m-fongbe`), 300 enregistrements J'aime Ma Langue, 91 voix | WER **53,7 %**, CER 20,1 % (sans les tons) | | `resultats/oreille_fon_metriques.json` |
 
 Tous les chiffres KORA-lite et « règles seules » sont recalculés par `python lite/entrainer_kora_lite.py`.
 
