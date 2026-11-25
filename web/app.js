@@ -315,6 +315,13 @@ function prechaufferFon() {
 const LETTRES_FON = /[ɛɔɖƐƆƉε]/ // ε (epsilon grec) : beaucoup de claviers de téléphone l'utilisent pour écrire ɛ
 const MOTS_FON = /(?:^|[\s,.!?])(akw[eɛ]|gb[eɛ]|ny[eɛ]|xw[eé]|hwenu|w[eɛ]|ɖ[oò]|n[uǔú]|b[oɔ]|kp[oɔ]n|w[aá]|y[iì]|mi|ji|ganj[eɛ]|towe|nɔ|nyi)(?=$|[\s,.!?])/gi
 const MOTS_FR = /(?:^|[\s,.!?'])(le|la|les|de|des|du|et|est|vous|tu|je|un|une|pour|sur|votre|ton|mon|pas|que|qui|avec|ce|à|en)(?=$|[\s,.!?])/gi
+// Clairement du français : au moins deux petits mots français, plus que de mots fon, et aucune lettre fon.
+// En mode fon, c'est le SEUL cas où l'on ne traduit pas : beaucoup de gens écrivent le fon sans ɛ ɔ ɖ.
+function estFrancais(t) {
+    if (LETTRES_FON.test(t)) return false
+    const fr = (t.match(MOTS_FR) || []).length
+    return fr >= 2 && fr > (t.match(MOTS_FON) || []).length
+}
 function estFon(t) {
     if (LETTRES_FON.test(t)) return true
     return (t.match(MOTS_FON) || []).length >= 3 && (t.match(MOTS_FR) || []).length <= 1
@@ -753,9 +760,9 @@ async function envoyer(brut) {
     // en mode fon : on montre le message, puis on le traduit en français pour le comprendre
     let fr = texte
     let affiche = false
-    // en mode fon, seul un message écrit EN FON passe par la traduction : un message en français
-    // est analysé directement dans le téléphone, même si le service en ligne est en panne
-    if (modeFon() && estFon(texte)) {
+    // en mode fon, tout message passe par la traduction, sauf s'il est clairement en français
+    // (un SMS d'arnaque collé tel quel) : celui-là est analysé directement dans le téléphone
+    if (modeFon() && !estFrancais(texte)) {
         const bulleMoi = msgMoi(texte, { petit: "Fɔngbe" })
         affiche = true
         const corps = msgKora()

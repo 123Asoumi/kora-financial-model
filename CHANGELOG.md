@@ -4,6 +4,12 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis lancer le workflow GitHub **« Publier une version »**. Il crée la version GitHub avec l'APK Android signée.
 
+## [1.0.3] — 2026-11-25
+
+### Fon écrit sans accents
+- **Régression de la 1.0.1 corrigée** : en mode fon, seuls les messages reconnus comme du fon (surtout grâce aux lettres ɛ ɔ ɖ) étaient traduits. Le fon écrit sans ces lettres (« me nyi agent MTN, so code e a na mo do »), très courant sur les claviers de téléphone, était analysé comme du français : KORA répondait « Je n'ai pas bien compris ».
+- Désormais, en mode fon, **tout message est traduit, sauf s'il est clairement en français** (au moins deux petits mots français, plus que de mots fon, aucune lettre fon) : un SMS d'arnaque en français collé tel quel reste analysé directement dans le téléphone.
+
 ## [1.0.2] — 2026-11-25
 
 ### Clavier fon
