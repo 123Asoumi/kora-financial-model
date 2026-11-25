@@ -152,6 +152,45 @@ h2 { font-size: 150px; }
 .equipe figcaption b { display: block; font-family: var(--titre); font-weight: 800; font-size: 24px; letter-spacing: -.01em; line-height: 1.1; }
 .equipe figcaption span { display: block; margin-top: 4px; font-size: 19px; opacity: .85; }
 
+.cartes-serrees .carte { padding: 28px 38px; }
+.cartes-serrees .gros { font-size: 100px; }
+.cartes-serrees .petit { margin-top: 10px; }
+.liste.serree li { padding: 18px 0; }
+.liste.serree b { font-size: 38px; }
+.liste.serree span { font-size: 25px; }
+
+/* étiquette du critère du jury, en haut à droite */
+.critere { display: inline-flex; gap: 10px; align-items: center; padding: 8px 18px; border-radius: 999px; font-weight: 800; letter-spacing: .01em; }
+.sombre .critere { background: rgba(255,255,255,.16); color: #FFD9AE; }
+.clair .critere { background: var(--violet); color: #fff; }
+.critere b { font-family: var(--titre); font-weight: 900; }
+
+/* diapo données : le tableau des sources */
+.sources { width: 100%; border-collapse: separate; border-spacing: 0 12px; font-size: 25px; }
+.sources th { text-align: left; font-size: 19px; text-transform: uppercase; letter-spacing: .04em; opacity: .6; padding: 0 22px; font-weight: 800; }
+.sources td { background: #fff; padding: 18px 22px; line-height: 1.25; vertical-align: middle; }
+.sources td:first-child { border-radius: 22px 0 0 22px; font-weight: 800; }
+.sources td:last-child { border-radius: 0 22px 22px 0; }
+.sources .ok { color: var(--vert); font-weight: 800; white-space: nowrap; }
+.sources .non { color: var(--rouge); font-weight: 800; white-space: nowrap; }
+.sources small { display: block; font-size: 19px; opacity: .7; font-weight: 500; margin-top: 4px; }
+
+/* diapo reproductibilité : la commande et les limites */
+.code { font: 600 25px/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; background: #120a2e; color: #E9E2FF; border-radius: 26px; padding: 26px 32px; white-space: pre; }
+.code .c { color: #FFB86B; }
+.puces { display: grid; gap: 16px; margin-top: 26px; }
+.puces li { list-style: none; position: relative; padding-left: 40px; font-size: 26px; line-height: 1.3; }
+.puces li::before { content: ""; position: absolute; left: 0; top: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--orange); }
+.c-blanc .puces li::before { background: var(--rouge); }
+
+/* diapo pilote : trois colonnes */
+.trois { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 30px; width: 100%; }
+.trois .carte { min-height: 560px; }
+.trois h3 { font-family: var(--titre); font-weight: 900; text-transform: uppercase; font-size: 50px; letter-spacing: -.03em; margin-bottom: 22px; line-height: .95; }
+.trois li { list-style: none; font-size: 24px; line-height: 1.3; padding-left: 34px; position: relative; margin-bottom: 15px; font-weight: 500; }
+.trois li::before { content: ""; position: absolute; left: 0; top: 7px; width: 20px; height: 20px; border-radius: 50%; background: currentColor; opacity: .9; }
+.trois li b { font-weight: 800; }
+
 /* commandes */
 #progres { position: fixed; left: 0; top: 0; height: 6px; background: var(--orange); width: 0; transition: width .5s ease; z-index: 10; }
 #notes { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(14,5,38,.94); color: #fff; padding: 22px 40px; font: 500 20px/1.45 var(--texte); display: none; }
@@ -178,17 +217,17 @@ h2 { font-size: 150px; }
 </section>
 
 <!-- 2 · problème -->
-<section class="slide clair" data-notes="0:40 · Racontez l'affaire CRIET en deux phrases. À dire : le chiffre CNIN couvre toutes les escroqueries financières, pas seulement le Mobile Money. Sondage : 46 % ne savent pas reconnaître une arnaque, 88 % veulent être formés. Arnaques fréquentes : faux agent au téléphone, faux SMS de retrait ou de dépôt.">
-  <div class="meta"><span>Le problème</span><span>Mobile Money au Bénin</span></div>
+<section class="slide clair" data-notes="0:40 · LE BESOIN FINANCIER. Racontez l'affaire CRIET en une phrase (mai 2026, Banouto). Puis le cœur : dans le sondage, les arnaques les plus fréquentes sont le faux agent qui demande un code et le faux message de dépôt : exactement ce que KORA repère. À dire : le chiffre CNIN couvre toutes les escroqueries financières, pas seulement le Mobile Money. 46 % ne savent pas reconnaître une arnaque, 88 % veulent être formés.">
+  <div class="meta"><span>Le besoin · Mobile Money au Bénin</span><span class="critere">Utilité métier <b>25 pts</b></span></div>
   <div class="corps">
     <div class="col" style="flex:1.05">
       <h2 class="a" style="--d:.1s;font-size:132px">Une erreur de numéro<br>peut coûter <em data-count="509000" data-fmt="fcfa">509 000</em> FCFA</h2>
-      <p class="a" style="--d:.5s;font-size:30px;line-height:1.35;margin-top:44px;max-width:900px">Mai 2026, devant la CRIET : un homme encaisse l'argent destiné à un cambiste en se faisant passer pour lui.</p>
+      <p class="a" style="--d:.5s;font-size:30px;line-height:1.35;margin-top:44px;max-width:900px">Chez les victimes du sondage, les deux arnaques les plus fréquentes : le <b>faux agent</b> qui demande un code (200 cas) et le <b>faux message de dépôt</b> (154 cas). Ce sont exactement les cibles de KORA.</p>
     </div>
-    <div class="col" style="display:grid;gap:26px;flex:.8">
+    <div class="col cartes-serrees" style="display:grid;gap:20px;flex:.8;margin-top:40px">
       <div class="carte c-violet a g" style="--d:.5s"><div class="gros"><span data-count="11.6" data-dec="1">11,6</span> M</div><p class="petit">de clients actifs des services financiers mobiles au Bénin (ARCEP, 2025)</p></div>
       <div class="carte c-orange a g" style="--d:.7s"><div class="gros"><span data-count="3.37" data-dec="2">3,37</span> Md</div><p class="petit">de FCFA de préjudice déclaré pour escroqueries et fraudes financières, toutes méthodes (CNIN, 2025)</p></div>
-      <div class="carte c-rouge a g" style="--d:.9s"><div class="gros"><span data-count="39">39</span> %</div><p class="petit">de victimes dans un sondage de 800 personnes (Cameroun)</p></div>
+      <div class="carte c-rouge a g" style="--d:.9s"><div class="gros"><span data-count="39">39</span> %</div><p class="petit">déjà victimes, dans un sondage de 800 personnes (Ngaoundéré, Cameroun) ; 46 % ne savent pas reconnaître une arnaque</p></div>
     </div>
   </div>
   <p class="source">Sources : ARCEP Bénin, rapport d'activités 2025 · CNIN, statistiques 2025 · Mobile Money Phone Scam Survey (Kaggle) · Banouto.bj, mai 2026</p>
@@ -196,14 +235,14 @@ h2 { font-size: 150px; }
 </section>
 
 <!-- 3 · solution -->
-<section class="slide sombre" data-notes="0:30 · Le trajet en une phrase. Le fon passe par un service de traduction en ligne ; les messages en français restent dans le téléphone. Chiffres fon : recensement 2013 (ancien, à présenter comme indicateur historique).">
-  <div class="meta"><span>La solution</span><span>Un message, un verdict, un réflexe</span></div>
+<section class="slide sombre" data-notes="0:30 · L'UTILISATEUR. Il est défini précisément : la personne qui paie avec MTN MoMo, Moov Money ou Celtiis Cash, au moment où un message lui demande un code, de l'argent ou un clic. Le geste : vérifier en 20 secondes, sans compte, dans le téléphone. Le fon passe par un service de traduction en ligne ; les messages en français restent dans le téléphone. Chiffres fon : recensement 2013 (ancien, à présenter comme indicateur historique).">
+  <div class="meta"><span>L'utilisateur · un message, un verdict, un réflexe</span><span class="critere">Utilité métier <b>25 pts</b></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
-    <h2 class="a" style="--d:.1s;font-size:112px;margin-bottom:34px">KORA lit,<br><em>vous décidez</em></h2>
-    <ol class="liste">
-      <li class="a g" style="--d:.4s"><i class="n" style="font-style:normal">01</i><div><b>Un message louche</b><span>SMS, WhatsApp, capture d'écran ou texte en fon</span></div></li>
-      <li class="a g" style="--d:.6s"><i class="n" style="font-style:normal">02</i><div><b>KORA analyse</b><span>Dans le téléphone : le message en français ne part pas sur un serveur</span></div></li>
-      <li class="a g" style="--d:.8s"><i class="n" style="font-style:normal">03</i><div><b>Un verdict clair</b><span>Le risque, les raisons vérifiables et le bon réflexe</span></div></li>
+    <h2 class="a" style="--d:.1s;font-size:92px;margin-bottom:22px">KORA lit,<br><em>vous décidez</em></h2>
+    <ol class="liste serree">
+      <li class="a g" style="--d:.4s"><i class="n" style="font-style:normal">01</i><div><b>Qui ? Celui qui paie</b><span>Avec MTN MoMo, Moov Money ou Celtiis Cash, quand un SMS, un WhatsApp ou un appel lui demande un code, de l'argent ou un clic</span></div></li>
+      <li class="a g" style="--d:.6s"><i class="n" style="font-style:normal">02</i><div><b>Il vérifie en 20 secondes</b><span>Il colle le message, envoie une capture ou touche la bulle KORA. L'analyse se fait dans le téléphone, sans compte</span></div></li>
+      <li class="a g" style="--d:.8s"><i class="n" style="font-style:normal">03</i><div><b>Il décide, avant de payer</b><span>Un verdict, des raisons vérifiables et le bon réflexe : ne pas donner le code, appeler le service client officiel</span></div></li>
     </ol>
     <div class="bande a" style="--d:1.1s"><strong>FON</strong><span>Première langue du Bénin (environ 20 % de la population). En 2013, 52,6 % des 6 ans et plus ne savaient pas lire ni écrire le français. Une prévention efficace parle la langue de chacun.</span></div>
   </div>
@@ -244,7 +283,7 @@ h2 { font-size: 150px; }
 </section>
 
 <!-- 5 · comment ça marche -->
-<section class="slide sombre" data-notes="0:50 · Insistez sur l'explicabilité et le fonctionnement hors ligne. Côté GPU : KORA AfroXLMR et la reconnaissance vocale fon sont dans les notebooks Colab. Ne pas annoncer de chiffre pour eux tant que les notebooks n'ont pas tourné (marqués « à compléter » dans le README).">
+<section class="slide sombre" data-notes="0:45 · Insistez sur l'explicabilité et le fonctionnement hors ligne. Côté GPU, soyez précis : KORA AfroXLMR n'est pas encore entraîné ; l'oreille fon du commerce a été mesurée sur 91 vraies voix béninoises (J'aime Ma Langue) : 54 % d'erreurs par mot. C'est la référence que notre entraînement doit battre.">
   <div class="meta"><span>Comment ça marche</span><span>Un petit modèle, des règles qu'on peut vérifier</span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
     <h2 class="a" style="--d:.1s;font-size:104px;margin-bottom:40px">Le modèle décide.<br><em>Les règles expliquent.</em></h2>
@@ -256,12 +295,12 @@ h2 { font-size: 150px; }
       <div class="carte c-rouge a z" style="--d:1s"><span class="num">03 · VERDICT</span><h3>Risque et<br>raisons</h3><p>5 catégories, contexte de l'expéditeur, bon réflexe. KORA n'invente jamais une raison.</p></div>
     </div>
   </div>
-  <div class="pied"><span>Côté GPU : KORA AfroXLMR et reconnaissance vocale fon (notebooks Colab)</span><span>05</span></div>
+  <div class="pied"><span>En préparation sur GPU : KORA AfroXLMR et notre oreille fon (référence mesurée : 54 % d'erreurs par mot)</span><span>05</span></div>
 </section>
 
 <!-- 6 · résultats -->
-<section class="slide clair" data-notes="0:50 · Sur de vrais messages : règles seules 31,0 % des arnaques pour 21,7 % de fausses alertes ; KORA-lite 89,7 % pour 6,1 % (seuil 50 %). Au seuil 70 % : 71,3 % détectées pour 1,1 % de fausses alertes. À avouer : 267 vrais messages, dont 81 en français, tous du Cameroun, aucun du Bénin pour l'instant. À vérifier avant l'oral : un commit récent du dépôt parle de « 85 % » et « 6× », ce qui ne correspond pas à ce tableau.">
-  <div class="meta"><span>Les résultats</span><span>Validation croisée sur de vrais messages</span></div>
+<section class="slide clair" data-notes="0:50 · UN PROGRÈS MESURÉ FACE À UNE RÉFÉRENCE. Deux comparaisons. 1) Face à la référence simple (des règles par mots-clés) : 89,7 % des arnaques contre 31,0 %, et 6,1 % de fausses alertes contre 21,7 % (seuil 50 %). Au seuil 70 % : 71,3 % détectées pour 1,1 % de fausses alertes. 2) Face à notre propre version précédente, entraînée sur des messages inventés : AUC 0,728 sur de vrais messages, 0,964 après l'ajout de 267 vrais messages. Chaque vrai message est prédit par un modèle qui ne l'a jamais vu.">
+  <div class="meta"><span>Le progrès mesuré · validation croisée sur de vrais messages</span><span class="critere">Résultat technique <b>25 pts</b></span></div>
   <div class="corps" style="gap:80px">
     <div class="col" style="flex:1.15">
       <h2 class="a" style="--d:.1s;font-size:76px;margin-bottom:40px"><em>3×</em> plus d'arnaques repérées<br><em>3,5×</em> moins de fausses alertes</h2>
@@ -276,32 +315,86 @@ h2 { font-size: 150px; }
     </div>
     <div class="col" style="display:grid;gap:28px;flex:.6">
       <div class="carte c-violet a g" style="--d:.6s"><div class="gros">0,964</div><p class="petit">AUC arnaque contre normal, sur de vrais messages jamais vus à l'entraînement</p></div>
-      <div class="carte c-blanc a g" style="--d:.8s"><p style="font-family:var(--titre);font-weight:900;font-size:44px;text-transform:uppercase;color:var(--rouge);line-height:1">Soyons honnêtes</p><p class="petit">267 vrais messages, tous du Cameroun. Il nous faut des messages du Bénin, en français et en fon.</p></div>
+      <div class="carte c-blanc a g" style="--d:.8s"><p style="font-family:var(--titre);font-weight:900;font-size:44px;text-transform:uppercase;color:var(--violet);line-height:1">0,728 → 0,964</p><p class="petit">Notre version précédente, entraînée sur des messages inventés, contre KORA-lite avec 267 vrais messages (AUC, sur de vrais messages)</p></div>
     </div>
   </div>
-  <p class="source">Seuil de risque 50 %. Vrais messages : stop-arnaque-237 (CC-BY-4.0), découpage sans fuite. Détails dans resultats/.</p>
+  <p class="source">Référence : règles seules (au moins un signal). Seuil de risque 50 %. Vrais messages : stop-arnaque-237 (CC-BY-4.0), validation croisée groupée à 5 plis, sans fuite. Détails : resultats/kora_lite_validation_croisee.json et comparaison_sources.json.</p>
   <div class="pied"><span>KORA-lite</span><span>06</span></div>
 </section>
 
-<!-- 7 · impact et suite -->
-<section class="slide sombre" data-notes="0:30 · Les agents distributeurs sont aussi visés (réseau d'Akpro-Missérété, 2023). Question probable : pourquoi pas une fonction des opérateurs ? Réponse : KORA peut être intégré par eux, c'est l'objet du pilote.">
-  <div class="meta"><span>Impact et suite</span><span>De la démo au terrain</span></div>
-  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
-    <h2 class="a" style="--d:.1s;font-size:112px;margin-bottom:40px">Déjà dans la poche,<br><em>prêt pour un pilote</em></h2>
-    <div class="deux">
-      <div class="carte c-blanc a g" style="--d:.4s"><h3 style="color:var(--vert)">Déjà là</h3><ul style="color:var(--encre)">
-        <li>Application web, installable et hors ligne</li>
-        <li>Application Android avec la bulle KORA, qui flotte au-dessus de WhatsApp et des SMS</li>
-        <li>Messages en français : ils ne quittent jamais le téléphone</li>
-        <li>Réponses en fon et mascotte Korachoupi</li></ul></div>
-      <div class="carte c-orange a g" style="--d:.65s"><h3>Ensuite</h3><ul>
-        <li>Vrais messages du Bénin, en français et en fon</li>
-        <li>Pilote avec un opérateur (MTN, Moov, Celtiis) pour vérifier l'expéditeur</li>
-        <li>Autres langues : goun, yoruba, bariba, dendi, fulfuldé</li>
-        <li>Protéger aussi les agents distributeurs</li></ul></div>
+<!-- 7 · qualité des données -->
+<section class="slide clair" data-notes="0:45 · DES DONNÉES ADAPTÉES, SOURCÉES ET DOCUMENTÉES. Chaque source a une licence et un rôle. Point fort : nous avons MESURÉ ce que chaque source apporte, et écarté celles qui faisaient baisser le score (les 4 800 conversations en anglais : AUC 0,947 → 0,875). Le découpage évite la fuite : une même phrase à trous, une même formulation ou une même voix n'est jamais à la fois en entraînement et en test.">
+  <div class="meta"><span>Les données · d'où elles viennent, à quoi elles servent</span><span class="critere">Qualité des données <b>15 pts</b></span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:24px">
+    <h2 class="a" style="--d:.1s;font-size:88px">Sourcées, mesurées,<br><em>et triées</em></h2>
+    <table class="sources a" style="--d:.4s">
+      <thead><tr><th>Source</th><th>Contenu</th><th>Licence</th><th>Utilisation</th></tr></thead>
+      <tbody>
+        <tr><td>Messages KORA<small>data/kora_fr.csv</small></td><td>5 342 messages générés depuis 142 modèles d'arnaques béninoises, avec de vrais SMS légitimes pièges</td><td>Projet</td><td class="ok">Entraînement</td></tr>
+        <tr><td>stop-arnaque-237<small>Cameroun, 2026</small></td><td>267 <b>vrais</b> messages : arnaques et vrais SMS MTN et Orange</td><td>CC-BY-4.0</td><td class="ok">Entraînement ×5 et test</td></tr>
+        <tr><td>J'aime Ma Langue<small>Bénin, MTDI · ASIN</small></td><td>134 h de voix fon au téléphone, 650 voix, transcriptions validées</td><td>CC-BY-SA-4.0</td><td class="ok">Mesure de l'oreille fon</td></tr>
+        <tr><td>Sondage Mobile Money<small>Kaggle</small></td><td>800 personnes : victimes, méthodes des escrocs</td><td>—</td><td class="ok">Le besoin</td></tr>
+        <tr><td>Conversations en anglais<small>menaattia · teeconnie</small></td><td>4 800 appels génériques<small>AUC 0,947 → 0,875 avec elles</small></td><td>non publiée</td><td class="non">Écartées</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="source">Découpage sans fuite : par modèle de phrase, par formulation réelle et par voix. Préparation : data/externes/preparer.py · comparaison des sources : lite/comparer_sources.py.</p>
+  <div class="pied"><span>KORA-lite</span><span>07</span></div>
+</section>
+
+<!-- 8 · reproductibilité et limites -->
+<section class="slide sombre" data-notes="0:40 · UN TEST RÉITÉRABLE ET DES LIMITES EXPLICITES. N'importe qui refait nos chiffres en moins d'une minute, sans GPU. Des tests automatiques vérifient à chaque modification que l'application donne exactement les mêmes résultats que Python (624 messages, écart inférieur à un millionième). Puis lisez les limites : c'est une force, pas une faiblesse.">
+  <div class="meta"><span>Refaire le test · et savoir où il s'arrête</span><span class="critere">Reproductibilité <b>15 pts</b></span></div>
+  <div class="corps" style="gap:44px">
+    <div class="col" style="flex:1.1">
+      <h2 class="a" style="--d:.1s;font-size:84px;margin-bottom:30px">Nos chiffres,<br><em>en une minute</em></h2>
+      <div class="code a" style="--d:.35s"><span class="c"># sur un ordinateur, sans GPU</span>
+python data/externes/preparer.py
+python lite/entrainer_kora_lite.py
+python -m pytest tests/</div>
+      <ul class="puces a" style="--d:.6s">
+        <li>Mêmes résultats dans l'application et en Python : 624 messages testés, écart &lt; 0,000001</li>
+        <li>Tests et APK refaits à chaque modification (GitHub Actions)</li>
+        <li>Une seule version, signée par une seule clé : 1.0.2</li>
+      </ul>
+    </div>
+    <div class="carte c-blanc a z" style="--d:.5s;flex:.9;align-self:stretch">
+      <p style="font-family:var(--titre);font-weight:900;font-size:50px;text-transform:uppercase;color:var(--rouge);line-height:1">Nos limites</p>
+      <ul class="puces">
+        <li>267 vrais messages, <b>tous du Cameroun</b> ; seulement 22 messages normaux en français</li>
+        <li>Fon : traduction automatique, pas encore relue par des locuteurs</li>
+        <li>Service en ligne gratuit (fon, assistant) : peut être saturé</li>
+        <li>Oreille fon actuelle : 54 % d'erreurs par mot</li>
+        <li>KORA lit le contenu : un faux SMS parfait ne se trahit que par l'expéditeur</li>
+      </ul>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>07</span></div>
+  <div class="pied"><span>KORA-lite</span><span>08</span></div>
+</section>
+
+<!-- 9 · faisabilité du pilote -->
+<section class="slide sombre" data-notes="0:40 · LES MOYENS ET LES VALIDATIONS. Ce qui existe déjà est utilisable aujourd'hui. Ce qu'il faut pour un pilote est listé, sans surprise : un opérateur, des messages béninois, des relecteurs fon, un GPU. Les objectifs chiffrés sont des cibles à atteindre pendant le pilote, pas des résultats.">
+  <div class="meta"><span>Le pilote · de la démo au terrain</span><span class="critere">Faisabilité d'un pilote <b>20 pts</b></span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+    <h2 class="a" style="--d:.1s;font-size:92px;margin-bottom:34px">Prêt à tester,<br><em>voici ce qu'il faut</em></h2>
+    <div class="trois">
+      <div class="carte c-blanc a g" style="--d:.35s"><h3 style="color:var(--vert)">Déjà là</h3><ul style="color:var(--encre)">
+        <li>Application web, hors ligne</li>
+        <li>APK Android signée, avec la bulle KORA</li>
+        <li>Lecture des captures dans le téléphone</li>
+        <li>Les messages en français ne quittent pas le téléphone</li></ul></div>
+      <div class="carte c-orange a g" style="--d:.55s"><h3>Les moyens</h3><ul>
+        <li><b>Un opérateur</b> (MTN, Moov ou Celtiis) : vérifier l'expéditeur, diffuser</li>
+        <li><b>Des vrais SMS béninois</b>, en français et en fon, collectés avec consentement</li>
+        <li><b>Des locuteurs fon</b> pour relire les traductions</li>
+        <li><b>Un GPU</b> : entraîner AfroXLMR et l'oreille fon (J'aime Ma Langue), service fon sans quota</li></ul></div>
+      <div class="carte c-violet a g" style="--d:.75s"><h3>Les validations</h3><ul>
+        <li>Conformité au Code du numérique (APDP) : données personnelles</li>
+        <li>Test sur le terrain avec des utilisateurs et des agents distributeurs</li>
+        <li>Objectif : au moins 85 % des arnaques signalées et au plus 5 % de fausses alertes sur des SMS béninois</li></ul></div>
+    </div>
+  </div>
+  <div class="pied"><span>KORA-lite</span><span>09</span></div>
 </section>
 
 <!-- 8 · merci -->
@@ -319,7 +412,7 @@ h2 { font-size: 150px; }
       <figure class="a z" style="--d:.75s"><img src="equipe/satignon.png" alt="Fresnel SATIGNON" style="object-position:50% 25%"><figcaption><b>Fresnel SATIGNON</b><span>Ingénierie logicielle</span></figcaption></figure>
     </div>
   </div>
-  <div class="pied"><span>Essayez KORA-lite sur votre téléphone</span><span>08</span></div>
+  <div class="pied"><span>Essayez KORA-lite sur votre téléphone</span><span>10</span></div>
 </section>
 </main>
 
