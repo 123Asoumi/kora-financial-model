@@ -13,6 +13,8 @@ Sorties : resultats/oreille_fon_metriques.json et resultats/oreille_fon_details.
 """
 import json
 import os
+
+os.environ.setdefault("HF_HUB_DISABLE_XET", "1")  # avant d'importer huggingface_hub : téléchargement HTTP classique
 import re
 import sys
 import tarfile
@@ -31,7 +33,6 @@ RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RACINE)
 from kora_lib import enlever_tons  # noqa: E402
 
-os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 MODELE = "Professor/mms-300m-fongbe"
 DEPOT = "JaimeMaLangue/JML-fon-speech-v1"
 N_AUDIOS = int(sys.argv[1]) if len(sys.argv) > 1 else 300
