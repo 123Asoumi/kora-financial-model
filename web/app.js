@@ -325,7 +325,23 @@ function majLangue() {
     $("langue").setAttribute("aria-pressed", String(modeFon()))
     $("langue").title = modeFon() ? "Écrire en français" : "Écrire en fon"
     saisie.placeholder = modeFon() ? "Message en fon…" : "Message reçu…"
+    $("clavier-fon").hidden = !modeFon()
 }
+
+/* ================= le clavier fon : lettres et tons absents de la plupart des claviers ================= */
+// Les tons sont des accents « combinants » : ils se posent sur la lettre juste avant le curseur (ɛ + ǎ → ɛ̌).
+$("clavier-fon").addEventListener("pointerdown", (e) => { if (e.target.closest("button")) e.preventDefault() }) // garde le clavier ouvert
+$("clavier-fon").addEventListener("click", (e) => {
+    const b = e.target.closest("button")
+    if (!b) return
+    const ajout = b.dataset.car || b.dataset.ton
+    const debut = saisie.selectionStart ?? saisie.value.length
+    const fin = saisie.selectionEnd ?? debut
+    if (b.dataset.ton && debut === 0) return // pas de lettre où poser le ton
+    saisie.setRangeText(ajout, debut, fin, "end")
+    saisie.focus()
+    saisie.dispatchEvent(new Event("input", { bubbles: true })) // active le bouton Envoyer, ajuste la hauteur
+})
 function activerFon() {
     langue = "fon"
     majLangue()

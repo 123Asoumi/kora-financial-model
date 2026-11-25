@@ -202,3 +202,11 @@ body.grand .fil, body.grand .feuille { zoom: 1.14; }
 
 /* le détail technique d'une erreur (lecture de capture) : discret, pour le diagnostic */
 .detail-erreur { display: block; margin-top: 6px; font-size: 12px; line-height: 1.35; opacity: .65; word-break: break-word; }
+
+/* le clavier fon : une rangée de touches au-dessus de la barre de saisie, en mode fon */
+.clavier-fon { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 0 2px 8px; }
+.clavier-fon[hidden] { display: none; }
+.clavier-fon button { min-width: 36px; height: 40px; padding: 0 6px; border: 0; border-radius: 12px; cursor: pointer;
+  background: #fff; color: var(--titre); font: 700 19px/1 var(--police); box-shadow: 0 4px 14px -8px rgba(30,21,53,.45); }
+.clavier-fon button:active { transform: scale(.94); }
+.clavier-fon .ton { color: var(--bois); }

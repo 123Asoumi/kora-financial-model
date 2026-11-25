@@ -4,6 +4,14 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis lancer le workflow GitHub **« Publier une version »**. Il crée la version GitHub avec l'APK Android signée.
 
+## [1.0.2] — 2026-11-25
+
+### Clavier fon
+- En mode fon, une rangée de touches apparaît au-dessus de la barre de saisie : les lettres **ɛ ɔ ɖ Ɛ Ɔ Ɖ** et les trois tons du fon (**haut á, bas à, montant ǎ**). Un ton se pose sur la lettre juste avant le curseur : `ɛ` puis `ǎ` donne `ɛ̌`. Les claviers de téléphone n'ont souvent pas ces lettres.
+
+### Rappel
+- Les lettres fon remplacées par `≡` (capture d'un téléphone sous la version 1.0.0) sont corrigées depuis la 1.0.1 par la police embarquée Noto Fon.
+
 ## [1.0.1] — 2026-11-25
 
 Corrections après le premier essai de l'application sur un vrai téléphone.
