@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KORA-lite</string>
+    <string name="title_activity_main">KORA-lite</string>
+    <string name="package_name">bj.kora.lite</string>
+    <string name="custom_url_scheme">bj.kora.lite</string>
+</resources>

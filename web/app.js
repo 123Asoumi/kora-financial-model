@@ -1,6 +1,7 @@
 import { BULLES_VERDICT, creerBulles } from "./bulles.js"
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
+import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli } from "./natif.js"
 import {
     STATUTS, PH, ETAPES_URGENCE, PUCES_EXPEDITEUR, PUCES_PREMIER, PUCES_REPONDRE, PUCES_SUITE, toutesLesPhrases,
 } from "./phrases.js"
@@ -77,8 +78,13 @@ document.addEventListener("pointerdown", (e) => {
     if (document.body.classList.contains("menu-ouvert") && !e.target.closest("#menu-bulle, #poignee")) fermerMenu()
 })
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") fermerMenu() })
-if (navigator.mediaDevices?.getDisplayMedia && !matchMedia("(pointer: coarse)").matches)
+if (navigator.mediaDevices?.getDisplayMedia && !matchMedia("(pointer: coarse)").matches && !estAppli)
     $("menu-bulle").querySelector('[data-m="ecran"]').hidden = false
+if (estAppli) {
+    $("menu-bulle").querySelector('[data-m="flottante"]').hidden = false
+    $("r-bulle-bloc").hidden = false
+    $("telecharger").hidden = true
+}
 $("menu-bulle").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-m]")
     if (!b) return
@@ -88,6 +94,7 @@ $("menu-bulle").addEventListener("click", (e) => {
     else if (action === "ecran") partagerEcran()
     else if (action === "ecrire") saisie.focus()
     else if (action === "astuce") expliquerPartage()
+    else if (action === "flottante") activerBulle()
 })
 piloter({ emotion: "joyeux", bulle: "Je me prépare…" })
 
@@ -119,6 +126,10 @@ pret.then(async () => {
     const partage = new URLSearchParams(location.search).has("partage")
     if (memoire("kora-onb") || partage) { entrerDiscussion(); if (partage) recevoirPartage() }
     else { ecran("s-onb"); montrerEtape(0) }
+    ecouterAppli({
+        surImage: (fichier, etiquette) => { if (!document.body.classList.contains("s-chat")) entrerDiscussion(); lireImage(fichier, etiquette) },
+        surTexte: (texte) => { if (!document.body.classList.contains("s-chat")) entrerDiscussion(); analyserMessage(texte) },
+    })
 })
 
 /* ================= onboarding ================= */
@@ -886,9 +897,33 @@ async function partagerEcran() {
     }
 }
 
+/* ================= la bulle KORA sur les autres applis (appli Android) ================= */
+async function activerBulle() {
+    const corps = await nouveauTour()
+    if ((await etatBulle()).active) {
+        dire(corps, "La bulle est déjà active. Va dans ta messagerie, ouvre le message qui te paraît louche et touche la bulle : je vérifie ce qui est à l'écran.", { traduire: false })
+        return true
+    }
+    dire(corps, "Je vais te demander deux autorisations : m'afficher par-dessus les autres applis, puis voir ton écran (choisis « Tout l'écran »). Je ne regarde l'écran que quand tu touches la bulle, et la capture reste dans ton téléphone.", { traduire: false })
+    const r = await demarrerBulle()
+    const MOTS = {
+        ok: "La bulle est prête ! Va dans ta messagerie, ouvre le message qui te paraît louche, puis touche la bulle KORA : je lis l'écran et je te dis si c'est une arnaque. Pour la fermer, glisse-la sur la croix en bas de l'écran.",
+        SUPERPOSITION: "Sans l'autorisation « Afficher par-dessus les autres applis », la bulle ne peut pas s'afficher. Tu peux réessayer quand tu veux depuis le menu de la mascotte.",
+        CAPTURE: "Sans l'autorisation de voir l'écran, la bulle ne peut pas lire tes messages. Tu peux réessayer quand tu veux depuis le menu de la mascotte.",
+    }
+    dire(corps, MOTS[r] || "La bulle n'a pas pu démarrer. Réessaie dans un instant.", { traduire: false })
+    piloter({ emotion: r === "ok" ? "joyeux" : "triste" })
+    return r === "ok"
+}
+
 /* ================= partager depuis une autre appli (Android, appli installée) ================= */
 async function expliquerPartage() {
     const corps = await nouveauTour()
+    if (estAppli) {
+        dire(corps, "Depuis n'importe quelle appli : fais une capture d'écran du message, ou sélectionne son texte, appuie sur « Partager », puis choisis KORA-lite. Encore plus simple : active la bulle KORA (menu de la mascotte), elle flotte sur tes autres applis et vérifie l'écran quand tu la touches.", { traduire: false })
+        piloter({ emotion: "joyeux", bulle: "Partage-moi tes messages !" })
+        return
+    }
     dire(corps, "Sur Android, installe KORA (bouton ⓘ en haut, puis « Installer l'appli »). Ensuite, depuis n'importe quelle appli : fais une capture d'écran du message, ou sélectionne son texte, appuie sur « Partager », puis choisis KORA. J'analyse tout de suite.", { traduire: false })
     piloter({ emotion: "joyeux", bulle: "Partage-moi tes messages !" })
 }
@@ -996,6 +1031,7 @@ function remplirReglages() {
     $("r-grand").checked = reglages.grand
     $("r-calme").checked = reglages.calme
     $("r-histo").checked = reglages.histo
+    if (estAppli) etatBulle().then((e) => { $("r-bulle").checked = e.active })
     $("r-effacer").textContent = "Effacer mes données"
     delete $("r-effacer").dataset.confirmer
 }
@@ -1010,6 +1046,11 @@ $("r-histo").addEventListener("change", (e) => {
     if (!reglages.histo) memoire(CLE_HISTO, "[]")
     sauverReglages(); appliquerReglages()
     toast(reglages.histo ? "Historique activé" : "Historique désactivé et effacé")
+})
+$("r-bulle").addEventListener("change", async (e) => {
+    if (!e.target.checked) { await arreterBulle(); toast("Bulle arrêtée"); return }
+    fermerFeuille($("voile-reglages"))
+    e.target.checked = await activerBulle()
 })
 $("r-revoir").addEventListener("click", () => { fermerFeuille($("voile-reglages")); revoirOnboarding() })
 $("r-effacer").addEventListener("click", (e) => {
@@ -1064,7 +1105,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("voil
 $("revoir").addEventListener("click", revoirOnboarding)
 
 /* ================= application installable et hors ligne ================= */
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {})
+if ("serviceWorker" in navigator && !estAppli) navigator.serviceWorker.register("sw.js").catch(() => {})
 let invitation = null
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); invitation = e; $("installer").hidden = false })
 $("installer").addEventListener("click", async () => {

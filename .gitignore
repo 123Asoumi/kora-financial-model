@@ -4,3 +4,4 @@ modeles/
 jml*/
 .ipynb_checkpoints/
 .pytest_cache/
+node_modules/

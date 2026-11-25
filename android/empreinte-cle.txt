@@ -1,0 +1,4 @@
+# Empreinte SHA-256 du certificat de la clé officielle de KORA-lite (une seule clé pour toutes les versions).
+# Ce n'est pas un secret : c'est la « carte d'identité » publique de la clé.
+# Laisser vide jusqu'à la première publication, puis y coller l'empreinte affichée par le workflow
+# « Publier une version ». Ensuite, toute APK signée avec une autre clé sera refusée.

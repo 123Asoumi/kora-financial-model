@@ -1,7 +1,7 @@
 // Service worker : KORA fonctionne hors ligne une fois ouverte une première fois.
-const CACHE = "kora-v15"
+const CACHE = "kora-1.0.0" // la version de package.json : à changer à chaque nouvelle version
 const PARTAGE = "kora-partage"
-const LOCAL = ["./", "index.html", "app.js", "kora-engine.js", "phrases.js", "bulles.js", "config.js", "kora_lite.json", "fon.json", "mascotte.html", "manifest.webmanifest", "icone-192.png", "icone-512.png"]
+const LOCAL = ["./", "index.html", "app.js", "kora-engine.js", "phrases.js", "bulles.js", "config.js", "natif.js", "vendor/capacitor-core.js", "kora_lite.json", "fon.json", "mascotte.html", "manifest.webmanifest", "icone-192.png", "icone-512.png"]
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(LOCAL)).then(() => self.skipWaiting())))
 self.addEventListener("activate", (e) => e.waitUntil(
     caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE && k !== PARTAGE).map((k) => caches.delete(k)))).then(() => self.clients.claim())))

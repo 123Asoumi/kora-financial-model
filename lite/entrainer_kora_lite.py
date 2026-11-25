@@ -82,7 +82,7 @@ vec, clf = final.named_steps["tfidfvectorizer"], final.named_steps["logisticregr
 inv = {i: t for t, i in vec.vocabulary_.items()}
 modele = {
     "nom": "KORA-lite",
-    "version": "0.01",
+    "version": json.load(open(os.path.join(RACINE, "package.json"), encoding="utf-8"))["version"],  # une seule version pour tout KORA-lite
     "date": time.strftime("%Y-%m-%d"),
     "categories": CATEGORIES,
     "ngram": [2, 5],

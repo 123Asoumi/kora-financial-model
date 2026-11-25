@@ -1,10 +1,14 @@
 # KORA-lite — le bouclier anti-arnaque Mobile Money
 
+**Version 1.0.0** · [journal des versions](CHANGELOG.md)
+
 **GPU Challenge 2026 · Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA · cas d'usage n°7 : détection des arnaques financières numériques**
 
 KORA vérifie un **SMS**, un **message WhatsApp** ou une **capture d'écran** (en français ou en fon). Il dit s'il s'agit d'une arnaque, **explique pourquoi** et donne **le bon réflexe**, avant que la personne ne paie.
 
-🔗 **Application** : https://kora-0-01.vercel.app. L'analyse se fait dans le téléphone : un message en français ne quitte jamais l'appareil.
+🔗 **Application web** : https://kora-0-01.vercel.app. L'analyse se fait dans le téléphone : un message en français ne quitte jamais l'appareil.
+
+📱 **Application Android** : [télécharger l'APK](https://github.com/123Asoumi/kora-financial-model/releases/latest). Elle ajoute la **bulle KORA**, qui flotte par-dessus les autres applis comme les bulles de Messenger : on la touche dans WhatsApp ou dans ses SMS, elle capture l'écran et KORA dit si le message est une arnaque. Voir [ANDROID.md](ANDROID.md).
 
 ---
 
@@ -13,11 +17,12 @@ KORA vérifie un **SMS**, un **message WhatsApp** ou une **capture d'écran** (e
 | Livrable | Où |
 |---|---|
 | Prototype utilisable | `web/` : application en ligne sur Vercel (voir ci-dessous) |
+| Application Android | `android/` : la même application emballée avec Capacitor, avec la bulle flottante et le partage vers KORA ; APK signée publiée par `.github/workflows/publier.yml` ([ANDROID.md](ANDROID.md)) |
 | Service fon et assistant | `space/` : Space Hugging Face (ZeroGPU) pour la traduction fon ⇄ français et la discussion avec KORA |
 | Prototype GPU | `notebooks/` : 5 notebooks Colab (données, cerveau AfroXLMR, reconnaissance vocale fon, démo vocale, entraînement de la reconnaissance vocale fon sur J'aime Ma Langue) |
 | Résultats et comparaison avec une référence | `resultats/` et ci-dessous |
 | Reproductibilité | `python lite/entrainer_kora_lite.py` recalcule les métriques et le modèle de l'application en moins d'une minute sur CPU |
-| Tests | `python -m pytest tests/` vérifie que l'application donne exactement les mêmes résultats que Python |
+| Tests | `python -m pytest tests/` vérifie que l'application donne exactement les mêmes résultats que Python, et que la version est la même partout |
 
 ## L'application (`web/`)
 
@@ -98,10 +103,12 @@ python lite/entrainer_kora_lite.py            # métriques + web/kora_lite.json
 python -m pytest tests/                       # parité application / Python (nécessite Node.js 20+)
 cd web && python -m http.server 8000          # application sur http://localhost:8000
 ```
+Application Android : voir [ANDROID.md](ANDROID.md).
+
 Partie GPU : ouvrir les notebooks dans Google Colab (GPU T4), dans l'ordre 01 → 02 → 03 → 05 → 04.
 
 ## Licences des briques
-`afro-xlmr-large-76L` (MIT), `whisper-small` (MIT), `wav2vec2-xls-r-300m` (Apache 2.0), `Qwen3-4B-Instruct-2507` (Apache 2.0), J'aime Ma Langue (CC-BY-SA-4.0), `mms-300m-fongbe`, NLLB-200 et `nllb-fongbe-french-translation` (CC-BY-NC, démonstration uniquement), Tesseract.js (Apache 2.0), three.js (MIT). Détails : `MODELES.md`.
+`afro-xlmr-large-76L` (MIT), `whisper-small` (MIT), `wav2vec2-xls-r-300m` (Apache 2.0), `Qwen3-4B-Instruct-2507` (Apache 2.0), J'aime Ma Langue (CC-BY-SA-4.0), `mms-300m-fongbe`, NLLB-200 et `nllb-fongbe-french-translation` (CC-BY-NC, démonstration uniquement), Tesseract.js (Apache 2.0), three.js (MIT), Capacitor (MIT). Détails : `MODELES.md`.
 
 ## Équipe
 Équipe KORA : 2 développeurs, 2 profils finance.

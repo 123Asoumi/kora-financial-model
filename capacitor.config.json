@@ -1,0 +1,8 @@
+{
+  "appId": "bj.kora.lite",
+  "appName": "KORA-lite",
+  "webDir": "web",
+  "android": {
+    "allowMixedContent": false
+  }
+}

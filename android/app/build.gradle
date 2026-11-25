@@ -1,0 +1,76 @@
+apply plugin: 'com.android.application'
+
+// Une seule version pour tout KORA-lite : celle de package.json (à la racine du dépôt).
+def versionKora = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
+def (majeure, mineure, correctif) = versionKora.tokenize('.').collect { it.toInteger() }
+
+// Signature de la version publiée : jamais de clé dans le dépôt.
+// Les valeurs viennent des variables d'environnement (GitHub Actions) ou d'android/keystore.properties (local, ignoré par git).
+def signature = new Properties()
+def fichierSignature = rootProject.file('keystore.properties')
+if (fichierSignature.exists()) fichierSignature.withInputStream { signature.load(it) }
+def valeur = { String cle -> System.getenv(cle) ?: signature.getProperty(cle) }
+
+android {
+    namespace = "bj.kora.lite"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "bj.kora.lite"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode majeure * 10000 + mineure * 100 + correctif
+        versionName versionKora
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (valeur('KORA_KEYSTORE')) {
+                storeFile file(valeur('KORA_KEYSTORE'))
+                storePassword valeur('KORA_KEYSTORE_MOT_DE_PASSE')
+                keyAlias valeur('KORA_CLE_ALIAS')
+                keyPassword valeur('KORA_CLE_MOT_DE_PASSE')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (valeur('KORA_KEYSTORE')) signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
