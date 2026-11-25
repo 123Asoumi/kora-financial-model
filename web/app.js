@@ -965,12 +965,21 @@ document.addEventListener("keydown", (e) => {
 })
 
 const ALLER = {
+    accueil: () => { fil.scrollTo({ top: 0, behavior: calme() ? "auto" : "smooth" }); majNav("accueil") },
+    nouveau: () => { $("nouveau").click(); saisie.focus() },
     discussion: () => saisie.focus(),
     historique: () => { afficherHisto(); ouvrirFeuille($("voile-histo")) },
     arnaques: () => ouvrirFeuille($("voile-arnaques")),
     reglages: () => { remplirReglages(); ouvrirFeuille($("voile-reglages")) },
     apropos: () => ouvrirApropos(),
 }
+function majNav(cle) {
+    document.querySelectorAll("#nav-bas button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.nav === cle))
+    document.querySelectorAll("#nav-bas button[aria-current]").forEach((b) => b.setAttribute("aria-current", "page"))
+}
+// la mascotte s'efface quand on fait défiler l'accueil (elle est posée sur la carte d'accroche)
+fil.addEventListener("scroll", () => document.body.classList.toggle("fil-defile", fil.scrollTop > 40), { passive: true })
+$("hero-capture").addEventListener("click", () => $("fichier").click())
 document.querySelectorAll("[data-nav]").forEach((b) => b.addEventListener("click", () => { fermerTiroir(); ALLER[b.dataset.nav]() }))
 
 // les arnaques courantes

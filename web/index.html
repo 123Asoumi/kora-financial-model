@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>KORA — Vérifie un message avant de payer</title>
 <meta name="description" content="KORA repère les arnaques Mobile Money dans un SMS, un message ou une capture d'écran (français, fon) et t'explique quoi faire. L'analyse se fait sur ton téléphone.">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#F6F3FF">
 <meta property="og:title" content="KORA — Vérifie un message avant de payer">
 <meta property="og:description" content="Envoie un SMS, un message ou une capture à KORA : il te dit si c'est une arnaque Mobile Money et quoi faire.">
 <meta property="og:image" content="https://kora-0-01.vercel.app/apercu.png">
@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" href="icone-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Unbounded:wght@500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
 <style>
   /* Palette de la mascotte : bois de kora, peau crème, encre, sur fond noir */
   :root {
@@ -448,6 +448,7 @@
   @media (max-width: 380px) { .chiffres { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body class="s-splash">
 
@@ -528,8 +529,15 @@
 
   <main class="fil" id="fil" aria-live="polite" aria-label="Discussion avec KORA">
     <div class="accueil" id="accueil">
-      <h1>Un message te paraît louche ?</h1>
-      <p>Envoie-le à KORA. Il te dit si c'est une arnaque Mobile Money, et quoi faire. Tu peux aussi lui poser tes questions.</p>
+      <section class="hero" aria-label="Vérifier un message">
+        <h1>Un message te paraît louche ?</h1>
+        <p>Envoie-le à KORA : il te dit si c'est une arnaque Mobile Money, et quoi faire.</p>
+        <div class="hero-actions">
+          <button type="button" class="clair" data-nav="discussion">Écrire ou coller</button>
+          <button type="button" class="verre" id="hero-capture"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.5-4.5L6 21"/></svg>Capture</button>
+        </div>
+      </section>
+      <h2 class="rubrique">Par où commencer ?</h2>
       <div class="idees" id="idees" aria-label="Par où commencer"></div>
       <section class="reprendre" id="reprendre" hidden>
         <h2 class="rubrique">Tes dernières vérifications</h2>
@@ -556,6 +564,14 @@
     <p class="mention">KORA peut se tromper. En cas de doute, appelle le service client officiel de ton opérateur.</p>
   </footer>
 </div>
+
+<nav class="nav-bas" id="nav-bas" aria-label="Navigation principale">
+  <button type="button" data-nav="accueil" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Accueil</button>
+  <button type="button" data-nav="historique"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Historique</button>
+  <button type="button" class="fab" data-nav="nouveau" aria-label="Nouvelle vérification"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button type="button" data-nav="arnaques"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>Arnaques</button>
+  <button type="button" data-nav="reglages"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+</nav>
 
 <div class="voile-tiroir" id="voile-tiroir" hidden></div>
 <nav class="tiroir" id="tiroir" aria-label="Menu de KORA" hidden>
