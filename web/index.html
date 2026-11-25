@@ -281,7 +281,7 @@
   .mention { margin: 7px 0 0; text-align: center; font-size: 12.5px; color: var(--discret); }
 
   /* ---------- feuille « à propos » ---------- */
-  .voile { position: fixed; inset: 0; z-index: 40; background: rgba(27, 35, 39, .35); display: flex; align-items: flex-end; justify-content: center; }
+  .voile { position: fixed; inset: 0; z-index: 80; background: rgba(27, 35, 39, .35); display: flex; align-items: flex-end; justify-content: center; }
   .feuille {
     width: min(860px, 100%); max-height: 88dvh; overflow-y: auto; background: var(--brun);
     border-radius: 26px 26px 0 0; padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
@@ -302,12 +302,69 @@
   .feuille-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
   .secondaire { border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; background: var(--brun-3); color: var(--titre); font-weight: 700; }
 
+
+  /* ---------- l'état de KORA, sous son nom (inspiré de l'agent Muse) ---------- */
+  .identite { display: grid; gap: 1px; line-height: 1.15; }
+  .etat { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--texte-doux); min-height: 18px; }
+  .etat span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 42vw; }
+  .etat i { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--bois)); flex: none; }
+  .etat[data-ton="pret"] { --c: var(--sur); }
+  .etat[data-ton="travail"] { --c: var(--bois); }
+  .etat[data-ton="travail"] i { animation: pouls 1s ease-in-out infinite; }
+  .etat[data-ton="arnaque"] { --c: var(--alerte); color: #b3382c; }
+  .etat[data-ton="suspect"] { --c: var(--mefiance); color: #93611a; }
+  .etat[data-ton="sur"] { --c: var(--sur); color: #1f6b42; }
+  @keyframes pouls { 50% { transform: scale(1.6); opacity: .45; } }
+
+  /* ---------- ce que KORA fait, étape par étape (couche 2) ---------- */
+  .travail { display: grid; gap: 6px; margin: 0; padding: 2px 0; list-style: none; font-size: 15px; color: var(--discret); }
+  .travail li { display: flex; align-items: center; gap: 9px; transition: color .25s; }
+  .travail li::before { content: ""; width: 16px; height: 16px; border-radius: 50%; flex: none; box-sizing: border-box; border: 2px solid var(--brun-3); }
+  .travail li.encours { color: var(--titre); }
+  .travail li.encours::before { border-color: var(--bois); border-right-color: transparent; animation: tourne .7s linear infinite; }
+  .travail li.fait { color: var(--texte-doux); }
+  .travail li.fait::before { border: 0; background: var(--sur) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.3 2.3 4.7-4.9' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat; }
+  @keyframes tourne { to { transform: rotate(360deg); } }
+  details.resume-travail { font-size: 13.5px; color: var(--discret); }
+  details.resume-travail summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+  details.resume-travail summary::-webkit-details-marker { display: none; }
+  details.resume-travail summary::before { content: "✓"; color: var(--sur); }
+  details.resume-travail[open] summary { margin-bottom: 6px; }
+  details.resume-travail .travail { font-size: 13.5px; }
+
+  /* ---------- cartes d'idées : pas de page blanche ---------- */
+  .idees { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 6px; }
+  .idees button {
+    display: grid; gap: 8px; align-content: start; text-align: left; border: 0; cursor: pointer;
+    background: var(--titre); color: #fff8ea; border-radius: 20px; padding: 14px 14px 15px; min-height: 104px;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .idees button:hover { background: #2c383d; }
+  .idees button:active { transform: scale(.98); }
+  .idees .ic { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: var(--bois); color: var(--encre); }
+  .idees b { font-size: 15.5px; line-height: 1.28; }
+  .idees small { color: #d8c9ae; font-size: 13px; line-height: 1.3; }
+  .rubrique { font-family: "Atkinson Hyperlegible", sans-serif; font-size: 14px; font-weight: 700; color: var(--discret); margin: 10px 0 0; }
+
+  /* la carte de verdict arrive en un seul mouvement */
+  .verdict { animation: monte .45s cubic-bezier(.2, .8, .2, 1); }
+
+  /* ---------- historique ---------- */
+  .histo { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; }
+  .histo li { display: grid; grid-template-columns: 1fr; gap: 6px; align-items: start; padding: 12px 14px; border-radius: 16px; background: var(--noir); box-shadow: inset 0 0 0 1px var(--ligne); }
+  .histo .statut { justify-self: start; }
+  .histo q { color: var(--titre); quotes: "« " " »"; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .histo time { font-size: 13px; color: var(--discret); }
+  .histo-vide { color: var(--discret); text-align: center; padding: 24px 0; }
+  @media (max-width: 380px) { .idees { grid-template-columns: 1fr; } }
+
   @media (min-width: 900px) {
     body { --pw: 200px; --ph: 250px; }
     body.s-onb { --pw: 190px; --ph: 236px; }
     body.s-chat { --pw: 124px; --ph: 176px; }
     .suggestions { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
     .suggestions button { flex: 1 1 calc(50% - 10px); }
+    .idees { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   @media (max-width: 380px) { .chiffres { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
@@ -337,10 +394,16 @@
 
 <div class="app onb" id="app">
   <header class="tete">
-    <span class="marque">KORA<small>0.01</small></span>
+    <div class="identite">
+      <span class="marque">KORA<small>0.01</small></span>
+      <span class="etat" id="etat" data-ton="pret" role="status" aria-live="polite"><i aria-hidden="true"></i><span id="etat-txt">Prêt à vérifier</span></span>
+    </div>
     <div class="tete-actions">
       <button type="button" class="langue-btn" id="langue" aria-pressed="false" title="Écrire en fon">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.6 3.8 6 3.8 9.5s-1.2 6.9-3.8 9.5c-2.6-2.6-3.8-6-3.8-9.5S9.4 5.1 12 2.5Z"/></svg><span id="langue-txt">FR</span></button>
+      <button class="icone-btn" id="historique-btn" type="button" aria-label="Mes vérifications" title="Mes vérifications">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+      </button>
       <button class="icone-btn" id="nouveau" type="button" aria-label="Nouvelle conversation" title="Nouvelle conversation">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
       </button>
@@ -391,6 +454,8 @@
     <div class="accueil" id="accueil">
       <h1>Un message te paraît louche ?</h1>
       <p>Envoie-le à KORA. Il te dit si c'est une arnaque Mobile Money, et quoi faire. Tu peux aussi lui poser tes questions.</p>
+      <div class="idees" id="idees" aria-label="Par où commencer"></div>
+      <h2 class="rubrique">Ou essaie un exemple</h2>
       <div class="suggestions" id="suggestions" aria-label="Exemples de messages"></div>
     </div>
   </main>
@@ -409,6 +474,20 @@
     </form>
     <p class="mention">KORA peut se tromper. En cas de doute, appelle le service client officiel de ton opérateur.</p>
   </footer>
+</div>
+
+<div class="voile" id="voile-histo" hidden>
+  <section class="feuille" role="dialog" aria-modal="true" aria-labelledby="histo-titre">
+    <div class="feuille-tete">
+      <h2 id="histo-titre">Mes vérifications</h2>
+      <button class="icone-btn" id="fermer-histo" type="button" aria-label="Fermer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <p>Les messages que tu as vérifiés. Cette liste reste sur ton téléphone.</p>
+    <ol class="histo" id="histo"></ol>
+    <div class="feuille-actions"><button class="secondaire" id="vider-histo" type="button">Effacer la liste</button></div>
+  </section>
 </div>
 
 <div class="voile" id="voile" hidden>

@@ -224,6 +224,7 @@ async function converser(fr) {
     const corps = msgKora()
     const tape = reflechir(corps)
     piloter({ emotion: "surpris", bulle: "Je réfléchis…" })
+    etat("Réfléchit…")
     const patience = setTimeout(() => dire(corps, "Je réfléchis… La première fois, ça peut prendre jusqu'à une minute.", { classe: "doux", traduire: false }), 7000)
     let reponse = ""
     try {
@@ -235,6 +236,7 @@ async function converser(fr) {
     clearTimeout(patience)
     corps.querySelectorAll(".texte.doux").forEach((n) => n.remove())
     tape.remove()
+    etat(dernier ? ETATS[dernier.r.niveau] : "Prêt à vérifier", dernier ? dernier.r.niveau : "pret")
     if (!reponse) {
         dire(corps, "Je n'arrive pas à réfléchir pour le moment (le service se réveille parfois en une minute). Tu peux quand même m'envoyer un message à vérifier.", { traduire: false })
         piloter({ emotion: "triste", bulle: "" })
@@ -338,6 +340,68 @@ function dire(corps, texte, { classe = "", traduire = true } = {}) {
     defiler()
     return p
 }
+/* ================= l'état de KORA et ce qu'il est en train de faire ================= */
+const ETATS = { arnaque: "Arnaque repérée", suspect: "Message suspect", sur: "Message normal" }
+function etat(texte, ton = "travail") {
+    $("etat").dataset.ton = ton
+    $("etat-txt").textContent = texte
+}
+// Montre les étapes une à une, puis les replie en une ligne qu'on peut rouvrir.
+function travail(corps, etapes) {
+    const ol = el("ol", "travail")
+    ol.setAttribute("aria-label", "Ce que fait KORA")
+    const lis = etapes.map((t) => { const li = el("li"); li.textContent = t; ol.append(li); return li })
+    corps.append(ol)
+    defiler()
+    let i = -1
+    const debut = performance.now()
+    const avancer = () => {
+        if (i >= 0 && lis[i]) { lis[i].classList.remove("encours"); lis[i].classList.add("fait") }
+        i += 1
+        if (lis[i]) { lis[i].classList.add("encours"); etat(`${lis[i].textContent}…`) }
+    }
+    avancer()
+    return {
+        avancer,
+        async jusquauBout(ms = 220) { while (i < lis.length - 1) { await pause(ms); avancer() } },
+        finir() {
+            while (i < lis.length) avancer()
+            const duree = ((performance.now() - debut) / 1000).toFixed(1).replace(".", ",")
+            const d = el("details", "resume-travail")
+            d.innerHTML = `<summary>Vérifié en ${duree} s · ${lis.length} étapes</summary>`
+            d.append(ol)
+            corps.prepend(d)
+        },
+        retirer() { ol.remove() },
+    }
+}
+
+/* ================= historique (reste sur le téléphone) ================= */
+const CLE_HISTO = "kora-historique"
+function lireHisto() { try { return JSON.parse(memoire(CLE_HISTO) || "[]") } catch (_) { return [] } }
+function noterHisto(texte, r) {
+    const liste = lireHisto()
+    liste.unshift({ t: Date.now(), niveau: r.niveau, pct: Math.round(r.risque * 100), extrait: texte.slice(0, 140) })
+    memoire(CLE_HISTO, JSON.stringify(liste.slice(0, 30)))
+}
+function afficherHisto() {
+    const ol = $("histo")
+    ol.innerHTML = ""
+    const liste = lireHisto()
+    if (!liste.length) { ol.innerHTML = `<li class="histo-vide">Pas encore de vérification. Envoie un message à KORA.</li>`; return }
+    const quand = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    for (const h of liste) {
+        const li = el("li")
+        li.innerHTML = `<span class="statut" style="--c:${COULEURS[h.niveau]}">${STATUTS[h.niveau]} · ${h.pct} %</span><q>${echapper(h.extrait)}</q><time>${quand.format(h.t)}</time>`
+        ol.append(li)
+    }
+}
+$("historique-btn").addEventListener("click", () => { afficherHisto(); $("voile-histo").hidden = false; $("fermer-histo").focus() })
+$("fermer-histo").addEventListener("click", () => { $("voile-histo").hidden = true })
+$("voile-histo").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.hidden = true })
+$("vider-histo").addEventListener("click", () => { memoire(CLE_HISTO, "[]"); afficherHisto() })
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("voile-histo").hidden = true })
+
 function reflechir(corps) {
     const t = el("div", "tape")
     t.setAttribute("role", "status")
@@ -387,9 +451,9 @@ function carteVerdict(corps, r, { maj = false } = {}) {
       <div class="jauge" role="img" aria-label="Risque estimé : ${pct} %"><span></span><span></span><span></span><div class="curseur"></div></div>
       <div class="jauge-legende"><span>Normal</span><span>Arnaque</span></div>
       ${maj && pct !== pctTexte ? `<p class="deux-risques">Le texte seul : ${pctTexte} %. Avec ce que tu m'as dit de l'expéditeur : ${pct} %.</p>` : ""}
+      <p class="conseil"><b>Que faire :</b> ${echapper(r.conseil)}</p>
       ${r.raisons.length ? `<h3>Pourquoi</h3><ul>${r.raisons.map((x) => `<li>${echapper(x)}</li>`).join("")}</ul>` : ""}
       ${r.indices.length ? `<h3>Qui l'envoie</h3><ul class="indices">${r.indices.map((x) => `<li><span aria-hidden="true">${x.sens === "danger" ? "⚠️" : "✅"}</span><span>${echapper(x.texte)}</span></li>`).join("")}</ul>` : ""}
-      <p class="conseil"><b>Que faire :</b> ${echapper(r.conseil)}</p>
       <div class="actions">
         ${SPACE_FON && !modeFon() ? `<button type="button" data-a="fon">Voir en fon</button>` : ""}
         ${r.niveau === "sur" ? "" : `<button type="button" class="discret" data-a="partager">Prévenir un proche</button>`}
@@ -440,19 +504,24 @@ async function analyserMessage(texte, { deja = false, original = null } = {}) {
     retirerPuces()
     if (!deja) msgMoi(texte)
     const corps = msgKora()
-    const tape = reflechir(corps)
+    const etapes = ["Je lis le message", "Je cherche les signes d'arnaque", "Je prépare ma réponse"]
+    if (modeFon()) etapes.push("Je traduis en fon")
+    const suivi = travail(corps, etapes)
     piloter({ emotion: "surpris", bulle: "Je regarde…" })
 
     const ctx = { expediteur: "", canal: "", repondre: "", premier: "" }
     const r = kora.analyserComplet(texte, ctx)
     dernier = { texte, original, ctx, r, niveau1: r.niveau }
+    noterHisto(original || texte, r)
     const question = r.niveau === "sur" ? PH.qExpediteurSur : PH.qExpediteur
+    await suivi.jusquauBout(modeFon() ? 160 : 230)
     // en mode fon, on traduit tout le tour d'un seul coup avant de répondre
     if (modeFon()) await enFon([...phrasesCarte(r), question, ...PUCES_EXPEDITEUR.map(([l]) => l)]).catch(() => {})
-    else await pause(650)
-    tape.remove()
+    else await pause(200)
+    suivi.finir()
 
     carteVerdict(corps, r)
+    etat(ETATS[r.niveau], r.niveau)
     piloter({ emotion: r.emotion, bulle: BULLES[r.niveau], gratter: r.niveau === "sur" })
     await pause(400)
     dire(corps, question)
@@ -557,6 +626,7 @@ async function reAnalyser() {
     const corps = await nouveauTour([intro, ...phrasesCarte(r), ...PUCES_SUITE.map(([l]) => l)])
     dire(corps, intro)
     carteVerdict(corps, r, { maj: true })
+    etat(ETATS[r.niveau], r.niveau)
     piloter({ emotion: r.emotion, bulle: BULLES[r.niveau], gratter: r.niveau === "sur" })
     await pause(300)
     suite(corps)
@@ -632,11 +702,13 @@ async function envoyer(brut) {
         if (annonceFon) dire(corps, PH.fonActif, { traduire: false })
         const tape = reflechir(corps)
         piloter({ emotion: "surpris", bulle: "Je traduis le fon…" })
+        etat("Traduit le fon…")
         try {
             fr = await traduire(texte, "fon→français")
         } catch (_) {
             tape.remove()
             dire(corps, "Le service fon ne répond pas pour le moment (il se réveille parfois en une minute). Réessaie, ou écris en français.", { traduire: false })
+            etat("Prêt à vérifier", "pret")
             piloter({ emotion: "triste", bulle: "" })
             return
         }
@@ -697,6 +769,40 @@ saisie.addEventListener("keydown", (e) => {
 })
 $("formulaire").addEventListener("submit", (e) => { e.preventDefault(); envoyer(saisie.value) })
 
+// idées : un point de départ au lieu d'une page blanche
+const IC = {
+    sms: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>',
+    capture: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.8"/><path d="m21 15-4.5-4.5L6 21"/></svg>',
+    urgence: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20Z"/><path d="M12 10v4M12 17v.5"/></svg>',
+    question: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.3-2.5 4M12 17.2v.3"/></svg>',
+}
+const IDEES = [
+    ["sms", "Vérifier un message", "Colle le SMS ou le message WhatsApp", () => { saisie.focus() }],
+    ["capture", "Envoyer une capture", "KORA lit le texte de l'image", () => $("fichier").click()],
+    ["urgence", "J'ai déjà payé", "Les gestes à faire tout de suite", () => urgenceDirecte()],
+    ["question", "Reconnaître un faux agent", "Les signes qui ne trompent pas", () => envoyer("Comment reconnaître un faux agent Mobile Money ?")],
+]
+for (const [ic, titre, sous, action] of IDEES) {
+    const b = el("button")
+    b.type = "button"
+    b.innerHTML = `<span class="ic">${IC[ic]}</span><b>${echapper(titre)}</b><small>${echapper(sous)}</small>`
+    b.addEventListener("click", async () => { await pret; if (kora) action() })
+    $("idees").append(b)
+}
+async function urgenceDirecte() {
+    retirerPuces()
+    attente = null
+    msgMoi("J'ai déjà payé ou donné mon code")
+    const corps = await nouveauTour([PH.urgence, ...ETAPES_URGENCE])
+    piloter({ emotion: "triste", bulle: "On agit vite." })
+    etat("Urgence : on agit vite", "arnaque")
+    dire(corps, PH.urgence)
+    const ol = el("ol", "etapes")
+    for (const e of ETAPES_URGENCE) { const li = el("li"); bilingue(li, e); ol.append(li) }
+    corps.append(ol)
+    defiler()
+}
+
 // exemples
 for (const [titre, texte] of EXEMPLES) {
     const b = el("button")
@@ -716,6 +822,7 @@ $("nouveau").addEventListener("click", () => {
     app.classList.remove("actif")
     app.classList.add("vide")
     piloter({ emotion: "content", bulle: "Montre-moi le message !" })
+    etat("Prêt à vérifier", "pret")
 })
 
 /* ================= capture d'écran ================= */
@@ -728,31 +835,34 @@ async function lireImage(fichier, etiquette = "Capture d'écran") {
     attente = null
     msgMoi("", { image: URL.createObjectURL(fichier), petit: etiquette })
     const corps = msgKora()
-    const etat = dire(corps, "Je lis la capture…", { classe: "doux", traduire: false })
+    const ligne = dire(corps, "Je lis la capture…", { classe: "doux", traduire: false })
     const tape = reflechir(corps)
     piloter({ emotion: "surpris", bulle: "Je lis la capture…" })
+    etat("Lit la capture…")
     try {
         if (!ocr) {
-            etat.textContent = "Je prépare le lecteur de texte (la première fois, quelques secondes)…"
+            ligne.textContent = "Je prépare le lecteur de texte (la première fois, quelques secondes)…"
             const { createWorker } = await import(TESSERACT)
             ocr = await createWorker("fra", 1, {
-                logger: (m) => { if (m.status === "recognizing text") etat.textContent = `Je lis la capture… ${Math.round(m.progress * 100)} %` },
+                logger: (m) => { if (m.status === "recognizing text") ligne.textContent = `Je lis la capture… ${Math.round(m.progress * 100)} %` },
             })
         }
         const { data } = await ocr.recognize(fichier)
         const texte = data.text.replace(/\n{2,}/g, "\n").trim()
         tape.remove()
         if (texte.length < 8) {
-            etat.textContent = "Je ne trouve pas de texte lisible sur cette image. Essaie une capture plus nette (zoome sur le message), ou copie le message ici."
+            ligne.textContent = "Je ne trouve pas de texte lisible sur cette image. Essaie une capture plus nette (zoome sur le message), ou copie le message ici."
             piloter({ emotion: "triste", bulle: "" })
+            etat("Prêt à vérifier", "pret")
             return
         }
-        etat.textContent = `J'ai lu : « ${texte.length > 240 ? `${texte.slice(0, 240)}…` : texte} »`
+        ligne.textContent = `J'ai lu : « ${texte.length > 240 ? `${texte.slice(0, 240)}…` : texte} »`
         analyserMessage(texte, { deja: true })
     } catch (_) {
         tape.remove()
-        etat.textContent = "La lecture de l'image a échoué. Vérifie ta connexion, ou copie le message ici."
+        ligne.textContent = "La lecture de l'image a échoué. Vérifie ta connexion, ou copie le message ici."
         piloter({ emotion: "triste", bulle: "" })
+            etat("Prêt à vérifier", "pret")
     }
 }
 $("joindre").addEventListener("click", () => $("fichier").click())
