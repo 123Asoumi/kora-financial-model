@@ -423,7 +423,10 @@ python -m pytest tests/</div>
 const scene = document.getElementById("scene")
 const slides = [...document.querySelectorAll(".slide")]
 const notes = document.getElementById("notes")
-const MASCOTTE = "../web/mascotte/korachoupi.html?embed&fond=transparent"
+// Korachoupi : depuis le dépôt (fichier local ou serveur de test), sinon depuis l'application en ligne
+// (le pitch est déployé seul sur Vercel, sans le dossier web/)
+const LOCAL = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname)
+const MASCOTTE = (LOCAL ? "../web" : "https://kora-0-01.vercel.app") + "/mascotte/korachoupi.html?embed&fond=transparent"
 let i = 0, mascotte = null, minuteurs = []
 
 function ajuster() {
