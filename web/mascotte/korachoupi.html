@@ -10,6 +10,8 @@
     - emotion : content, joyeux, surpris, triste, fache, endormi, amoureux, ou "auto"
     - bulle   : texte affiché au-dessus d'elle ("" pour le cacher)
     - gratter : true pour qu'elle joue une note
+    - parle   : true pendant que KORA parle (la bouche s'anime), false à la fin
+    - niveau  : volume de la voix entre 0 et 1, pour une bouche synchronisée (facultatif)
 
   Toute seule, elle réagit aussi : un clic la rend joyeuse, trop de clics la fâchent, quitter la page
   la rend triste, la laisser seule l'endort. three.js 0.187.0 est chargé depuis jsDelivr (importmap).
@@ -835,10 +837,17 @@ function ot(e) {
         i.position.set(-.9 + Math.sin(w * 6 + b) * .15 + b * .35, .2 + w * 1.6, .7), i.scale.setScalar(.8 + w * .6), i.rotation.y = Math.sin(u * 2 + b) * .4, i.material.opacity = h.amoureux * Math.sin(Math.PI * w), i.visible = h.amoureux > .01
     });
     for (let i of Q) i.amp > 4e-4 ? (i.phase += n * i.freq * Math.PI * 2 * .25, i.amp *= Math.exp(-n * 2.2), pe(i, u)) : i.amp > 0 && (i.amp = 0, pe(i, u));
+    if (KORA_PAROLE.actif) { // KORA parle : la bouche suit la voix (volume réel, sinon un rythme de parole)
+        let lv = KORA_PAROLE.niveau > 0 ? Math.min(1, KORA_PAROLE.niveau * 1.6) : .25 + .3 * Math.abs(Math.sin(u * 11)) * Math.abs(Math.sin(u * 4.3));
+        KORA_PAROLE.ouvert += (lv - KORA_PAROLE.ouvert) * .45;
+        let o = Math.max(.18, KORA_PAROLE.ouvert);
+        Te.scale.set(Math.max(m.open, o), Math.max(m.open, o * 1.25), 1), Me.scale.setScalar(Math.max(1e-4, m.smile * (1 - o * .9))), F.scale.setScalar(1e-4)
+    }
     L.render(M, k)
 }
 Je();
 window.KORA_EMBED && document.body.classList.add("embed");
+var KORA_PAROLE = { actif: !1, niveau: 0, ouvert: 0 }; // KORA parle (voir le message « parle »)
 window.addEventListener("message", e => {
     let n = e.data && e.data.kora;
     if (n) {
@@ -847,6 +856,8 @@ window.addEventListener("message", e => {
             let o = document.getElementById("bulle");
             o.textContent = n.bulle, o.classList.toggle("on", n.bulle.length > 0)
         }
+        if (typeof n.parle == "boolean") KORA_PAROLE.actif = n.parle, KORA_PAROLE.niveau = 0;
+        if (typeof n.niveau == "number") KORA_PAROLE.niveau = n.niveau;
         n.gratter && ne(), V = performance.now()
     }
 });

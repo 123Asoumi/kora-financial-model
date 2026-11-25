@@ -49,7 +49,10 @@ Message en fon  → traduction en français (Space) ─────────�
 - **Deux tailles de modèle** :
   - **KORA-lite** : n-grammes de caractères et régression logistique, 964 Ko, **tourne hors ligne dans le téléphone**. C'est le modèle de l'application ;
   - **KORA AfroXLMR** : `Davlan/afro-xlmr-large-76L` affiné sur GPU (connaît le fon et le français), dans les notebooks.
-- **Vocal** : la reconnaissance vocale (français avec Whisper, fon avec `mms-300m-fongbe`) se trouve dans la démo GPU (notebooks 3, 4 et 5). Elle n'est pas dans l'application web.
+- **KORA parle et écoute** (depuis la 1.0.4) :
+  - **Voix** : bouton haut-parleur sous chaque réponse, et réglage « KORA parle ». En français, c'est la voix du téléphone ; en fon, celle du service en ligne (`facebook/mms-tts-fon`). La bouche de Korachoupi bouge pendant qu'il parle.
+  - **Micro** : en français, la dictée du téléphone ; en fon, un vocal transcrit par l'oreille fon du service (`Professor/mms-300m-fongbe`), puis traduit et analysé.
+  - **Limite** : l'oreille fon se trompe sur un mot sur deux avec des voix de téléphone (mesure ci-dessous). Le texte reconnu et sa traduction s'affichent, pour qu'on voie ce que KORA a compris. L'entraînement sur J'aime Ma Langue (notebooks 3 à 5, GPU) doit l'améliorer.
 
 ## Résultats
 
@@ -94,7 +97,7 @@ Le sondage [Mobile Money Phone Scam Survey](https://www.kaggle.com/datasets/togb
 
 ### L'oreille fon, mesurée sur de vraies voix béninoises
 
-`python lite/evaluer_oreille_fon.py` (même protocole que le notebook 3) : le modèle `Professor/mms-300m-fongbe`, **sans adaptation**, transcrit 300 enregistrements de J'aime Ma Langue (40 minutes, 91 voix, enregistrées au téléphone). Il se trompe sur **un mot sur deux** (WER 53,7 %) et sur **un caractère sur cinq** (CER 20,1 %), sans compter les tons, qu'il n'écrit presque jamais. C'est loin des 9,48 % annoncés sur ALFFA, un corpus enregistré en studio : sur des voix de téléphone, l'oreille fon n'est pas encore assez fiable pour juger un vocal. C'est ce que doit améliorer l'entraînement sur J'aime Ma Langue (notebook 5, GPU), **pas encore lancé**. L'oreille fon n'est pas dans l'application.
+`python lite/evaluer_oreille_fon.py` (même protocole que le notebook 3) : le modèle `Professor/mms-300m-fongbe`, **sans adaptation**, transcrit 300 enregistrements de J'aime Ma Langue (40 minutes, 91 voix, enregistrées au téléphone). Il se trompe sur **un mot sur deux** (WER 53,7 %) et sur **un caractère sur cinq** (CER 20,1 %), sans compter les tons, qu'il n'écrit presque jamais. C'est loin des 9,48 % annoncés sur ALFFA, un corpus enregistré en studio : sur des voix de téléphone, l'oreille fon n'est pas encore assez fiable pour juger un vocal. C'est ce que doit améliorer l'entraînement sur J'aime Ma Langue (notebook 5, GPU), **pas encore lancé**. Elle est dans l'application depuis la 1.0.4 (bouton micro en mode fon), avec cette limite affichée : le texte reconnu est toujours montré à l'utilisateur.
 
 ### Comparaison avec la référence simple et avec le modèle GPU
 | Modèle | Détection | Fausses alertes | Source |

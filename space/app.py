@@ -8,6 +8,9 @@ Deux routes, utilisées par l'application KORA (https://kora-0-01.vercel.app) :
     environ 4 s pour une phrase fon → français.
     français → fon : nellaw/nllb-fongbe-french-translation (affiné uniquement dans ce sens)
     fon → français : facebook/nllb-200-distilled-1.3B (le modèle de nellaw ne sait pas faire ce sens)
+- /parler (texte fon) : la voix de KORA en fon (facebook/mms-tts-fon), sur processeur.
+- /ecouter (vocal) : un vocal en fon devient du texte fon et sa traduction française
+    (Professor/mms-300m-fongbe, sur processeur ; mesuré à 54 % d'erreurs par mot sur J'aime Ma Langue).
 - /discuter (question, contexte, historique) : l'assistant de KORA répond aux questions de
     l'utilisateur (Qwen3-4B-Instruct, Apache 2.0). Le verdict « arnaque ou pas » vient toujours
     du modèle KORA-lite, sur le téléphone : l'assistant l'explique, il ne le remplace pas.
@@ -22,7 +25,8 @@ from collections import OrderedDict
 import gradio as gr
 import spaces
 import torch
-from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
+import librosa
+from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, VitsModel, pipeline
 
 # L'assistant (Qwen) : sur ZeroGPU, on le place sur « cuda » dès le chargement ; la plateforme le met
 # réellement sur le GPU au moment de chaque appel décoré par @spaces.GPU.
@@ -53,6 +57,12 @@ NOM_VERS_FON, TOK_VERS_FON, MODELE_VERS_FON = charger_traducteur(
     ["nellaw/nllb-fongbe-french-translation", "facebook/nllb-200-distilled-600M"], "fra_Latn")
 NOM_VERS_FR, TOK_VERS_FR, MODELE_VERS_FR = charger_traducteur(
     ["facebook/nllb-200-distilled-1.3B", "facebook/nllb-200-distilled-600M"], "fon_Latn")
+
+# La voix et l'oreille fon : petites, sur processeur (pas de quota GPU)
+VOIX_TOK = AutoTokenizer.from_pretrained("facebook/mms-tts-fon")
+VOIX = VitsModel.from_pretrained("facebook/mms-tts-fon").eval()
+OREILLE = pipeline("automatic-speech-recognition", model="Professor/mms-300m-fongbe", device=-1, chunk_length_s=20)
+print("Chargés sur processeur : facebook/mms-tts-fon, Professor/mms-300m-fongbe")
 
 NOM_ASSISTANT = "Qwen/Qwen3-4B-Instruct-2507"
 TOK_ASSISTANT = AutoTokenizer.from_pretrained(NOM_ASSISTANT)
@@ -92,6 +102,35 @@ def traduire(texte, sens="fon→français"):
                 CACHE.popitem(last=False)
         print(f"traduit {len(manquantes)} ligne(s) {'fr→fon' if vers_fon else 'fon→fr'} en {time.time() - debut:.1f} s")
     return "\n".join(CACHE.get((vers_fon, l), "") if l else "" for l in lignes)
+
+
+# ---------------------------------------------------------------- voix et oreille fon (processeur)
+CACHE_VOIX = OrderedDict()  # les phrases de KORA reviennent : leur voix est gardée en mémoire
+
+
+def parler(texte_fon):
+    """Texte fon -> voix (taux d'échantillonnage, signal), pour que KORA parle fon."""
+    texte_fon = _propre(texte_fon).lower()[:600]  # le modèle ignore les majuscules (« Nú » perdait son N)
+    if not texte_fon:
+        return None
+    if texte_fon not in CACHE_VOIX:
+        enc = VOIX_TOK(texte_fon, return_tensors="pt")
+        with torch.inference_mode():
+            signal = VOIX(**enc).waveform[0].numpy()
+        CACHE_VOIX[texte_fon] = (VOIX.config.sampling_rate, signal)
+        if len(CACHE_VOIX) > 500:
+            CACHE_VOIX.popitem(last=False)
+    return CACHE_VOIX[texte_fon]
+
+
+def ecouter(audio):
+    """Vocal en fon (fichier) -> (texte fon, traduction française)."""
+    if not audio:
+        return "", ""
+    son, _ = librosa.load(audio, sr=16000, mono=True)
+    son = son[: 16000 * 60]  # une minute au plus
+    fon = _propre(OREILLE({"raw": son, "sampling_rate": 16000})["text"]).replace("ε", "ɛ")
+    return fon, (traduire(fon, "fon→français") if fon else "")
 
 
 # ---------------------------------------------------------------- discussion
@@ -144,6 +183,14 @@ with gr.Blocks(title="KORA — service fon et discussion") as demo:
         s = gr.Radio(["fon→français", "français→fon"], value="fon→français", label="Sens")
         o = gr.Textbox(label="Traduction", lines=3)
         gr.Button("Traduire", variant="primary").click(traduire, [t, s], o, api_name="traduire", concurrency_limit=2)
+    with gr.Tab("Parler fon"):
+        tp = gr.Textbox(label="Texte en fon", lines=2)
+        ap = gr.Audio(label="Voix de KORA")
+        gr.Button("Dire en fon", variant="primary").click(parler, tp, ap, api_name="parler", concurrency_limit=2)
+    with gr.Tab("Écouter fon"):
+        ae = gr.Audio(type="filepath", sources=["microphone", "upload"], label="Vocal en fon")
+        fe, fr_e = gr.Textbox(label="Transcription fon"), gr.Textbox(label="Traduction française")
+        gr.Button("Transcrire et traduire", variant="primary").click(ecouter, ae, [fe, fr_e], api_name="ecouter", concurrency_limit=2)
     with gr.Tab("Discuter"):
         q = gr.Textbox(label="Question", lines=2)
         c = gr.Textbox(label="Contexte (verdict de KORA)", lines=3)

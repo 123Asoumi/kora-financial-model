@@ -39,3 +39,7 @@ export function ecouterAppli({ surImage, surTexte }) {
     })
     Bulle.addListener("texte", ({ texte }) => surTexte(texte))
 }
+
+// La voix de KORA dans l'appli : voix française et dictée française du téléphone (VoixKoraPlugin).
+// Le moteur web d'Android n'a ni speechSynthesis ni reconnaissance vocale.
+export const VoixNative = estAppli ? registerPlugin("VoixKora") : null

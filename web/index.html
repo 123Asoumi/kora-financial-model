@@ -281,6 +281,15 @@
   }
   .tete-actions { align-items: center; }
   .langue-btn[aria-pressed="true"] { background: rgba(201, 133, 67, .2); color: var(--bois-fonce); }
+  .micro { width: 42px; height: 42px; display: grid; place-items: center; border: 0; cursor: pointer; flex: none; }
+  .micro.ecoute { background: var(--alerte); color: #fff; animation: ecoute 1.2s ease-in-out infinite; }
+  @keyframes ecoute { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--alerte) 25%, transparent); } }
+  .msg-kora { position: relative; }
+  .msg-kora > .lire { display: none; margin-top: 6px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--brun-2); color: var(--bois-fonce); cursor: pointer; place-items: center; }
+  body.a-voix .msg-kora > .lire { display: grid; }
+  .msg-kora > .lire:hover { background: var(--brun-3); }
+  .msg-kora > .lire.en-cours { background: var(--bois); color: #fff; }
+  .msg-kora:has(> .corps > .tape:only-child) > .lire { visibility: hidden; }
   .envoyer { width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--bois); color: var(--encre); display: grid; place-items: center; cursor: pointer; flex: none; }
   .envoyer:hover { background: var(--bois-clair); }
   .envoyer:disabled { background: var(--brun-3); color: #6d604c; cursor: default; }
@@ -566,6 +575,9 @@
       <input type="file" id="fichier" accept="image/*" class="sr" tabindex="-1">
       <label class="sr" for="saisie">Message à vérifier</label>
       <textarea id="saisie" rows="1" placeholder="Message reçu…" enterkeyhint="send"></textarea>
+      <button type="button" class="icone-btn micro" id="micro" aria-label="Parler à KORA" title="Parler à KORA" hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
       <button type="submit" class="envoyer" id="envoyer" aria-label="Envoyer" disabled>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
       </button>
@@ -627,6 +639,7 @@
     <p class="aide">En fon, KORA traduit ses réponses avec un service en ligne : il faut une connexion.</p>
     <h3>Affichage</h3>
     <label class="interrupteur"><span>Texte plus grand<small>Pour lire plus facilement</small></span><input type="checkbox" id="r-grand"><i aria-hidden="true"></i></label>
+    <label class="interrupteur"><span>KORA parle<small>Il lit ses réponses à voix haute (en fon quand KORA te répond en fon). Quand tu lui parles au micro, il te répond toujours à voix haute.</small></span><input type="checkbox" id="r-voix"><i aria-hidden="true"></i></label>
     <label class="interrupteur"><span>Moins d'animations<small>La mascotte et l'interface bougent moins</small></span><input type="checkbox" id="r-calme"><i aria-hidden="true"></i></label>
     <div id="r-bulle-bloc" hidden>
       <h3>Bulle KORA</h3>
@@ -687,7 +700,7 @@
       <button class="secondaire" id="installer" type="button" hidden>Installer l'appli</button>
       <a class="secondaire" id="telecharger" href="https://github.com/123Asoumi/kora-financial-model/releases/latest" target="_blank" rel="noopener">Télécharger l'appli Android</a>
     </div>
-    <p class="aide" id="version">KORA-lite version 1.0.3</p>
+    <p class="aide" id="version">KORA-lite version 1.0.4</p>
   </section>
 </div>
 

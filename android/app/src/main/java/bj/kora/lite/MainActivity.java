@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // le plugin maison doit être déclaré avant le démarrage du pont Capacitor
         registerPlugin(BulleKoraPlugin.class);
+        registerPlugin(VoixKoraPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

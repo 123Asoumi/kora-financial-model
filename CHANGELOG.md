@@ -4,6 +4,20 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis lancer le workflow GitHub **« Publier une version »**. Il crée la version GitHub avec l'APK Android signée.
 
+## [1.0.4] — 2026-11-25
+
+### KORA parle et écoute
+- **KORA lit ses réponses à voix haute** : un bouton haut-parleur sous chaque réponse, et le réglage « KORA parle » pour tout lire automatiquement. Quand on lui parle au micro, il répond toujours à voix haute.
+- **En français** : la voix du téléphone (synthèse vocale Android, via le plugin `VoixKora` de l'appli), ou celle du navigateur.
+- **En fon** : la voix fon du service en ligne (modèle MMS de Meta, `facebook/mms-tts-fon`, sur processeur : environ 2 s par phrase). Si elle ne répond pas, KORA lit en français.
+- **Bouton micro** dans la barre de saisie :
+  - en français : la dictée du téléphone ; le texte s'affiche pendant qu'on parle, puis KORA analyse ;
+  - en fon : on enregistre un vocal (20 s au plus). L'oreille fon du service (`Professor/mms-300m-fongbe`, sur processeur) le transcrit, il est traduit en français, puis analysé comme un message écrit. Le vocal est converti en WAV 16 kHz dans le téléphone avant l'envoi.
+- **Korachoupi parle** : sa bouche s'ouvre et se ferme pendant que KORA parle. En fon, elle suit le volume réel de la voix.
+- Service en ligne : nouvelles routes `/parler` et `/ecouter`.
+- Testé de bout en bout dans un navigateur, avec un faux micro qui joue un vocal fon : transcription, traduction, verdict, puis réponse dite en fon.
+- Pas encore essayé sur un vrai téléphone. Le fon reconnu et prononcé par ces modèles automatiques n'est pas validé par des locuteurs.
+
 ## [1.0.3] — 2026-11-25
 
 ### Fon écrit sans accents

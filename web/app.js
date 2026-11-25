@@ -2,6 +2,7 @@ import { BULLES_VERDICT, creerBulles } from "./bulles.js"
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
 import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli } from "./natif.js"
+import { creerVoix } from "./voix.js"
 import {
     STATUTS, PH, ETAPES_URGENCE, PUCES_EXPEDITEUR, PUCES_PREMIER, PUCES_REPONDRE, PUCES_SUITE, toutesLesPhrases,
 } from "./phrases.js"
@@ -383,7 +384,8 @@ function msgMoi(texte, { image, petit } = {}) {
 function msgKora() {
     passerActif()
     const d = el("div", "msg-kora")
-    d.innerHTML = `<div class="corps"></div>`
+    d.innerHTML = `<div class="corps"></div><button type="button" class="lire" aria-label="Écouter la réponse de KORA" title="Écouter">${IC_HP}</button>`
+    d.querySelector(".lire").addEventListener("click", (e) => lireMessages([d], e.currentTarget))
     fil.append(d)
     defiler()
     return d.querySelector(".corps")
@@ -744,7 +746,7 @@ async function repondreIntention(type) {
 }
 
 /* ================= envoi depuis la barre ================= */
-async function envoyer(brut) {
+async function envoyer(brut, { vocal = false, fr: frVocal = null } = {}) {
     const texte = brut.trim()
     if (!texte) return
     saisie.value = ""
@@ -752,6 +754,8 @@ async function envoyer(brut) {
     await pret
     if (!kora) return
     retirerPuces()
+    voix.arreter()
+    reponseVocale = vocal // on t'a parlé : KORA te répond à voix haute
 
     // un message écrit en fon passe en mode fon tout seul
     let annonceFon = false
@@ -761,8 +765,10 @@ async function envoyer(brut) {
     let fr = texte
     let affiche = false
     // en mode fon, tout message passe par la traduction, sauf s'il est clairement en français
-    // (un SMS d'arnaque collé tel quel) : celui-là est analysé directement dans le téléphone
-    if (modeFon() && !estFrancais(texte)) {
+    // (un SMS d'arnaque collé tel quel) : celui-là est analysé directement dans le téléphone.
+    // Un vocal fon arrive déjà affiché et traduit par l'oreille fon.
+    if (frVocal !== null) { fr = frVocal || texte; affiche = true }
+    else if (modeFon() && !estFrancais(texte)) {
         const bulleMoi = msgMoi(texte, { petit: "Fɔngbe" })
         affiche = true
         const corps = msgKora()
@@ -1025,9 +1031,156 @@ async function recevoirPartage() {
     return false
 }
 
+/* ================= la voix de KORA ================= */
+const IC_HP = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>`
+const voix = creerVoix({ mascotte: envoyerMascotte, service: appelerService })
+let reponseVocale = false // le dernier message a été dicté : KORA répond à voix haute
+let boutonLecture = null
+voix.capacites.then((c) => {
+    document.body.classList.toggle("a-voix", c.parole || !!SPACE_FON)
+    $("micro").hidden = !(c.dictee || (SPACE_FON && voix.peutEnregistrer()))
+})
+
+/** Ce que KORA dit dans une réponse : { fon: [...], fr: [...] } (le verdict : statut, type et conseil). */
+function texteAParler(msg) {
+    const fon = [], fr = []
+    for (const n of msg.querySelector(".corps").children) {
+        if (n.matches(".texte")) {
+            const f = n.querySelector(".fon"), r = n.querySelector(".fr")
+            if (r) { fr.push(r.textContent); if (f && f.textContent !== "…") fon.push(f.textContent) } else { fr.push(n.textContent); fon.push(null) }
+        } else if (n.matches("article.verdict")) {
+            const statut = n.querySelector(".statut").textContent.replace(" · ", ", risque ").replace("%", "pour cent")
+            fr.push(`${statut}.`, `${n.querySelector("h2").textContent}.`, n.querySelector(".conseil").textContent)
+            const lignes = [...n.querySelectorAll(".fon-bloc[data-fait] p")].map((p) => p.textContent)
+            if (lignes.length) fon.push(lignes[0], lignes[1], lignes[lignes.length - 1])
+        }
+    }
+    return { fon: fon.filter(Boolean), fr: fr.filter(Boolean), toutFon: fon.length > 0 && fon.every(Boolean) }
+}
+async function lireMessages(msgs, bouton = null) {
+    if (bouton && bouton === boutonLecture) { voix.arreter(); return } // second appui : KORA se tait
+    voix.arreter()
+    const morceaux = msgs.map(texteAParler)
+    const fon = morceaux.flatMap((m) => m.fon), fr = morceaux.flatMap((m) => m.fr)
+    if (!fr.length) return
+    boutonLecture?.classList.remove("en-cours")
+    boutonLecture = bouton
+    bouton?.classList.add("en-cours")
+    try {
+        // en mode fon, KORA parle fon (voix du service en ligne) ; s'il ne peut pas, il parle français
+        if (modeFon() && SPACE_FON && fon.length) {
+            try { await voix.parlerFon(fon.join(". ")); return } catch (e) { toast("Voix fon indisponible : je lis en français") }
+        }
+        await voix.parlerFr(fr.join(" "))
+    } catch (e) {
+        toast("La lecture à voix haute n'est pas disponible ici")
+    } finally {
+        if (boutonLecture === bouton) { bouton?.classList.remove("en-cours"); boutonLecture = null }
+    }
+}
+// lecture automatique : quand KORA a fini de répondre (plus rien ne bouge dans le fil pendant 1,2 s)
+const dejaLus = new WeakSet()
+let minuterieLecture = 0
+new MutationObserver(() => {
+    if (!(reglages.voix || reponseVocale)) return
+    clearTimeout(minuterieLecture)
+    minuterieLecture = setTimeout(lireTour, 1200)
+}).observe(fil, { childList: true, subtree: true, characterData: true })
+function lireTour() {
+    if (fil.querySelector(".tape") || [...fil.querySelectorAll(".fon")].some((f) => f.textContent === "…")) {
+        minuterieLecture = setTimeout(lireTour, 800) // KORA réfléchit ou traduit encore
+        return
+    }
+    const tous = [...fil.children]
+    const dernierMoi = tous.findLastIndex((n) => n.classList.contains("msg-moi"))
+    if (dernierMoi < 0) return
+    const nouveaux = tous.slice(dernierMoi + 1).filter((n) => n.classList.contains("msg-kora") && !dejaLus.has(n))
+    if (!nouveaux.length) return
+    nouveaux.forEach((n) => dejaLus.add(n))
+    lireMessages(nouveaux, nouveaux.at(-1).querySelector(".lire"))
+}
+
+// le micro : dictée en français, ou vocal en fon (l'oreille fon du service en ligne)
+let ecouteEnCours = false
+function marquerMicro(actif, aide = "") {
+    ecouteEnCours = actif
+    $("micro").classList.toggle("ecoute", actif)
+    $("micro").setAttribute("aria-label", actif ? "Arrêter l'écoute" : "Parler à KORA")
+    saisie.placeholder = actif ? aide : (modeFon() ? "Message en fon…" : "Message reçu…")
+    if (actif) piloter({ emotion: "surpris", bulle: "" })
+}
+function erreurMicro(e) {
+    const code = e?.code || ""
+    if (code === "SILENCE") return "Je n'ai rien entendu. Touche le micro et parle près du téléphone."
+    if (code === "MICRO" || e?.name === "NotAllowedError") return "Autorise le micro pour parler à KORA."
+    if (code === "ANNULE") return ""
+    return "Le micro n'est pas disponible. Écris ton message."
+}
+$("micro").addEventListener("click", async () => {
+    if (ecouteEnCours) { voix.arreterEcoute(); return }
+    await pret
+    if (!kora) return
+    voix.arreter()
+    if (modeFon() && SPACE_FON && voix.peutEnregistrer()) return dicterFon()
+    if (!(await voix.capacites).dictee) { toast(SPACE_FON ? "Dictée en français indisponible ici : passe en fon pour parler, ou écris." : "Dictée indisponible ici : écris ton message."); return }
+    dicterFr()
+})
+async function dicterFr() {
+    const avant = saisie.value
+    marquerMicro(true, "J'écoute… parle en français")
+    try {
+        const texte = await voix.ecouterFr((partiel) => { saisie.value = partiel; ajusterSaisie() })
+        marquerMicro(false)
+        if (!texte) { saisie.value = avant; ajusterSaisie(); toast("Je n'ai rien entendu"); return }
+        envoyer(texte, { vocal: true })
+    } catch (e) {
+        marquerMicro(false)
+        saisie.value = avant
+        ajusterSaisie()
+        const m = erreurMicro(e)
+        if (m) toast(m)
+    }
+}
+async function dicterFon() {
+    marquerMicro(true, "Parle en fon… touche le micro pour finir")
+    let son
+    try { son = await voix.commencerEnregistrement() } catch (e) { marquerMicro(false); toast(erreurMicro(e) || "Le micro n'est pas disponible."); return }
+    marquerMicro(false)
+    if (son.size < 1500) { toast("Vocal trop court : touche le micro, parle, puis touche-le encore"); return }
+    const bulle = msgMoi("🎤 Vocal en fon", { petit: "Fɔngbe" })
+    const corps = msgKora()
+    const tape = reflechir(corps)
+    piloter({ emotion: "surpris", bulle: "J'écoute ton vocal…" })
+    etat("Écoute le fon…")
+    let compris
+    try {
+        compris = await voix.comprendreFon(son)
+    } catch (e) {
+        console.warn("KORA : écoute fon", e)
+        tape.remove()
+        dire(corps, `Je n'arrive pas à écouter ce vocal : ${panneService(e)}. Écris ton message (en fon ou en français), je le vérifie tout de suite.`, { traduire: false })
+        etat("Prêt à vérifier", "pret")
+        piloter({ emotion: "triste", bulle: "" })
+        return
+    }
+    tape.remove()
+    corps.closest(".msg-kora").remove()
+    if (!compris.fon) {
+        bulle.remove()
+        toast("Je n'ai rien compris dans ce vocal. Réessaie plus près du téléphone.")
+        etat("Prêt à vérifier", "pret")
+        return
+    }
+    bulle.firstChild.textContent = `🎤 ${compris.fon}`
+    const trad = el("span", "petit")
+    trad.textContent = `Traduction : ${compris.fr || "—"}`
+    bulle.append(trad)
+    envoyer(compris.fon, { vocal: true, fr: compris.fr })
+}
+
 /* ================= menu, feuilles et paramètres (structure reprise de Dan) ================= */
 const CLE_REGLAGES = "kora-reglages"
-const REGLAGES_DEFAUT = { grand: false, calme: false, histo: true }
+const REGLAGES_DEFAUT = { grand: false, calme: false, histo: true, voix: false }
 const reglages = (() => { try { return { ...REGLAGES_DEFAUT, ...JSON.parse(memoire(CLE_REGLAGES) || "{}") } } catch (_) { return { ...REGLAGES_DEFAUT } } })()
 function sauverReglages() { memoire(CLE_REGLAGES, JSON.stringify(reglages)) }
 function appliquerReglages() {
@@ -1114,6 +1267,7 @@ function remplirReglages() {
     document.querySelector(`input[name="r-langue"][value="${modeFon() ? "fon" : "fr"}"]`).checked = true
     $("r-grand").checked = reglages.grand
     $("r-calme").checked = reglages.calme
+    $("r-voix").checked = reglages.voix
     $("r-histo").checked = reglages.histo
     if (estAppli) etatBulle().then((e) => { $("r-bulle").checked = e.active })
     $("r-effacer").textContent = "Effacer mes données"
@@ -1125,6 +1279,12 @@ document.querySelectorAll('input[name="r-langue"]').forEach((r) => r.addEventLis
 }))
 $("r-grand").addEventListener("change", (e) => { reglages.grand = e.target.checked; sauverReglages(); appliquerReglages(); toast(reglages.grand ? "Texte agrandi" : "Taille normale") })
 $("r-calme").addEventListener("change", (e) => { reglages.calme = e.target.checked; sauverReglages(); appliquerReglages(); toast(reglages.calme ? "Animations réduites" : "Animations activées") })
+$("r-voix").addEventListener("change", (e) => {
+    reglages.voix = e.target.checked
+    sauverReglages()
+    if (!reglages.voix) voix.arreter()
+    toast(reglages.voix ? "KORA lit ses réponses à voix haute" : "KORA ne lit plus à voix haute")
+})
 $("r-histo").addEventListener("change", (e) => {
     reglages.histo = e.target.checked
     if (!reglages.histo) memoire(CLE_HISTO, "[]")
