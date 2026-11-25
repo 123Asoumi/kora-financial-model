@@ -1,0 +1,233 @@
+{
+  "protocole": "validation croisée groupée (5 plis) sur les 267 vrais messages de stop-arnaque-237",
+  "essais": {
+    "1_synthetique_seul (ancien KORA-lite)": {
+      "tous": {
+        "messages": 267,
+        "auc": 0.728,
+        "seuil_0.5": {
+          "detection": 0.494,
+          "fausses_alertes": 0.139
+        },
+        "seuil_0.7": {
+          "detection": 0.207,
+          "fausses_alertes": 0.056
+        }
+      },
+      "fr": {
+        "messages": 81,
+        "auc": 0.651,
+        "seuil_0.5": {
+          "detection": 0.695,
+          "fausses_alertes": 0.5
+        },
+        "seuil_0.7": {
+          "detection": 0.288,
+          "fausses_alertes": 0.136
+        }
+      },
+      "en": {
+        "messages": 181,
+        "auc": 0.498,
+        "seuil_0.5": {
+          "detection": 0.08,
+          "fausses_alertes": 0.083
+        },
+        "seuil_0.7": {
+          "detection": 0.04,
+          "fausses_alertes": 0.038
+        }
+      }
+    },
+    "2_plus_vrais_messages": {
+      "tous": {
+        "messages": 267,
+        "auc": 0.947,
+        "seuil_0.5": {
+          "detection": 0.782,
+          "fausses_alertes": 0.039
+        },
+        "seuil_0.7": {
+          "detection": 0.529,
+          "fausses_alertes": 0.022
+        }
+      },
+      "fr": {
+        "messages": 81,
+        "auc": 0.873,
+        "seuil_0.5": {
+          "detection": 0.932,
+          "fausses_alertes": 0.273
+        },
+        "seuil_0.7": {
+          "detection": 0.746,
+          "fausses_alertes": 0.182
+        }
+      },
+      "en": {
+        "messages": 181,
+        "auc": 0.932,
+        "seuil_0.5": {
+          "detection": 0.4,
+          "fausses_alertes": 0.0
+        },
+        "seuil_0.7": {
+          "detection": 0.08,
+          "fausses_alertes": 0.0
+        }
+      }
+    },
+    "3_plus_vrais_messages_poids_5 (retenu)": {
+      "tous": {
+        "messages": 267,
+        "auc": 0.967,
+        "seuil_0.5": {
+          "detection": 0.874,
+          "fausses_alertes": 0.056
+        },
+        "seuil_0.7": {
+          "detection": 0.701,
+          "fausses_alertes": 0.017
+        }
+      },
+      "fr": {
+        "messages": 81,
+        "auc": 0.944,
+        "seuil_0.5": {
+          "detection": 0.949,
+          "fausses_alertes": 0.273
+        },
+        "seuil_0.7": {
+          "detection": 0.898,
+          "fausses_alertes": 0.136
+        }
+      },
+      "en": {
+        "messages": 181,
+        "auc": 0.947,
+        "seuil_0.5": {
+          "detection": 0.68,
+          "fausses_alertes": 0.019
+        },
+        "seuil_0.7": {
+          "detection": 0.24,
+          "fausses_alertes": 0.0
+        }
+      }
+    },
+    "4_plus_vrais_messages_poids_10": {
+      "tous": {
+        "messages": 267,
+        "auc": 0.97,
+        "seuil_0.5": {
+          "detection": 0.885,
+          "fausses_alertes": 0.056
+        },
+        "seuil_0.7": {
+          "detection": 0.736,
+          "fausses_alertes": 0.017
+        }
+      },
+      "fr": {
+        "messages": 81,
+        "auc": 0.958,
+        "seuil_0.5": {
+          "detection": 0.966,
+          "fausses_alertes": 0.273
+        },
+        "seuil_0.7": {
+          "detection": 0.915,
+          "fausses_alertes": 0.136
+        }
+      },
+      "en": {
+        "messages": 181,
+        "auc": 0.945,
+        "seuil_0.5": {
+          "detection": 0.68,
+          "fausses_alertes": 0.019
+        },
+        "seuil_0.7": {
+          "detection": 0.28,
+          "fausses_alertes": 0.0
+        }
+      }
+    },
+    "5_plus_vrais_messages_et_conversations_anglaises": {
+      "tous": {
+        "messages": 267,
+        "auc": 0.875,
+        "seuil_0.5": {
+          "detection": 0.839,
+          "fausses_alertes": 0.222
+        },
+        "seuil_0.7": {
+          "detection": 0.644,
+          "fausses_alertes": 0.072
+        }
+      },
+      "fr": {
+        "messages": 81,
+        "auc": 0.857,
+        "seuil_0.5": {
+          "detection": 0.915,
+          "fausses_alertes": 0.409
+        },
+        "seuil_0.7": {
+          "detection": 0.729,
+          "fausses_alertes": 0.182
+        }
+      },
+      "en": {
+        "messages": 181,
+        "auc": 0.793,
+        "seuil_0.5": {
+          "detection": 0.64,
+          "fausses_alertes": 0.192
+        },
+        "seuil_0.7": {
+          "detection": 0.44,
+          "fausses_alertes": 0.051
+        }
+      }
+    },
+    "6_plus_conversations_anglaises_seules": {
+      "tous": {
+        "messages": 267,
+        "auc": 0.52,
+        "seuil_0.5": {
+          "detection": 0.782,
+          "fausses_alertes": 0.794
+        },
+        "seuil_0.7": {
+          "detection": 0.414,
+          "fausses_alertes": 0.417
+        }
+      },
+      "fr": {
+        "messages": 81,
+        "auc": 0.599,
+        "seuil_0.5": {
+          "detection": 0.78,
+          "fausses_alertes": 0.727
+        },
+        "seuil_0.7": {
+          "detection": 0.424,
+          "fausses_alertes": 0.273
+        }
+      },
+      "en": {
+        "messages": 181,
+        "auc": 0.513,
+        "seuil_0.5": {
+          "detection": 0.76,
+          "fausses_alertes": 0.808
+        },
+        "seuil_0.7": {
+          "detection": 0.4,
+          "fausses_alertes": 0.436
+        }
+      }
+    }
+  }
+}

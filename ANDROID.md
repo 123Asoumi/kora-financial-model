@@ -35,7 +35,7 @@ Pendant que la bulle est active, Android affiche l'icône de capture d'écran da
 | `android/app/src/main/java/bj/kora/lite/BulleKoraPlugin.java` | Le pont avec la page : autorisations, démarrage et arrêt de la bulle, envoi des captures et des partages à la page |
 | `web/natif.js` | Le même pont, côté page. Dans un navigateur, il ne fait rien |
 | `web/vendor/capacitor-core.js` | `@capacitor/core` (licence MIT), copié tel quel car l'application web n'utilise pas d'outil de compilation |
-| `outils/rendu_mascotte.mjs` | Fait un rendu de la mascotte 3D (`web/mascotte.html`) sur fond transparent : `outils/mascotte_detouree.png` |
+| `outils/rendu_mascotte.mjs` | Fait un rendu de la mascotte 3D (Korachoupi, `web/mascotte/korachoupi.html`) sur fond transparent : `outils/mascotte_detouree.png` |
 | `outils/ressources_android.py` | Fabrique l'icône et l'écran de démarrage (à partir de `web/icone-512.png`) et la bulle (la mascotte détourée, sans son ombre) |
 
 ## Compiler

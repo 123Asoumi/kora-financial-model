@@ -1,0 +1,17 @@
+{
+  "source": "Kaggle : togbemismadjisosthne/mobile-money-phone-scam-survey-dataset",
+  "lieu": "Ngaoundéré (Cameroun) et environs",
+  "personnes": 800,
+  "deja_victimes": 315,
+  "part_deja_victimes": 0.394,
+  "savent_detecter": 0.544,
+  "veulent_etre_formees": 0.882,
+  "comment_chez_les_victimes": {
+    "Appel d’un inconnu qui se fait passer pour un agent": 200,
+    "Faux message de retrait ou dépôt": 154,
+    "Fausse transaction d’un client": 57,
+    "Demande de remboursement pour un transfert soi-disant erroné": 33,
+    "Autre": 23,
+    "RAS": 6
+  }
+}

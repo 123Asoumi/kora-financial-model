@@ -1,44 +1,158 @@
 {
   "donnees": [
-    "data/kora_fr.csv"
+    "data/kora_fr.csv",
+    "data/externes/stop_arnaque_237.csv"
   ],
-  "messages": 5342,
-  "auc_arnaque_vs_normal": 0.9856,
-  "f1_macro_5_categories": 0.8762,
-  "par_seuil": {
-    "0.3": {
-      "detection": 1.0,
-      "fausses_alertes": 0.4558
-    },
-    "0.4": {
-      "detection": 0.9997,
-      "fausses_alertes": 0.2429
-    },
-    "0.5": {
-      "detection": 0.9834,
-      "fausses_alertes": 0.1411
-    },
-    "0.6": {
-      "detection": 0.9033,
-      "fausses_alertes": 0.0556
-    },
-    "0.7": {
-      "detection": 0.8501,
-      "fausses_alertes": 0.0349
-    },
-    "0.8": {
-      "detection": 0.7364,
-      "fausses_alertes": 0.0039
+  "messages": 5609,
+  "poids_vrais_messages": 5,
+  "synthetiques": {
+    "messages": 5342,
+    "arnaques": 3308,
+    "auc_arnaque_vs_normal": 0.9879,
+    "f1_macro_5_categories": 0.8998,
+    "par_seuil": {
+      "0.3": {
+        "detection": 1.0,
+        "fausses_alertes": 0.5123
+      },
+      "0.4": {
+        "detection": 0.9973,
+        "fausses_alertes": 0.3004
+      },
+      "0.5": {
+        "detection": 0.9849,
+        "fausses_alertes": 0.1278
+      },
+      "0.6": {
+        "detection": 0.9365,
+        "fausses_alertes": 0.0644
+      },
+      "0.7": {
+        "detection": 0.8655,
+        "fausses_alertes": 0.0315
+      },
+      "0.8": {
+        "detection": 0.7376,
+        "fausses_alertes": 0.0
+      }
+    }
+  },
+  "vrais_messages": {
+    "messages": 267,
+    "arnaques": 87,
+    "auc_arnaque_vs_normal": 0.964,
+    "f1_macro_5_categories": 0.5728,
+    "par_seuil": {
+      "0.3": {
+        "detection": 0.9425,
+        "fausses_alertes": 0.1556
+      },
+      "0.4": {
+        "detection": 0.9195,
+        "fausses_alertes": 0.0667
+      },
+      "0.5": {
+        "detection": 0.8966,
+        "fausses_alertes": 0.0611
+      },
+      "0.6": {
+        "detection": 0.7816,
+        "fausses_alertes": 0.0333
+      },
+      "0.7": {
+        "detection": 0.7126,
+        "fausses_alertes": 0.0111
+      },
+      "0.8": {
+        "detection": 0.5402,
+        "fausses_alertes": 0.0056
+      }
+    }
+  },
+  "vrais_messages_fr": {
+    "messages": 81,
+    "arnaques": 59,
+    "auc_arnaque_vs_normal": 0.9438,
+    "f1_macro_5_categories": 0.6143,
+    "par_seuil": {
+      "0.3": {
+        "detection": 0.9831,
+        "fausses_alertes": 0.6818
+      },
+      "0.4": {
+        "detection": 0.9661,
+        "fausses_alertes": 0.3636
+      },
+      "0.5": {
+        "detection": 0.9661,
+        "fausses_alertes": 0.3182
+      },
+      "0.6": {
+        "detection": 0.9153,
+        "fausses_alertes": 0.2273
+      },
+      "0.7": {
+        "detection": 0.8983,
+        "fausses_alertes": 0.0909
+      },
+      "0.8": {
+        "detection": 0.7458,
+        "fausses_alertes": 0.0455
+      }
+    }
+  },
+  "vrais_messages_en": {
+    "messages": 181,
+    "arnaques": 25,
+    "auc_arnaque_vs_normal": 0.9341,
+    "f1_macro_5_categories": 0.3211,
+    "par_seuil": {
+      "0.3": {
+        "detection": 0.84,
+        "fausses_alertes": 0.0705
+      },
+      "0.4": {
+        "detection": 0.8,
+        "fausses_alertes": 0.0192
+      },
+      "0.5": {
+        "detection": 0.72,
+        "fausses_alertes": 0.0192
+      },
+      "0.6": {
+        "detection": 0.44,
+        "fausses_alertes": 0.0
+      },
+      "0.7": {
+        "detection": 0.28,
+        "fausses_alertes": 0.0
+      },
+      "0.8": {
+        "detection": 0.12,
+        "fausses_alertes": 0.0
+      }
     }
   },
   "reference_regles_seules": {
-    "au_moins_1_signal": {
-      "detection": 0.87,
-      "fausses_alertes": 0.2085
+    "synthetiques": {
+      "au_moins_1_signal": {
+        "detection": 0.87,
+        "fausses_alertes": 0.2085
+      },
+      "au_moins_2_signaux": {
+        "detection": 0.4643,
+        "fausses_alertes": 0.0182
+      }
     },
-    "au_moins_2_signaux": {
-      "detection": 0.4643,
-      "fausses_alertes": 0.0182
+    "vrais_messages": {
+      "au_moins_1_signal": {
+        "detection": 0.3103,
+        "fausses_alertes": 0.2167
+      },
+      "au_moins_2_signaux": {
+        "detection": 0.0575,
+        "fausses_alertes": 0.0167
+      }
     }
   },
   "seuils": {

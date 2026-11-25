@@ -5,3 +5,6 @@ jml*/
 .ipynb_checkpoints/
 .pytest_cache/
 node_modules/
+
+# Données externes dont la licence n'est pas publiée : téléchargées, jamais versionnées
+data/externes/brut/

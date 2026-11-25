@@ -1,7 +1,7 @@
-// Fait une image de la mascotte 3D sur fond transparent (outils/mascotte_detouree.png),
+// Fait une image de Korachoupi, la mascotte 3D, sur fond transparent (outils/mascotte_detouree.png),
 // utilisée comme bulle flottante de l'appli Android.
 //
-//   npm install --no-save three@0.187.0     (la version importée par web/mascotte.html)
+//   npm install --no-save three@0.187.0     (la version importée par web/mascotte/korachoupi.html)
 //   node outils/rendu_mascotte.mjs [chemin/vers/playwright]
 //   python outils/ressources_android.py
 //
@@ -23,7 +23,7 @@ await page.route("**/*", (requete) => {
     if (url.hostname.startsWith("fonts.")) return requete.fulfill({ body: "", contentType: "text/css" })
     return requete.continue()
 })
-await page.goto(pathToFileURL(join(RACINE, "web", "mascotte.html")).href + "?embed&fond=transparent")
+await page.goto(pathToFileURL(join(RACINE, "web", "mascotte", "korachoupi.html")).href + "?embed&fond=transparent")
 await page.waitForTimeout(4000) // la mascotte arrive et se pose
 await page.screenshot({ path: join(RACINE, "outils", "mascotte_detouree.png"), omitBackground: true })
 await navigateur.close()

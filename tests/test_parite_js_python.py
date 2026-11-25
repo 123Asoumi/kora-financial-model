@@ -57,7 +57,11 @@ def _messages():
     # tous les modèles de phrases représentés, puis un échantillon fixe
     un_par_modele = df.groupby("modele_id").head(1)
     echantillon = df.sample(n=200, random_state=0)
-    return PIEGES + list(pd.concat([un_par_modele, echantillon])["texte"].astype(str))
+    textes = PIEGES + list(pd.concat([un_par_modele, echantillon])["texte"].astype(str))
+    vrais = os.path.join(RACINE, "data", "externes", "stop_arnaque_237.csv")
+    if os.path.exists(vrais):  # de vrais messages : balises [PHONE:…], anglais, retours à la ligne
+        textes += list(pd.read_csv(vrais)["texte"].astype(str))
+    return textes
 
 
 def _modele_sklearn(m):

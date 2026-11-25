@@ -326,7 +326,7 @@ public class BulleService extends Service {
         bulle = new ImageView(this);
         bulle.setImageResource(R.drawable.bulle_kora);
         bulle.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        bulle.setContentDescription("KORA : vérifier ce qui est à l'écran");
+        bulle.setContentDescription("Korachoupi : vérifier ce qui est à l'écran avec KORA");
         posBulle = new WindowManager.LayoutParams(dp(LARGEUR_DP), dp(HAUTEUR_DP), typeFenetre(),
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT);
         posBulle.gravity = Gravity.TOP | Gravity.START;
