@@ -85,7 +85,7 @@ Onglet **Actions → « Publier une version » → Run workflow** (sur `main`). 
 
 ### Une seule clé pour toutes les versions
 
-À la première publication, le workflow affiche l'**empreinte SHA-256 du certificat** (avertissement jaune, et à la fin des notes de version). La copier dans `android/empreinte-cle.txt` et l'envoyer sur `main`. À partir de là, le workflow **refuse** toute APK signée avec une autre clé : chaque mise à jour est garantie signée par la même clé, donc installable par-dessus la précédente.
+L'**empreinte SHA-256 du certificat** est publique (ce n'est pas un secret). On peut la lire sur son ordinateur avec `keytool -list -v -keystore kora-lite.jks -alias kora-lite` (ligne « SHA256: »), ou dans le workflow à la première publication (avertissement jaune, et à la fin des notes de version). La copier dans `android/empreinte-cle.txt` et l'envoyer sur `main`. À partir de là, le workflow **refuse** toute APK signée avec une autre clé : chaque mise à jour est garantie signée par la même clé, donc installable par-dessus la précédente.
 
 Pour signer sur son ordinateur, créer `android/keystore.properties` (ignoré par git) :
 

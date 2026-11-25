@@ -66,7 +66,8 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK" | tee certificat.txt
           EMPREINTE=$(grep -m1 "certificate SHA-256 digest" certificat.txt | awk '{print $NF}')
           # une seule clé pour toutes les versions : on compare avec l'empreinte enregistrée dans le dépôt
-          ATTENDUE=$(grep -v '^#' android/empreinte-cle.txt | tr -d '[:space:]')
+          # (acceptée telle qu'affichée par apksigner « ab12… » ou par keytool « AB:12:… »)
+          ATTENDUE=$(grep -v '^#' android/empreinte-cle.txt | tr -d '[:space:]:' | tr 'A-F' 'a-f')
           if [ -z "$ATTENDUE" ]; then
             echo "::warning::Première signature : copie cette empreinte dans android/empreinte-cle.txt pour verrouiller la clé : $EMPREINTE"
           elif [ "$ATTENDUE" != "$EMPREINTE" ]; then
