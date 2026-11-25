@@ -1,7 +1,7 @@
 import { BULLES_VERDICT, creerBulles } from "./bulles.js"
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
-import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli } from "./natif.js"
+import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli, chercherMiseAJour, installerMiseAJour } from "./natif.js"
 import { creerVoix } from "./voix.js"
 import {
     STATUTS, PH, ETAPES_URGENCE, PUCES_EXPEDITEUR, PUCES_PREMIER, PUCES_REPONDRE, PUCES_SUITE, toutesLesPhrases,
@@ -86,6 +86,7 @@ if (navigator.mediaDevices?.getDisplayMedia && !matchMedia("(pointer: coarse)").
 if (estAppli) {
     $("menu-bulle").querySelector('[data-m="flottante"]').hidden = false
     $("r-bulle-bloc").hidden = false
+    $("r-maj-bloc").hidden = false
     $("telecharger").hidden = true
 }
 $("menu-bulle").addEventListener("click", (e) => {
@@ -1339,6 +1340,58 @@ const CONSEILS = [
     $("conseil-jour").innerHTML = `<span class="ampoule" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2Z"/></svg></span><b>${echapper(titre)}</b><p>${echapper(texte)}</p><small>Le conseil de KORA</small>`
 }
 appliquerReglages()
+
+/* ================= mises à jour de l'appli Android ================= */
+// Au démarrage, KORA regarde la dernière version publiée sur GitHub. S'il y en a une plus récente,
+// il la propose : téléchargement dans l'appli, vérification de l'empreinte, puis installateur d'Android
+// (qui demande toujours de confirmer : une appli hors Play Store ne peut pas se mettre à jour en silence).
+let majDispo = null
+async function verifierMaj({ manuel = false } = {}) {
+    if (!estAppli) return
+    const vu = Number(memoire("kora-maj-vu")) || 0
+    if (!manuel && Date.now() - vu < 3 * 3600 * 1000) return // au plus toutes les 3 heures quand on est à jour
+    if (manuel) $("r-maj-etat").textContent = "Recherche…"
+    try {
+        const m = await chercherMiseAJour()
+        if (!m) return
+        if (m.aJour) {
+            memoire("kora-maj-vu", String(Date.now()))
+            $("r-maj-etat").textContent = `Tu as la dernière version (${m.version}).`
+            if (manuel) toast(`KORA-lite est à jour (version ${m.version})`)
+            return
+        }
+        majDispo = m
+        $("r-maj-etat").textContent = `Version ${m.nouvelle} disponible (tu as la ${m.version}).`
+        $("maj-titre").textContent = `KORA-lite ${m.nouvelle} est disponible`
+        $("maj-texte").textContent = `Tu as la version ${m.version}.${m.taille ? ` Téléchargement : ${Math.max(1, Math.round(m.taille / 1048576))} Mo.` : ""} Ton historique et tes réglages sont gardés.`
+        $("maj-installer").disabled = false
+        $("maj-installer").textContent = "Mettre à jour"
+        $("maj").hidden = false
+        if (manuel) fermerFeuille($("voile-reglages"))
+    } catch (_) {
+        $("r-maj-etat").textContent = "Impossible de vérifier pour le moment (pas d'internet ?)."
+        if (manuel) toast("Impossible de vérifier les mises à jour : pas d'internet ?")
+    }
+}
+$("maj-tard").addEventListener("click", () => { $("maj").hidden = true })
+$("maj-installer").addEventListener("click", async () => {
+    if (!majDispo) return
+    const b = $("maj-installer")
+    b.disabled = true
+    b.textContent = "Téléchargement…"
+    try {
+        await installerMiseAJour(majDispo, (pct) => { if (pct >= 0) b.textContent = `Téléchargement… ${pct} %` })
+        $("maj-texte").textContent = "Confirme « Mettre à jour » sur l'écran d'Android."
+        b.textContent = "Recommencer"
+    } catch (e) {
+        b.textContent = "Mettre à jour"
+        toast(e?.message || "La mise à jour a échoué. Réessaie.")
+    }
+    b.disabled = false
+})
+$("r-maj").addEventListener("click", () => verifierMaj({ manuel: true }))
+document.addEventListener("visibilitychange", () => { if (!document.hidden) verifierMaj() })
+setTimeout(() => verifierMaj(), 4000) // après le démarrage, sans le ralentir
 
 /* ================= à propos ================= */
 function ouvrirApropos() { $("voile").hidden = false; $("fermer").focus() }

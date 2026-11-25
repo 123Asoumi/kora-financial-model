@@ -43,3 +43,33 @@ export function ecouterAppli({ surImage, surTexte }) {
 // La voix de KORA dans l'appli : voix française et dictée française du téléphone (VoixKoraPlugin).
 // Le moteur web d'Android n'a ni speechSynthesis ni reconnaissance vocale.
 export const VoixNative = estAppli ? registerPlugin("VoixKora") : null
+
+// Mises à jour de l'appli Android (installée hors Play Store) : au démarrage, KORA regarde la dernière
+// version publiée sur GitHub. S'il y en a une plus récente, il propose de la télécharger et d'ouvrir
+// l'installateur d'Android (même clé de signature, donc les données sont gardées).
+const MiseAJour = estAppli ? registerPlugin("MiseAJour") : null
+const API_VERSIONS = "https://api.github.com/repos/123Asoumi/kora-financial-model/releases/latest"
+
+export function plusRecente(a, b) { // "1.0.10" > "1.0.9"
+    const x = String(a).replace(/^v/, "").split(".").map(Number), y = String(b).replace(/^v/, "").split(".").map(Number)
+    for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0)
+    return false
+}
+
+/** La dernière version publiée si elle est plus récente que celle installée, sinon null. */
+export async function chercherMiseAJour() {
+    if (!MiseAJour) return null
+    const { version } = await MiseAJour.version()
+    const r = await fetch(API_VERSIONS, { headers: { Accept: "application/vnd.github+json" }, cache: "no-store" })
+    if (!r.ok) throw new Error(`GitHub ${r.status}`)
+    const v = await r.json()
+    const apk = (v.assets || []).find((a) => a.name.endsWith(".apk"))
+    if (!apk || !plusRecente(v.tag_name, version)) return { aJour: true, version }
+    const sha256 = (apk.digest || "").replace(/^sha256:/, "") || (String(v.body || "").match(/SHA-256 de l'APK : `([0-9a-f]{64})`/) || [])[1] || ""
+    return { aJour: false, version, nouvelle: v.tag_name.replace(/^v/, ""), url: apk.browser_download_url, sha256, taille: apk.size, notes: v.body || "" }
+}
+
+export async function installerMiseAJour(maj, surProgres) {
+    const ecoute = await MiseAJour.addListener("progres", ({ pourcent }) => surProgres?.(pourcent))
+    try { await MiseAJour.installer({ url: maj.url, sha256: maj.sha256 }) } finally { ecoute.remove() }
+}

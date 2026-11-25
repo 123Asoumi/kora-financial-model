@@ -1,16 +1,46 @@
 # Publie une version de KORA-lite : APK Android signée avec la clé de KORA, attachée à une version GitHub
-# (onglet « Releases »). À lancer à la main depuis l'onglet « Actions », après avoir fusionné dans main.
+# (onglet « Releases »). Se lance tout seul à chaque envoi sur main : si le numéro de package.json n'a pas
+# encore été publié, la version est créée ; sinon, rien n'est fait. On peut aussi le lancer à la main.
+# Les téléphones qui ont l'appli (1.0.5 et suivantes) voient alors la mise à jour et la proposent.
 # Secrets nécessaires (Settings → Secrets and variables → Actions) : voir ANDROID.md.
 name: Publier une version
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: publier
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    outputs:
+      nouvelle: ${{ steps.v.outputs.nouvelle }}
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "nouvelle=0" >> "$GITHUB_OUTPUT"
+            echo "::notice::La version v$VERSION est déjà publiée : rien à faire. Pour publier, change le numéro dans package.json (voir CHANGELOG.md)."
+          else
+            echo "nouvelle=1" >> "$GITHUB_OUTPUT"
+          fi
+
   publier:
+    needs: verifier
+    if: needs.verifier.outputs.nouvelle == '1'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +59,7 @@ jobs:
           pip install scikit-learn pandas numpy pytest
           python -m pytest tests/ -q
       - name: Version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          if gh release view "v$VERSION" > /dev/null 2>&1; then
-            echo "::error::La version v$VERSION existe déjà. Change le numéro dans package.json (voir CHANGELOG.md)."
-            exit 1
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
+        run: echo "VERSION=${{ needs.verifier.outputs.version }}" >> "$GITHUB_ENV"
       - name: Clé de signature
         env:
           KORA_KEYSTORE_BASE64: ${{ secrets.KORA_KEYSTORE_BASE64 }}
@@ -76,13 +98,14 @@ jobs:
           fi
           echo "EMPREINTE=$EMPREINTE" >> "$GITHUB_ENV"
           sha256sum "$APK" > "$APK.sha256"
+          echo "SHA_APK=$(sha256sum "$APK" | awk '{print $1}')" >> "$GITHUB_ENV"
       - name: Version GitHub
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # les notes de version : la section du CHANGELOG pour cette version
           awk -v v="## [$VERSION]" 'index($0, v) == 1 {on=1; next} on && /^## \[/ {exit} on' CHANGELOG.md > notes.md
-          printf '\n---\nAPK signée avec la clé officielle de KORA-lite. Empreinte SHA-256 du certificat : `%s`\n' "$EMPREINTE" >> notes.md
+          printf '\n---\nAPK signée avec la clé officielle de KORA-lite. Empreinte SHA-256 du certificat : `%s`\nSHA-256 de l'"'"'APK : `%s`\n' "$EMPREINTE" "$SHA_APK" >> notes.md
           gh release create "v$VERSION" "KORA-lite-$VERSION.apk" "KORA-lite-$VERSION.apk.sha256" \
             --target "$GITHUB_SHA" --title "KORA-lite $VERSION" --notes-file notes.md
       - name: Effacer la clé

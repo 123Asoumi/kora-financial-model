@@ -81,7 +81,16 @@ Dans le dépôt : **Settings → Secrets and variables → Actions → New repos
 
 ### Publier
 
-Onglet **Actions → « Publier une version » → Run workflow** (sur `main`). Le workflow lance les tests, compile l'APK, la signe, vérifie la signature et crée la version GitHub `v<version>` avec l'APK et son empreinte SHA-256.
+**Automatique** : il suffit de changer le numéro de version (voir `CHANGELOG.md`) et d'envoyer sur `main`. Le workflow « Publier une version » se lance tout seul : si ce numéro n'a pas encore été publié, il lance les tests, compile l'APK, la signe, vérifie la signature et crée la version GitHub `v<version>` avec l'APK et son empreinte SHA-256. Si le numéro est déjà publié, il ne fait rien. On peut aussi le lancer à la main (onglet **Actions → « Publier une version » → Run workflow**).
+
+### Mise à jour sur les téléphones
+
+Depuis la 1.0.5, l'appli regarde à chaque ouverture (au plus toutes les 3 heures quand elle est à jour) la dernière version publiée sur GitHub. S'il y en a une plus récente, un bandeau propose **« Mettre à jour »** : l'appli télécharge l'APK, vérifie son empreinte SHA-256, puis ouvre l'installateur d'Android. On peut aussi chercher une mise à jour dans **Paramètres → Mises à jour**.
+
+- La première fois, Android demande d'**autoriser KORA-lite à installer des applis** : il ouvre le réglage, puis on touche encore « Mettre à jour ».
+- Android demande toujours de **confirmer** la mise à jour : une appli installée hors Play Store ne peut pas se mettre à jour en silence. Seul le Play Store le permet.
+- La mise à jour garde l'historique et les réglages, car elle est signée avec la même clé.
+- Les téléphones en 1.0.4 ou avant doivent installer la 1.0.5 **une fois à la main**, car ces versions ne savent pas encore se mettre à jour.
 
 ### Une seule clé pour toutes les versions
 

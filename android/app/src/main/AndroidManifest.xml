@@ -66,6 +66,8 @@
     <!-- la voix de KORA : dictée en français et vocal en fon -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- mise à jour sans Play Store : ouvrir l'installateur d'Android sur la nouvelle APK signée -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Android 11+ : voir le moteur de voix et la reconnaissance vocale du téléphone -->
     <queries>

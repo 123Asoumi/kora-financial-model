@@ -2,7 +2,17 @@
 
 Une seule version pour tout le projet : celle de `package.json`. L'application web, l'application Android, le modèle (`web/kora_lite.json`) et le cache hors ligne portent le même numéro. `tests/test_version_unique.py` vérifie qu'aucun fichier n'a été oublié.
 
-Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis lancer le workflow GitHub **« Publier une version »**. Il crée la version GitHub avec l'APK Android signée.
+Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
+
+## [1.0.5] — 2026-11-25
+
+### Mises à jour automatiques
+- **L'appli Android se met à jour** : à chaque ouverture, elle regarde la dernière version publiée. S'il y en a une plus récente, un bandeau propose **« Mettre à jour »**. L'appli télécharge l'APK (avec la progression), vérifie son empreinte SHA-256 et ouvre l'installateur d'Android. L'historique et les réglages sont gardés.
+- **Paramètres → Mises à jour** : affiche la version installée et permet de chercher une mise à jour à la main.
+- Android demande toujours de confirmer l'installation (c'est obligatoire hors Play Store). La première fois, il faut autoriser KORA-lite à installer des applis.
+- **La publication est automatique** : un nouveau numéro de version envoyé sur `main` crée tout seul la version GitHub avec l'APK signée. Il n'y a plus besoin de lancer le workflow à la main, et un numéro déjà publié ne provoque plus d'erreur.
+- Les notes de version donnent l'empreinte SHA-256 de l'APK.
+- **À faire une seule fois** : installer la 1.0.5 à la main sur les téléphones qui ont la 1.0.4. Les versions suivantes seront proposées par l'appli.
 
 ## [1.0.4] — 2026-11-25
 

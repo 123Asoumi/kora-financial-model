@@ -435,6 +435,13 @@
   .secondaire.danger { background: transparent; color: #b3382c; box-shadow: inset 0 0 0 1.5px rgba(229, 72, 77, .45); }
 
   /* ---------- message bref ---------- */
+  .maj { position: fixed; z-index: 60; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top)); max-width: 520px; margin: 0 auto; background: #fff; color: var(--titre); border-radius: 18px; padding: 14px 16px; box-shadow: 0 18px 40px -16px rgba(30,21,53,.45), inset 0 0 0 1.5px var(--bois); display: grid; gap: 10px; }
+  .maj p { margin: 0; display: grid; gap: 2px; }
+  .maj p span { color: var(--texte-doux); font-size: 14px; }
+  .maj-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .maj-actions button { border: 0; border-radius: 999px; padding: 9px 16px; font: inherit; font-weight: 700; cursor: pointer; background: var(--bois); color: #fff; }
+  .maj-actions button.discret { background: var(--brun-2); color: var(--titre); }
+  .maj-actions button:disabled { opacity: .7; cursor: default; }
   .toast {
     position: fixed; z-index: 90; left: 50%; top: calc(70px + env(safe-area-inset-top)); transform: translateX(-50%);
     background: var(--titre); color: #fff8ea; padding: 11px 18px; border-radius: 999px; font-weight: 700; font-size: 15px;
@@ -645,6 +652,11 @@
       <h3>Bulle KORA</h3>
       <label class="interrupteur"><span>Bulle sur les autres applis<small>Touche-la dans ta messagerie : KORA vérifie ce qui est à l'écran</small></span><input type="checkbox" id="r-bulle"><i aria-hidden="true"></i></label>
     </div>
+    <div id="r-maj-bloc" hidden>
+      <h3>Mises à jour</h3>
+      <p class="aide" id="r-maj-etat">KORA regarde s'il y a une nouvelle version à chaque ouverture.</p>
+      <button class="secondaire" id="r-maj" type="button">Rechercher une mise à jour</button>
+    </div>
     <h3>Mes données</h3>
     <label class="interrupteur"><span>Garder l'historique<small>La liste de tes vérifications, sur ce téléphone uniquement</small></span><input type="checkbox" id="r-histo"><i aria-hidden="true"></i></label>
     <p class="aide">L'analyse se fait sur ton téléphone. Seuls les messages en fon et tes questions à l'assistant passent par notre service en ligne.</p>
@@ -655,6 +667,10 @@
   </section>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="maj" id="maj" role="status" aria-live="polite" hidden>
+  <p><b id="maj-titre">Nouvelle version de KORA-lite</b><span id="maj-texte"></span></p>
+  <div class="maj-actions"><button type="button" class="discret" id="maj-tard">Plus tard</button><button type="button" id="maj-installer">Mettre à jour</button></div>
+</div>
 
 <div class="voile" id="voile-histo" hidden>
   <section class="feuille" role="dialog" aria-modal="true" aria-labelledby="histo-titre">
@@ -700,7 +716,7 @@
       <button class="secondaire" id="installer" type="button" hidden>Installer l'appli</button>
       <a class="secondaire" id="telecharger" href="https://github.com/123Asoumi/kora-financial-model/releases/latest" target="_blank" rel="noopener">Télécharger l'appli Android</a>
     </div>
-    <p class="aide" id="version">KORA-lite version 1.0.4</p>
+    <p class="aide" id="version">KORA-lite version 1.0.5</p>
   </section>
 </div>
 
