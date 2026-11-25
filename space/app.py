@@ -2,7 +2,10 @@
 
 Deux routes, utilisées par l'application KORA (https://kora-0-01.vercel.app) :
 
-- /traduire (texte, sens) : fon ⇄ français, une phrase par ligne, tout en un seul passage GPU.
+- /traduire (texte, sens) : fon ⇄ français, une phrase par ligne. Sur PROCESSEUR : aucun quota GPU,
+    le service reste disponible même quand le GPU gratuit (ZeroGPU) est saturé. Modèles quantifiés
+    en int8 (plus rapides sur processeur) et cache des phrases déjà traduites (les phrases de KORA
+    reviennent pour tous les utilisateurs).
     français → fon : nellaw/nllb-fongbe-french-translation (affiné uniquement dans ce sens)
     fon → français : facebook/nllb-200-distilled-1.3B (le modèle de nellaw ne sait pas faire ce sens)
 - /discuter (question, contexte, historique) : l'assistant de KORA répond aux questions de
@@ -10,26 +13,36 @@ Deux routes, utilisées par l'application KORA (https://kora-0-01.vercel.app) :
     du modèle KORA-lite, sur le téléphone : l'assistant l'explique, il ne le remplace pas.
 """
 import json
+import os
 import re
+import time
 import unicodedata
+from collections import OrderedDict
 
 import gradio as gr
 import spaces
 import torch
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 
-# Sur ZeroGPU, on place les modèles sur « cuda » dès le chargement : la plateforme les met
+# L'assistant (Qwen) : sur ZeroGPU, on le place sur « cuda » dès le chargement ; la plateforme le met
 # réellement sur le GPU au moment de chaque appel décoré par @spaces.GPU.
 APPAREIL = "cuda" if torch.cuda.is_available() else "cpu"
 PRECISION = torch.bfloat16 if APPAREIL == "cuda" else torch.float32
+
+# Les traducteurs : toujours sur PROCESSEUR (pas de @spaces.GPU, donc pas de quota).
+QUANTIFIER = os.environ.get("KORA_QUANTIFIER", "1") == "1"   # int8 dynamique : 2 à 3 fois plus rapide sur processeur
+FAISCEAUX = int(os.environ.get("KORA_FAISCEAUX", "2"))       # recherche en faisceau : 1 = le plus rapide
+torch.set_num_threads(max(1, os.cpu_count() or 1))
 
 
 def charger_traducteur(noms, langue_source):
     for nom in noms:
         try:
             tok = AutoTokenizer.from_pretrained(nom, src_lang=langue_source)  # sens fixe : rien à changer ensuite
-            modele = AutoModelForSeq2SeqLM.from_pretrained(nom, torch_dtype=PRECISION).to(APPAREIL).eval()
-            print("Chargé :", nom)
+            modele = AutoModelForSeq2SeqLM.from_pretrained(nom, torch_dtype=torch.float32).eval()  # processeur
+            if QUANTIFIER:
+                modele = torch.quantization.quantize_dynamic(modele, {torch.nn.Linear}, dtype=torch.qint8)
+            print("Chargé sur processeur :", nom, "(int8)" if QUANTIFIER else "(fp32)")
             return nom, tok, modele
         except Exception as e:  # noqa: BLE001
             print("Indisponible :", nom, e)
@@ -50,26 +63,35 @@ def _propre(t):
     return re.sub(r"\s+", " ", unicodedata.normalize("NFC", str(t))).strip()
 
 
-# ---------------------------------------------------------------- traduction
-@spaces.GPU(duration=20)
+# ---------------------------------------------------------------- traduction (processeur)
+CACHE = OrderedDict()  # (sens, phrase) → traduction ; les phrases de KORA reviennent pour tout le monde
+TAILLE_CACHE = 5000
+
+
 def _traduire_lot(lignes, vers_fon):
+    """Traduit sur processeur, sans GPU : n'entame jamais le quota ZeroGPU."""
     tok, modele, cible = ((TOK_VERS_FON, MODELE_VERS_FON, "fon_Latn") if vers_fon
                           else (TOK_VERS_FR, MODELE_VERS_FR, "fra_Latn"))
-    enc = tok(lignes, return_tensors="pt", padding=True, truncation=True, max_length=200).to(modele.device)
-    with torch.no_grad():
+    enc = tok(lignes, return_tensors="pt", padding=True, truncation=True, max_length=200)
+    with torch.inference_mode():
         sortie = modele.generate(**enc, forced_bos_token_id=tok.convert_tokens_to_ids(cible),
-                                 max_new_tokens=160, num_beams=3)
-    return tok.batch_decode(sortie, skip_special_tokens=True)  # du texte : rien de CUDA ne sort d'ici
+                                 max_new_tokens=128, num_beams=FAISCEAUX)
+    return tok.batch_decode(sortie, skip_special_tokens=True)
 
 
 def traduire(texte, sens="fon→français"):
-    """Traduit chaque ligne du texte, dans le sens demandé."""
+    """Traduit chaque ligne du texte, dans le sens demandé (les lignes déjà vues viennent du cache)."""
+    vers_fon = not sens.startswith("fon")
     lignes = [_propre(ligne) for ligne in str(texte or "").split("\n")]
-    a_traduire = [ligne for ligne in lignes if ligne]
-    if not a_traduire:
-        return ""
-    traductions = iter(_traduire_lot(a_traduire, vers_fon=not sens.startswith("fon")))
-    return "\n".join(next(traductions) if ligne else "" for ligne in lignes)
+    manquantes = list(dict.fromkeys(l for l in lignes if l and (vers_fon, l) not in CACHE))
+    if manquantes:
+        debut = time.time()
+        for ligne, trad in zip(manquantes, _traduire_lot(manquantes, vers_fon)):
+            CACHE[(vers_fon, ligne)] = trad
+            if len(CACHE) > TAILLE_CACHE:
+                CACHE.popitem(last=False)
+        print(f"traduit {len(manquantes)} ligne(s) {'fr→fon' if vers_fon else 'fon→fr'} en {time.time() - debut:.1f} s")
+    return "\n".join(CACHE.get((vers_fon, l), "") if l else "" for l in lignes)
 
 
 # ---------------------------------------------------------------- discussion
@@ -115,12 +137,13 @@ def discuter(question, contexte="", historique="[]"):
 # ---------------------------------------------------------------- interface
 with gr.Blocks(title="KORA — service fon et discussion") as demo:
     gr.Markdown(f"# 🪕 KORA — service fon et discussion\n"
-                f"Français → fon : `{NOM_VERS_FON}` · fon → français : `{NOM_VERS_FR}` · assistant : `{NOM_ASSISTANT}`.")
+                f"Français → fon : `{NOM_VERS_FON}` · fon → français : `{NOM_VERS_FR}` (sur processeur, sans quota) · "
+                f"assistant : `{NOM_ASSISTANT}` (GPU).")
     with gr.Tab("Traduire"):
         t = gr.Textbox(label="Texte (une phrase par ligne)", lines=3)
         s = gr.Radio(["fon→français", "français→fon"], value="fon→français", label="Sens")
         o = gr.Textbox(label="Traduction", lines=3)
-        gr.Button("Traduire", variant="primary").click(traduire, [t, s], o, api_name="traduire")
+        gr.Button("Traduire", variant="primary").click(traduire, [t, s], o, api_name="traduire", concurrency_limit=2)
     with gr.Tab("Discuter"):
         q = gr.Textbox(label="Question", lines=2)
         c = gr.Textbox(label="Contexte (verdict de KORA)", lines=3)
