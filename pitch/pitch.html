@@ -104,12 +104,14 @@ h2 { font-size: 150px; }
 @keyframes tVerdict { 0%, 36% { opacity: 0; transform: translateY(80px); } 44%, 92% { opacity: 1; transform: none; } 98%, 100% { opacity: 0; } }
 @keyframes tCurseur { 0%, 44% { left: 0; } 60%, 100% { left: calc(99% - 10px); } }
 .beats { display: grid; gap: 0; max-width: 620px; }
-.beats li { list-style: none; display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 10px; padding: 26px 0; border-top: 3px solid var(--encre); font-size: 30px; font-weight: 600; line-height: 1.2; }
+.beats li { list-style: none; display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 10px; padding: 16px 0; border-top: 3px solid var(--encre); font-size: 28px; font-weight: 600; line-height: 1.2; }
 .beats li:last-child { border-bottom: 3px solid var(--encre); }
 .beats .pastille { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: var(--titre); font-weight: 900; font-size: 28px; color: #fff; }
 .mini-mascotte { position: absolute; right: 640px; bottom: 90px; width: 300px; height: 400px; }
 .mini-mascotte iframe { width: 100%; height: 100%; border: 0; background: transparent; }
 
+.cadre-video { flex: none; width: 860px; border-radius: 40px; overflow: hidden; background: #120a2e; box-shadow: 0 50px 90px -30px rgba(0,0,0,.55); }
+.cadre-video video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #120a2e; }
 /* diapo 5 : le trajet */
 .trajet { display: grid; grid-template-columns: 1fr 70px 1fr 70px 1fr; align-items: stretch; width: 100%; }
 .trajet .fl { align-self: center; font-family: var(--titre); font-size: 70px; font-weight: 900; text-align: center; color: var(--orange); }
@@ -265,35 +267,22 @@ h2 { font-size: 150px; }
 </section>
 
 <!-- 4 · démo -->
-<section class="slide clair" data-emo="surpris" data-notes="1:15 · Cette animation est un aperçu : elle sera remplacée par la vidéo motion. Racontez en direct : un faux agent MTN écrit, KORA analyse, Korachoupi se fâche, verdict à 99 %, bon réflexe. Montrez ensuite un vrai SMS de dépôt qui passe au vert.">
-  <div class="meta"><span>La démo</span><span>Aperçu animé · la vidéo motion viendra ici</span></div>
-  <div class="corps" style="gap:110px">
+<section class="slide clair" data-notes="1:15 · La vidéo démarre seule en arrivant sur la diapo (clic pour pause, ou touche K). Commentez en direct : un faux agent MTN écrit, KORA analyse, Korachoupi se fâche, verdict à 99 %, bon réflexe. Montrez ensuite un vrai SMS de dépôt qui passe au vert.">
+  <div class="meta"><span>La démo</span><span>Vidéo de démo · 1 min</span></div>
+  <div class="corps" style="gap:60px">
     <div class="col" style="flex:1.1">
-      <h2 class="a" style="--d:.1s;font-size:124px">Une arnaque,<br><em>20 secondes</em><br>pour réagir</h2>
-      <ol class="beats" style="margin-top:50px">
+      <h2 class="a" style="--d:.1s;font-size:82px">Une arnaque,<br><em>20 secondes</em><br>pour réagir</h2>
+      <ol class="beats" style="margin-top:34px;max-width:720px">
         <li class="a g" style="--d:.4s"><span class="pastille" style="background:var(--violet)">1</span>Le SMS « agent MTN » arrive</li>
         <li class="a g" style="--d:.55s"><span class="pastille" style="background:var(--orange);color:#2A1300">2</span>KORA analyse, Korachoupi s'inquiète</li>
         <li class="a g" style="--d:.7s"><span class="pastille" style="background:var(--rouge)">3</span>Verdict rouge et bon réflexe</li>
         <li class="a g" style="--d:.85s"><span class="pastille" style="background:var(--vert)">4</span>Le vrai SMS passe au vert</li>
       </ol>
     </div>
-    <div class="tel a z" style="--d:.3s">
-      <div class="ecran">
-        <div class="tel-haut">KORA<small>Vérifie avant de payer</small></div>
-        <div class="sms">« Bjr c'est l'agent MTN, j'ai fait une erreur sur ton compte, envoie-moi le code que tu vas recevoir stp »</div>
-        <div class="etapes"><div><i></i>Lecture du message</div><div><i></i>Analyse dans le téléphone</div><div><i></i>Raisons et bon réflexe</div></div>
-        <div class="verdict">
-          <div class="bande-v">Arnaque probable</div>
-          <div class="v-corps">
-            <div class="v-pct">99 %</div>
-            <div class="jauge"><b></b></div>
-            <div class="v-conseil"><b>Que faire :</b> ne donne jamais un code reçu par SMS. Ne paie rien, ne clique pas.</div>
-          </div>
-        </div>
-      </div>
+    <div class="cadre-video a z" style="--d:.3s">
+      <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline controls></video>
     </div>
   </div>
-  <div class="mini-mascotte" id="mascotte-demo"></div>
   <div class="pied"><span>KORA-lite</span><span>04</span></div>
 </section>
 
@@ -486,16 +475,15 @@ function aller(n) {
   document.getElementById("prec").disabled = i === 0
   document.getElementById("suiv").disabled = i === slides.length - 1
   s.querySelectorAll("[data-count]").forEach((el) => setTimeout(() => compter(el), 600))
+  const v = s.querySelector("video")
+  document.querySelectorAll("video").forEach((x) => { if (x !== v) { x.pause(); x.currentTime = 0 } })
+  if (v) { v.currentTime = 0; setTimeout(() => v.play().catch(() => {}), 900) }
   const slot = s.querySelector(".slot-mascotte")
   if (slot) poserMascotte(slot, s.dataset.emo || "content")
-  else if (s.querySelector("#mascotte-demo")) {
-    poserMascotte(s.querySelector("#mascotte-demo"), "surpris")
-    const boucle = () => { // même rythme que l'animation du téléphone (11 s)
-      emotion("surpris"); minuteurs.push(setTimeout(() => emotion("surpris"), 1500))
-      minuteurs.push(setTimeout(() => emotion("fache"), 4900)); minuteurs.push(setTimeout(() => emotion("content"), 9800))
-    }
-    boucle(); minuteurs.push(setInterval(boucle, 11000))
-  } else retirerMascotte()
+  else {
+    retirerMascotte()
+  }
+
 }
 addEventListener("keydown", (e) => {
   if (["ArrowRight", "ArrowDown", " ", "PageDown"].includes(e.key)) { e.preventDefault(); aller(i + 1) }
@@ -504,10 +492,11 @@ addEventListener("keydown", (e) => {
   else if (e.key === "End") aller(slides.length - 1)
   else if (e.key === "f" || e.key === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.()
   else if (e.key === "n" || e.key === "N") notes.classList.toggle("on")
+  else if (e.key === "k" || e.key === "K") { const v = slides[i].querySelector("video"); if (v) v.paused ? v.play() : v.pause() }
 })
 document.getElementById("prec").addEventListener("click", (e) => { e.stopPropagation(); aller(i - 1) })
 document.getElementById("suiv").addEventListener("click", (e) => { e.stopPropagation(); aller(i + 1) })
-addEventListener("click", (e) => { if (e.target.closest("a, .nav")) return; aller(e.clientX > innerWidth / 2 ? i + 1 : i - 1) })
+addEventListener("click", (e) => { if (e.target.closest("a, .nav, video")) return; aller(e.clientX > innerWidth / 2 ? i + 1 : i - 1) })
 let x0 = null
 addEventListener("touchstart", (e) => { x0 = e.touches[0].clientX }, { passive: true })
 addEventListener("touchend", (e) => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) aller(i + (dx < 0 ? 1 : -1)); x0 = null })
