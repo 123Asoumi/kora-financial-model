@@ -136,8 +136,8 @@
     pointer-events: none;
   }
   .perso-bulle.cachee { opacity: 0; transform: translateY(6px) scale(.96); }
-  /* pas de bulle de texte à côté de la mascotte : elle s'exprime par ses expressions */
-  .perso-bulle { display: none !important; }
+  /* bulles de la mascotte : mises de côté (voir bulles.js, BULLES_ACTIVES) ; sans elles, la mascotte s'exprime par ses expressions */
+  body:not(.bulles-actives) .perso-bulle { display: none; }
   /* pas de barre de défilement visible : on fait défiler au doigt, à la molette ou au clavier */
   html, body, .fil, .feuille, .tiroir, .onb-etape, .suggestions, textarea { scrollbar-width: none; -ms-overflow-style: none; }
   html::-webkit-scrollbar, body::-webkit-scrollbar, .fil::-webkit-scrollbar, .feuille::-webkit-scrollbar,

@@ -1,3 +1,4 @@
+import { BULLES_VERDICT, creerBulles } from "./bulles.js"
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
 import {
@@ -17,7 +18,7 @@ let attente = null // question en cours : { type: "expediteur" | "nom" | "repond
 let dernier = null // dernier message analysé : { texte, original, ctx, r, niveau1 }
 let historique = [] // la discussion libre avec l'assistant, en français : [{ role, content }]
 
-const BULLES = { arnaque: "Eh!! Eyon l'arnaque c'est pas bien", suspect: "Méfie-toi…", sur: "Ça a l'air normal." }
+const BULLES = BULLES_VERDICT
 const COULEURS = { arnaque: "var(--alerte)", suspect: "var(--mefiance)", sur: "var(--sur)" }
 const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@6/dist/tesseract.esm.min.js"
 const GRADIO = "https://cdn.jsdelivr.net/npm/@gradio/client@2.8.0/+esm"
@@ -44,23 +45,16 @@ function memoire(cle, valeur) {
 /* ================= mascotte (en bas à gauche de chaque écran) ================= */
 let mascottePrete = false
 let messageEnAttente = null
-let effacerBulle = 0
-const bulle = $("perso-bulle")
+const bulles = creerBulles($("perso-bulle"))  // bulles de texte : voir bulles.js (désactivées pour l'instant)
 mascotte.addEventListener("load", () => { mascottePrete = true; if (messageEnAttente) envoyerMascotte(messageEnAttente) })
 function envoyerMascotte(message) {
     if (!mascottePrete) { messageEnAttente = message; return }
     try { mascotte.contentWindow.postMessage({ kora: message }, "*") } catch (_) {}
 }
 function piloter({ emotion, bulle: texte, gratter } = {}) {
-    // l'émotion va à la mascotte 3D ; la bulle est dessinée par la page, à côté d'elle
+    // l'émotion va à la mascotte 3D ; le texte va aux bulles (bulles.js), éteintes pour l'instant
     envoyerMascotte({ emotion, gratter, bulle: "" })
-    if (texte === undefined) return
-    clearTimeout(effacerBulle)
-    if (!texte) { bulle.classList.add("cachee"); return }
-    bulle.textContent = texte
-    bulle.classList.remove("cachee")
-    if (document.body.classList.contains("s-chat"))
-        effacerBulle = setTimeout(() => bulle.classList.add("cachee"), 4500)
+    bulles.dire(texte, { enDiscussion: document.body.classList.contains("s-chat") })
 }
 function ecran(nom) {
     document.body.classList.remove("s-splash", "s-onb", "s-chat")
@@ -73,7 +67,7 @@ $("poignee").addEventListener("click", () => basculerMenu())
 function basculerMenu() {
     const ouvert = document.body.classList.toggle("menu-ouvert")
     $("poignee").setAttribute("aria-expanded", String(ouvert))
-    if (ouvert) { clearTimeout(effacerBulle); envoyerMascotte({ emotion: "surpris" }); $("menu-bulle").querySelector("button:not([hidden])")?.focus() }
+    if (ouvert) { bulles.cacher(); envoyerMascotte({ emotion: "surpris" }); $("menu-bulle").querySelector("button:not([hidden])")?.focus() }
 }
 function fermerMenu() {
     document.body.classList.remove("menu-ouvert")
