@@ -3,9 +3,9 @@
 Deux routes, utilisées par l'application KORA (https://kora-0-01.vercel.app) :
 
 - /traduire (texte, sens) : fon ⇄ français, une phrase par ligne. Sur PROCESSEUR : aucun quota GPU,
-    le service reste disponible même quand le GPU gratuit (ZeroGPU) est saturé. Modèles quantifiés
-    en int8 (plus rapides sur processeur) et cache des phrases déjà traduites (les phrases de KORA
-    reviennent pour tous les utilisateurs).
+    le service reste disponible même quand le GPU gratuit (ZeroGPU) est saturé. Cache des phrases
+    déjà traduites (les phrases de KORA reviennent pour tous les utilisateurs). Mesuré sur 4 cœurs :
+    environ 4 s pour une phrase fon → français.
     français → fon : nellaw/nllb-fongbe-french-translation (affiné uniquement dans ce sens)
     fon → français : facebook/nllb-200-distilled-1.3B (le modèle de nellaw ne sait pas faire ce sens)
 - /discuter (question, contexte, historique) : l'assistant de KORA répond aux questions de
@@ -30,7 +30,7 @@ APPAREIL = "cuda" if torch.cuda.is_available() else "cpu"
 PRECISION = torch.bfloat16 if APPAREIL == "cuda" else torch.float32
 
 # Les traducteurs : toujours sur PROCESSEUR (pas de @spaces.GPU, donc pas de quota).
-QUANTIFIER = os.environ.get("KORA_QUANTIFIER", "1") == "1"   # int8 dynamique : 2 à 3 fois plus rapide sur processeur
+QUANTIFIER = os.environ.get("KORA_QUANTIFIER", "0") == "1"   # int8 dynamique : plus rapide, qualité non encore vérifiée
 FAISCEAUX = int(os.environ.get("KORA_FAISCEAUX", "2"))       # recherche en faisceau : 1 = le plus rapide
 torch.set_num_threads(max(1, os.cpu_count() or 1))
 

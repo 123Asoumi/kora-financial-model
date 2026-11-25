@@ -17,8 +17,8 @@ short_description: Traduction fon et discussion pour l'anti-arnaque KORA
 Service utilisé par l'application KORA (https://kora-0-01.vercel.app).
 
 - `/traduire` (texte, sens) : une phrase par ligne. **Sur processeur**, sans quota GPU : la traduction reste
-  disponible même quand le GPU gratuit (ZeroGPU) est saturé. Modèles quantifiés en int8 et cache des phrases déjà
-  traduites. Réglages : variables `KORA_QUANTIFIER` (1 par défaut) et `KORA_FAISCEAUX` (2 par défaut).
+  disponible même quand le GPU gratuit (ZeroGPU) est saturé. Cache des phrases déjà
+  traduites. Réglages : variables `KORA_QUANTIFIER` (0 par défaut, 1 = int8 plus rapide) et `KORA_FAISCEAUX` (2 par défaut).
   - français → fon : `nellaw/nllb-fongbe-french-translation` (affiné pour ce sens uniquement)
   - fon → français : `facebook/nllb-200-distilled-1.3B`
 - `/discuter` (question, contexte, historique) : l'assistant de KORA (`Qwen/Qwen3-4B-Instruct-2507`, Apache 2.0)
