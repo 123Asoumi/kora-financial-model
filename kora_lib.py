@@ -1,5 +1,5 @@
 """
-kora_lib.py — la boîte à outils partagée de KORA-0.01
+kora_lib.py — la boîte à outils partagée de KORA-lite
 ======================================================
 
 Ce fichier est importé par les 4 notebooks. Il contient tout ce qui doit être

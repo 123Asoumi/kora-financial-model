@@ -1,4 +1,4 @@
-# KORA-0.01 — le bouclier anti-arnaque Mobile Money
+# KORA-lite — le bouclier anti-arnaque Mobile Money
 
 **GPU Challenge 2026 · Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA · cas d'usage n°7 : détection des arnaques financières numériques**
 
