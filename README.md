@@ -45,17 +45,17 @@ Vocal fon       → reconnaissance vocale fon (mms-300m-fongbe, adaptée ──�
 
 | Seuil de risque | Arnaques détectées | Fausses alertes |
 |---|---|---|
-| ≥ 50 % (« suspect ») | **96,9 %** | 16,1 % |
-| ≥ 70 % (« arnaque probable ») | **88,5 %** | **3,4 %** |
+| ≥ 50 % (« suspect ») | **98,3 %** | 14,1 % |
+| ≥ 70 % (« arnaque probable ») | **85,0 %** | **3,5 %** |
 
-AUC arnaque / normal : **0,983**. **À détection égale (~88 %), KORA-lite fait 5 fois moins de fausses alertes que les règles seules (3,4 % contre 16,9 %).** Détails : `resultats/kora_lite_validation_croisee.json`.
+AUC arnaque / normal : **0,986** (5 342 messages, données à jour avec les vraies promos d'opérateur). **À détection presque égale (85 % contre 87 %), KORA-lite fait 6 fois moins de fausses alertes que les règles seules (3,5 % contre 20,8 %).** Détails : `resultats/kora_lite_validation_croisee.json`.
 
 ### Comparaison avec la référence simple et avec le modèle GPU
 | Modèle | Détection | Fausses alertes | Source |
 |---|---|---|---|
-| Référence simple : règles seules (au moins 1 signal) | 87,2 % | 16,9 % | `kora_lib.SIGNAUX` |
-| Référence simple : règles seules (au moins 2 signaux) | 46,2 % | 0 % | idem |
-| KORA-lite (TF-IDF, CPU) | 96,9 % / 88,5 % | 16,1 % / 3,4 % | ci-dessus |
+| Référence simple : règles seules (au moins 1 signal) | 87,0 % | 20,8 % | `kora_lib.SIGNAUX` |
+| Référence simple : règles seules (au moins 2 signaux) | 46,4 % | 1,8 % | idem |
+| KORA-lite (TF-IDF, CPU), seuils 0,5 / 0,7 | 98,3 % / 85,0 % | 14,1 % / 3,5 % | ci-dessus |
 | KORA AfroXLMR (GPU) | *résultat de l'exécution Colab* | | `resultats/metriques_cerveau.csv` |
 | Reconnaissance vocale fon, WER sur voix de téléphone (J'aime Ma Langue) | *résultat Colab* | | `resultats/oreille_fon_*.json` |
 
