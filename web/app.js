@@ -21,7 +21,9 @@ let historique = [] // la discussion libre avec l'assistant, en français : [{ r
 
 const BULLES = BULLES_VERDICT
 const COULEURS = { arnaque: "var(--alerte)", suspect: "var(--mefiance)", sur: "var(--sur)" }
-const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@6/dist/tesseract.esm.min.js"
+// Lecture du texte des captures : Tesseract embarqué dans l'appli (vendor/tesseract), marche sans internet
+const TESSERACT = "./vendor/tesseract/tesseract.esm.min.js"
+const DOSSIER_TESSERACT = new URL("vendor/tesseract/", location.href).href
 const GRADIO = "https://cdn.jsdelivr.net/npm/@gradio/client@2.8.0/+esm"
 
 const EXEMPLES = [
@@ -183,23 +185,57 @@ function entrerDiscussion() {
 
 /* ================= service fon : traduction ================= */
 let clientFon = null
-async function serviceFon() {
+const DELAI_TRADUCTION = 25000 // au-delà, on considère que le service ne répond pas
+const DELAI_ASSISTANT = 60000
+// Le service en ligne (Space Hugging Face) peut refuser (quota GPU gratuit dépassé) ou ne jamais répondre :
+// on ne laisse jamais l'utilisateur attendre sans fin.
+function avecDelai(promesse, ms) {
+    let minuterie
+    const delai = new Promise((_, non) => { minuterie = setTimeout(() => non(new Error("délai dépassé")), ms) })
+    return Promise.race([promesse, delai]).finally(() => clearTimeout(minuterie))
+}
+async function appelerService(route, donnees, ms) {
+    try {
+        if (!SPACE_FON) throw new Error("fon désactivé")
+        if (!clientFon) {
+            const { Client } = await import(GRADIO)
+            clientFon = await Client.connect(SPACE_FON)
+        }
+        return await avecDelai(clientFon.predict(route, donnees), ms)
+    } catch (e) {
+        clientFon = null // au prochain essai, on se reconnecte
+        dernierePanne = Date.now()
+        throw e
+    }
+}
+let dernierePanne = 0
+/** Traduit en fon les phrases d'une réponse, sans jamais retarder le verdict : au plus 8 s,
+ *  et pas du tout si le service vient d'échouer (la réponse s'affiche alors en français). */
+async function enFonSiPossible(phrases) {
+    if (Date.now() - dernierePanne < 120000) return
+    try { await avecDelai(enFon(phrases), 8000) } catch (_) { dernierePanne = Date.now() }
+}
+async function serviceFon() { // gardé pour le préchauffage : se connecter sans attendre une réponse
     if (!SPACE_FON) throw new Error("fon désactivé")
-    if (clientFon) return clientFon
-    const { Client } = await import(GRADIO)
-    clientFon = await Client.connect(SPACE_FON)
+    if (!clientFon) { const { Client } = await import(GRADIO); clientFon = await Client.connect(SPACE_FON) }
     return clientFon
 }
+/** Une phrase honnête sur la panne, selon l'erreur reçue. */
+function panneService(e) {
+    const m = String(e?.message || e)
+    if (/quota|runs limit|exceeded|too many/i.test(m)) return "le service en ligne de KORA est saturé (trop de demandes aujourd'hui)"
+    if (/délai/i.test(m)) return "le service en ligne de KORA met trop de temps à répondre"
+    return "le service en ligne de KORA ne répond pas pour le moment"
+}
 async function traduire(texte, sens) {
-    const c = await serviceFon()
-    const r = await c.predict("/traduire", { texte, sens })
+    const r = await appelerService("/traduire", { texte, sens }, DELAI_TRADUCTION)
     return String(r.data[0] ?? "")
 }
 
 // L'assistant de KORA (modèle de langage dans le Space) : il répond aux questions, à partir du verdict.
 async function demanderAssistant(question) {
-    const c = await serviceFon()
-    const r = await c.predict("/discuter", { question, contexte: contexteVerdict(), historique: JSON.stringify(historique.slice(-8)) })
+    const r = await appelerService("/discuter",
+        { question, contexte: contexteVerdict(), historique: JSON.stringify(historique.slice(-8)) }, DELAI_ASSISTANT)
     return String(r.data[0] ?? "").trim()
 }
 function contexteVerdict() {
@@ -232,18 +268,20 @@ async function converser(fr) {
     etat("Réfléchit…")
     const patience = setTimeout(() => dire(corps, "Je réfléchis… La première fois, ça peut prendre jusqu'à une minute.", { classe: "doux", traduire: false }), 7000)
     let reponse = ""
+    let panne = ""
     try {
         reponse = await demanderAssistant(fr)
-        if (modeFon() && reponse) await enFon([reponse]).catch(() => {})
-    } catch (_) {
+        if (modeFon() && reponse) await enFonSiPossible([reponse])
+    } catch (e) {
         reponse = ""
+        panne = panneService(e)
     }
     clearTimeout(patience)
     corps.querySelectorAll(".texte.doux").forEach((n) => n.remove())
     tape.remove()
     etat(dernier ? ETATS[dernier.r.niveau] : "Prêt à vérifier", dernier ? dernier.r.niveau : "pret")
     if (!reponse) {
-        dire(corps, "Je n'arrive pas à réfléchir pour le moment (le service se réveille parfois en une minute). Tu peux quand même m'envoyer un message à vérifier.", { traduire: false })
+        dire(corps, `Je ne peux pas répondre à ta question : ${panne || "le service en ligne de KORA ne répond pas"}. Réessaie plus tard. La vérification des messages, elle, marche toujours : elle se fait dans ton téléphone.`, { traduire: false })
         piloter({ emotion: "triste", bulle: "" })
         return
     }
@@ -274,7 +312,7 @@ function prechaufferFon() {
 }
 
 // Repérer un message écrit en fon : lettres propres au fon, ou plusieurs mots fon sans mots français
-const LETTRES_FON = /[ɛɔɖƐƆƉ]/
+const LETTRES_FON = /[ɛɔɖƐƆƉε]/ // ε (epsilon grec) : beaucoup de claviers de téléphone l'utilisent pour écrire ɛ
 const MOTS_FON = /(?:^|[\s,.!?])(akw[eɛ]|gb[eɛ]|ny[eɛ]|xw[eé]|hwenu|w[eɛ]|ɖ[oò]|n[uǔú]|b[oɔ]|kp[oɔ]n|w[aá]|y[iì]|mi|ji|ganj[eɛ]|towe|nɔ|nyi)(?=$|[\s,.!?])/gi
 const MOTS_FR = /(?:^|[\s,.!?'])(le|la|les|de|des|du|et|est|vous|tu|je|un|une|pour|sur|votre|ton|mon|pas|que|qui|avec|ce|à|en)(?=$|[\s,.!?])/gi
 function estFon(t) {
@@ -495,8 +533,8 @@ async function afficherFon(r, zone, bouton) {
         zone.dataset.fait = "1"
         if (bouton) bouton.remove()
         defiler()
-    } catch (_) {
-        zone.innerHTML = `<b>Fɔngbe</b>Le service fon ne répond pas pour le moment. Réessaie dans une minute.`
+    } catch (e) {
+        zone.innerHTML = `<b>Fɔngbe</b>Pas de traduction en fon : ${echapper(panneService(e))}. Réessaie plus tard.`
         if (bouton) bouton.disabled = false
     }
 }
@@ -520,7 +558,7 @@ async function analyserMessage(texte, { deja = false, original = null } = {}) {
     const question = r.niveau === "sur" ? PH.qExpediteurSur : PH.qExpediteur
     await suivi.jusquauBout(modeFon() ? 160 : 230)
     // en mode fon, on traduit tout le tour d'un seul coup avant de répondre
-    if (modeFon()) await enFon([...phrasesCarte(r), question, ...PUCES_EXPEDITEUR.map(([l]) => l)]).catch(() => {})
+    if (modeFon()) await enFonSiPossible([...phrasesCarte(r), question, ...PUCES_EXPEDITEUR.map(([l]) => l)])
     else await pause(200)
     suivi.finir()
 
@@ -556,7 +594,7 @@ function ouiNon(t) {
 async function nouveauTour(phrases = []) {
     const corps = msgKora()
     const tape = reflechir(corps)
-    if (modeFon() && phrases.length) await enFon(phrases).catch(() => {})
+    if (modeFon() && phrases.length) await enFonSiPossible(phrases)
     else await pause(400)
     tape.remove()
     return corps
@@ -699,24 +737,27 @@ async function envoyer(brut) {
     // en mode fon : on montre le message, puis on le traduit en français pour le comprendre
     let fr = texte
     let affiche = false
-    if (modeFon()) {
+    // en mode fon, seul un message écrit EN FON passe par la traduction : un message en français
+    // est analysé directement dans le téléphone, même si le service en ligne est en panne
+    if (modeFon() && estFon(texte)) {
         const bulleMoi = msgMoi(texte, { petit: "Fɔngbe" })
         affiche = true
         const corps = msgKora()
-        if (annonceFon) dire(corps, PH.fonActif, { traduire: false })
         const tape = reflechir(corps)
         piloter({ emotion: "surpris", bulle: "Je traduis le fon…" })
         etat("Traduit le fon…")
         try {
             fr = await traduire(texte, "fon→français")
-        } catch (_) {
+        } catch (e) {
             tape.remove()
-            dire(corps, "Le service fon ne répond pas pour le moment (il se réveille parfois en une minute). Réessaie, ou écris en français.", { traduire: false })
+            dire(corps, `Je n'arrive pas à traduire ce message en fon : ${panneService(e)}. Écris-le en français (ou colle le SMS tel quel), je le vérifie tout de suite dans ton téléphone.`, { traduire: false })
+            if (annonceFon) { langue = "fr"; majLangue() } // on n'a pas pu passer en fon : on reste en français
             etat("Prêt à vérifier", "pret")
             piloter({ emotion: "triste", bulle: "" })
             return
         }
         tape.remove()
+        if (annonceFon) dire(corps, PH.fonActif, { traduire: false })
         if (!corps.children.length) corps.closest(".msg-kora").remove()
         const trad = el("span", "petit")
         trad.textContent = `Traduction : ${fr}`
@@ -846,8 +887,14 @@ async function lireImage(fichier, etiquette = "Capture d'écran") {
     try {
         if (!ocr) {
             ligne.textContent = "Je prépare le lecteur de texte (la première fois, quelques secondes)…"
-            const { createWorker } = await import(TESSERACT)
+            const module = await import(TESSERACT)
+            const { createWorker } = module.default || module // tesseract.js v6 n'exporte que « default »
             ocr = await createWorker("fra", 1, {
+                workerPath: DOSSIER_TESSERACT + "worker.min.js",
+                corePath: DOSSIER_TESSERACT,           // le moteur LSTM, avec ou sans SIMD selon le téléphone
+                langPath: DOSSIER_TESSERACT + "lang",  // fra.traineddata (4.0.0_best_int)
+                gzip: false, // fichier non compressé : Android décompresse et renomme les .gz dans l'APK
+                workerBlobURL: false,
                 logger: (m) => { if (m.status === "recognizing text") ligne.textContent = `Je lis la capture… ${Math.round(m.progress * 100)} %` },
             })
         }
@@ -862,9 +909,14 @@ async function lireImage(fichier, etiquette = "Capture d'écran") {
         }
         ligne.textContent = `J'ai lu : « ${texte.length > 240 ? `${texte.slice(0, 240)}…` : texte} »`
         analyserMessage(texte, { deja: true })
-    } catch (_) {
+    } catch (e) {
+        console.error("Lecture de la capture :", e)
+        ocr = null // on repartira de zéro au prochain essai
         tape.remove()
-        ligne.textContent = "La lecture de l'image a échoué. Vérifie ta connexion, ou copie le message ici."
+        ligne.textContent = "La lecture de l'image a échoué. Réessaie, ou copie le message ici."
+        const detail = el("small", "detail-erreur")
+        detail.textContent = `Détail technique : ${String(e?.message || e).slice(0, 160)}`
+        ligne.after(detail)
         piloter({ emotion: "triste", bulle: "" })
             etat("Prêt à vérifier", "pret")
     }

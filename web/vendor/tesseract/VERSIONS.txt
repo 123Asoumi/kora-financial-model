@@ -1,0 +1,2 @@
+tesseract.js 6.0.1 · tesseract.js-core 6.1.2 · @tesseract.js-data/fra 1.0.0 (4.0.0_best_int, décompressé : Android renomme les .gz dans l'APK) — Apache 2.0
+Lecture du texte des captures d'écran, embarquée pour marcher sans internet (voir web/app.js, lireImage).

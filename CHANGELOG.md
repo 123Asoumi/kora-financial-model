@@ -4,6 +4,24 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis lancer le workflow GitHub **« Publier une version »**. Il crée la version GitHub avec l'APK Android signée.
 
+## [1.0.1] — 2026-11-25
+
+Corrections après le premier essai de l'application sur un vrai téléphone.
+
+### Lecture des captures d'écran
+- **Elle ne marchait pas du tout** : l'application cherchait `createWorker` dans le fichier de Tesseract, qui ne l'exporte que sous `default` (erreur « La lecture de l'image a échoué »). Corrigé.
+- Tesseract (programme, moteur et dictionnaire français) est maintenant **embarqué** dans l'application (`web/vendor/tesseract`, 8,5 Mo) : la lecture marche **sans internet**, y compris la première fois dans l'appli Android.
+- En cas d'échec, la cause technique s'affiche en petit, pour pouvoir la diagnostiquer.
+
+### Lettres fon
+- La police du thème (Plus Jakarta Sans) n'a pas les lettres fon `ɛ ɔ ɖ` ni `ǎ` : avec leurs tons (`ɛ̌`, `ɛ́`, `ɔ́`), elles pouvaient disparaître. Une police de secours, sous-ensemble de **Noto Sans** (licence OFL, `web/polices`, 87 Ko), est embarquée et prend le relais.
+- Un message écrit avec `ε` (epsilon grec, fréquent sur les claviers de téléphone) est reconnu comme du fon.
+
+### Quand le service en ligne (Space Hugging Face) refuse ou ne répond pas
+- **Plus d'attente sans fin** : 25 s au plus pour une traduction, 60 s pour l'assistant ; la traduction en fon d'un verdict ne le retarde jamais plus de 8 s.
+- Messages honnêtes : « le service est saturé (trop de demandes aujourd'hui) » quand le quota GPU gratuit est dépassé, « met trop de temps à répondre » sinon. L'application rappelle que la vérification, elle, marche toujours dans le téléphone.
+- En mode fon, **un message écrit en français est analysé directement**, sans passer par le service ; s'il est en fon et que la traduction échoue, KORA reste en français et propose d'écrire le message en français.
+
 ## [1.0.0] — 2026-11-25
 
 Première version publiée. Elle rassemble tout le travail fait depuis le prototype « KORA-0.01 » (23 au 25 novembre 2026).

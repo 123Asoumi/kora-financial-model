@@ -1,3 +1,6 @@
+/* Les lettres et les tons du fon (ɛ̌, ɛ́, ɔ́, ɖ…) : sous-ensemble de Noto Sans (licence OFL, polices/OFL.txt) */
+@font-face { font-family: "Noto Fon"; font-weight: 400 600; font-display: swap; src: url("polices/noto-fon-400.woff2") format("woff2"); }
+@font-face { font-family: "Noto Fon"; font-weight: 700 900; font-display: swap; src: url("polices/noto-fon-700.woff2") format("woff2"); }
 /* ============================================================
    KORA — refonte de l'interface (thème violet, cartes colorées)
    Chargé après le <style> de index.html : il remplace la palette
@@ -21,7 +24,8 @@
   --texte-doux: #5E5478;
   --discret: #6B6283;
   --ligne: rgba(30, 21, 53, .10);
-  --police: "Plus Jakarta Sans", system-ui, sans-serif;
+  /* Plus Jakarta Sans n'a pas les lettres fon (ɛ, ɔ, ɖ, ǎ…) : « Noto Fon » (polices/, embarquée, hors ligne) prend le relais */
+  --police: "Plus Jakarta Sans", "Noto Fon", system-ui, sans-serif;
   --nav-h: 84px;
 }
 body, button, textarea, input { font-family: var(--police); }
@@ -195,3 +199,6 @@ body.s-chat .nav-bas {
 .histo li { background: #fff; }
 .toast { background: var(--titre); }
 body.grand .fil, body.grand .feuille { zoom: 1.14; }
+
+/* le détail technique d'une erreur (lecture de capture) : discret, pour le diagnostic */
+.detail-erreur { display: block; margin-top: 6px; font-size: 12px; line-height: 1.35; opacity: .65; word-break: break-word; }
