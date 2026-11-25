@@ -136,6 +136,12 @@
     pointer-events: none;
   }
   .perso-bulle.cachee { opacity: 0; transform: translateY(6px) scale(.96); }
+  /* pas de bulle de texte à côté de la mascotte : elle s'exprime par ses expressions */
+  .perso-bulle { display: none !important; }
+  /* pas de barre de défilement visible : on fait défiler au doigt, à la molette ou au clavier */
+  html, body, .fil, .feuille, .tiroir, .onb-etape, .suggestions, textarea { scrollbar-width: none; -ms-overflow-style: none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, .fil::-webkit-scrollbar, .feuille::-webkit-scrollbar,
+  .tiroir::-webkit-scrollbar, .onb-etape::-webkit-scrollbar, .suggestions::-webkit-scrollbar, textarea::-webkit-scrollbar { display: none; width: 0; height: 0; }
   .app.onb .tete-actions, .app.onb .fil, .app.onb .compo { display: none; }
   .app:not(.onb) .onboarding { display: none; }
 
