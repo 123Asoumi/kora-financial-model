@@ -220,24 +220,47 @@ h2 { font-size: 150px; }
 #notes.on { display: block; }
 #aide { position: fixed; right: 18px; bottom: 14px; z-index: 5; color: #fff; opacity: .45; font: 500 13px var(--texte); }
 @media (prefers-reduced-motion: reduce) { .a, .active .a { animation: none !important; opacity: 1; } .active .piste i { transition: none; } }
+
+/* diapo « Vrai ou faux ? » : trois SMS côte à côte */
+.trois-sms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; width: 100%; }
+.sms-carte { background: #fff; color: var(--encre); border-radius: 40px; padding: 30px 34px 36px; box-shadow: 0 30px 50px -24px rgba(0,0,0,.55); position: relative; }
+.sms-carte .lettre { position: absolute; top: -34px; left: 34px; width: 74px; height: 74px; border-radius: 50%; background: var(--orange); color: #2A1300; display: grid; place-items: center; font: 900 46px var(--titre); box-shadow: 0 10px 20px -8px rgba(0,0,0,.5); }
+.sms-carte .de { font: 700 22px var(--texte); color: var(--doux); margin: 22px 0 14px; display: flex; align-items: center; gap: 12px; }
+.sms-carte .de i { width: 30px; height: 30px; border-radius: 9px; background: #FFCC00; display: inline-block; }
+.sms-carte .txt { font: 600 29px/1.36 var(--texte); background: #EEEBF6; border-radius: 28px; padding: 24px 28px; }
+.sms-carte .verdict-sms { display: none; margin-top: 22px; font: 900 34px var(--titre); text-transform: uppercase; }
 </style>
 </head>
 <body>
 <div id="progres"></div>
 <main id="scene">
 
-<!-- 1 · titre -->
-<section class="slide sombre" data-emo="surpris" data-notes="0:30 · L&#x27;ACCROCHE EN DIRECT (pas d&#x27;histoire racontée). Avant de parler, un membre de l&#x27;équipe vous appelle. Vous décrochez en haut-parleur devant le jury. Lui : « Bonjour monsieur, service client MTN. Votre compte va être bloqué ce soir. Vous allez recevoir un code par SMS, il faut me le lire pour le débloquer. » Vous raccrochez, et vous regardez le jury : « Allô ? Ce n&#x27;était pas MTN. C&#x27;était un escroc. Combien d&#x27;entre vous auraient lu le code ? (pause) Chaque jour, au Bénin, des gens décrochent cet appel. Nous, c&#x27;est KORA. » Présentez l&#x27;équipe en une phrase.">
+<!-- 0 · l'accroche : vrai ou faux ? -->
+<section class="slide sombre" data-emo="surpris" data-notes="0:50 · L&#x27;ACCROCHE : VRAI OU FAUX ? Cette diapo s&#x27;affiche AVANT de dire qui vous êtes. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (SILENCE : dix secondes, pas moins ; laissez-les lire et hésiter.) « Levez la main pour A… pour B… pour C. » (Comptez les mains, regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury : vous lisez des dossiers toute la journée. Maintenant imaginez ce message reçu à 19 h, pendant qu&#x27;un homme poli vous dit au téléphone : vite, lisez-moi le code. » RÉPONSE : B est le vrai. A est un faux blocage de compte avec un lien piégé. C est un faux dépôt presque identique au vrai : seule la dernière phrase change. NE DÉVOILEZ PAS ENCORE : passez à la diapo suivante.">
+  <div class="meta"><span>Un petit test, avant de commencer</span><span>Pas de réponse à voix haute : levez la main</span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+    <h2 class="a" style="--d:.1s;font-size:96px;margin-bottom:70px">Un seul de ces trois SMS<br><em>est vrai.</em></h2>
+    <div class="trois-sms">
+      <div class="sms-carte a z" style="--d:.35s"><span class="lettre">A</span><div class="de"><i></i>MTN · SMS</div><div class="txt">MTN : Votre compte MoMo sera suspendu dans 24h faute de mise à jour. Confirmez votre identité sur mtn-momo-verif.top ou répondez avec votre code.</div></div>
+      <div class="sms-carte a z" style="--d:.55s"><span class="lettre">B</span><div class="de"><i></i>MTN MoMo · SMS</div><div class="txt">MTN MoMo : Vous avez reçu 25 000 FCFA de KOUASSI Marc. Nouveau solde : 31 500 FCFA. ID transaction : 7A3F9C21B0.</div></div>
+      <div class="sms-carte a z" style="--d:.75s"><span class="lettre">C</span><div class="de"><i></i>MTN MoMo · SMS</div><div class="txt">MTN MoMo : Vous avez reçu 25 000 FCFA de KOUASSI Marc. Nouveau solde : 31 500 FCFA. Erreur de l'expéditeur, merci de renvoyer le montant au 01 66 12 34 56.</div></div>
+    </div>
+  </div>
+  <div class="pied"><span>Dix secondes. Levez la main pour A, B ou C.</span><span>00</span></div>
+</section>
+
+<!-- 1 · titre : la réponse -->
+<section class="slide sombre" data-emo="joyeux" data-notes="0:30 · LA RÉPONSE, EN DIRECT. « Voici KORA. Les autres détectent un message. KORA arrête un scénario. » Passez les trois messages dans KORA, en direct, un par un (touche « Vérifier un message » puis collez chaque texte) : A, arnaque, faux blocage de compte avec un lien piégé ; B, message normal ; C, arnaque, faux dépôt avec demande de renvoi. « Vous avez mis dix secondes à hésiter. KORA a mis quelques secondes pour tout juger, et il vous dit pourquoi. » CHRONOMÉTREZ KORA avant le pitch : dites le vrai temps. Ces trois messages sont écrits sur le modèle de vrais SMS d&#x27;opérateurs (format de dépôt, blocage de compte) ; ce ne sont pas des SMS copiés mot à mot.">
   <div class="meta"><span>GPU Challenge 2026 · Cas d'usage n°7</span><span>Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA</span></div>
   <div class="corps">
     <div class="col">
-      <h1 class="titre-xl a" style="--d:.1s;font-size:210px">Allô&nbsp;?</h1>
-      <p class="a" style="--d:.45s;font:900 64px/1.05 var(--titre);text-transform:uppercase;letter-spacing:-.02em;margin-top:26px">Ce n'est pas<br>votre opérateur.<br><span style="color:var(--orange)">C'est un escroc.</span></p>
-      <p class="sous-titre a" style="--d:.8s;margin-top:40px">KORA écoute l'appel avec vous, lit vos messages et vous prévient <mark>avant que vous payiez</mark>. En français et en fon.</p>
+      <h1 class="titre-xl a" style="--d:.1s;font-size:230px">KORA</h1>
+      <p class="a" style="--d:.45s;font:900 62px/1.05 var(--titre);text-transform:uppercase;letter-spacing:-.02em;margin-top:24px">Les autres détectent<br><span style="opacity:.65">un message.</span><br><span style="color:var(--orange)">KORA arrête un scénario.</span></p>
+      <p class="sous-titre a" style="--d:.8s;margin-top:38px">Il écoute l'appel avec vous, lit vos messages et vous prévient <mark>avant que vous payiez</mark>. En français et en fon.</p>
     </div>
     <div class="slot-mascotte a z" style="--d:.3s"><div class="disque"></div></div>
   </div>
-  <div class="pied"><span>KORA · modèle KORA-lite 1.0.12</span><span>01</span></div>
+  <div class="pied"><span>KORA · modèle KORA-lite 1.0.13</span><span>01</span></div>
 </section>
 
 <!-- 2 · problème -->
