@@ -4,6 +4,14 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.13] — 2026-11-26
+
+### La discussion répond toujours
+- **Avant**, une question sur deux recevait « Je ne peux pas répondre à ta question : le service en ligne de KORA ne répond pas ». L'assistant en ligne (Qwen3-4B) tourne sur le GPU gratuit de Hugging Face, dont le quota par personne est vite épuisé : mesuré, 5 appels sur 5 refusés (« You have exceeded your ZeroGPU runs limit »).
+- **Maintenant**, quand l'assistant ne répond pas, KORA répond avec **une base de réponses écrites et vérifiées à la main** (`web/reponses.js`), dans le téléphone, même sans internet. Elle couvre : déjà victime (les gestes d'urgence), faux dépôt, faux agent, proche piraté sur WhatsApp, liens, prêts, faux gains, codes, solde, et comment utiliser l'appel, la bulle, le fon et les données. Pour une question imprévue, KORA rappelle les deux règles d'or.
+- Après un refus pour quota, KORA ne réessaie pas l'assistant en ligne pendant 10 minutes : la réponse est immédiate.
+- Un petit modèle de secours sur processeur a été testé puis écarté : il donnait des conseils dangereux (« vous pouvez envoyer la somme à l'opérateur »).
+
 ## [1.0.12] — 2026-11-26
 
 ### Korachoupi en double

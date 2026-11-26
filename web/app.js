@@ -3,6 +3,7 @@ import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
 import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli, chercherMiseAJour, installerMiseAJour, etatAppel } from "./natif.js"
 import { creerVoix } from "./voix.js"
+import { reponseLocale } from "./reponses.js"
 import {
     STATUTS, PH, ETAPES_URGENCE, PUCES_EXPEDITEUR, PUCES_PREMIER, PUCES_REPONDRE, PUCES_SUITE, toutesLesPhrases,
 } from "./phrases.js"
@@ -287,6 +288,7 @@ function estQuestion(fr) {
     if (!(t.endsWith("?") || DEBUT_QUESTION.test(t))) return false
     return t.length <= 220 && !RESSEMBLE_SMS.test(t)
 }
+let assistantEnPanne = 0
 async function converser(fr) {
     const corps = msgKora()
     const tape = reflechir(corps)
@@ -294,23 +296,22 @@ async function converser(fr) {
     etat("Réfléchit…")
     const patience = setTimeout(() => dire(corps, "Je réfléchis… La première fois, ça peut prendre jusqu'à une minute.", { classe: "doux", traduire: false }), 7000)
     let reponse = ""
-    let panne = ""
-    try {
-        reponse = await demanderAssistant(fr)
-        if (modeFon() && reponse) await enFonSiPossible([reponse])
-    } catch (e) {
-        reponse = ""
-        panne = panneService(e)
+    // l'assistant en ligne (GPU gratuit) peut être saturé : après un refus, on ne le réessaie pas avant 10 min
+    if (Date.now() - assistantEnPanne > 600000) {
+        try {
+            reponse = await demanderAssistant(fr)
+        } catch (e) {
+            reponse = ""
+            if (/quota|runs limit|exceeded|too many/i.test(String(e?.message || e))) assistantEnPanne = Date.now()
+        }
     }
+    // sinon : une réponse écrite et vérifiée à la main, dans le téléphone (jamais un message d'erreur)
+    if (!reponse) reponse = reponseLocale(fr)
+    if (modeFon()) await enFonSiPossible([reponse])
     clearTimeout(patience)
     corps.querySelectorAll(".texte.doux").forEach((n) => n.remove())
     tape.remove()
     etat(dernier ? ETATS[dernier.r.niveau] : "Prêt à vérifier", dernier ? dernier.r.niveau : "pret")
-    if (!reponse) {
-        dire(corps, `Je ne peux pas répondre à ta question : ${panne || "le service en ligne de KORA ne répond pas"}. Réessaie plus tard. La vérification des messages, elle, marche toujours : elle se fait dans ton téléphone.`, { traduire: false })
-        piloter({ emotion: "triste", bulle: "" })
-        return
-    }
     historique.push({ role: "user", content: fr }, { role: "assistant", content: reponse })
     dire(corps, reponse)
     piloter({ emotion: "content", bulle: "" })
