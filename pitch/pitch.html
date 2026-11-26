@@ -229,6 +229,17 @@ h2 { font-size: 150px; }
 .sms-carte .de i { width: 30px; height: 30px; border-radius: 9px; background: #FFCC00; display: inline-block; }
 .sms-carte .txt { font: 600 29px/1.36 var(--texte); background: #EEEBF6; border-radius: 28px; padding: 24px 28px; }
 .sms-carte .verdict-sms { display: none; margin-top: 22px; font: 900 34px var(--titre); text-transform: uppercase; }
+
+/* les trois vrais messages de l'accroche */
+.cap-msg { border-radius: 40px; padding: 26px 30px 34px; position: relative; box-shadow: 0 30px 50px -24px rgba(0,0,0,.6); min-height: 0; }
+.cap-msg .lettre { position: absolute; top: -34px; left: 30px; width: 74px; height: 74px; border-radius: 50%; background: var(--orange); color: #2A1300; display: grid; place-items: center; font: 900 46px var(--titre); box-shadow: 0 10px 20px -8px rgba(0,0,0,.5); z-index: 2; }
+.cap-msg .haut { margin-top: 24px; font: 700 24px var(--texte); display: flex; align-items: center; gap: 12px; }
+.cap-msg .txt { margin-top: 16px; font: 500 27px/1.36 var(--texte); border-radius: 28px; padding: 22px 26px; overflow-wrap: break-word; }
+.cap-msg .heure { display: block; text-align: right; font: 500 20px var(--texte); opacity: .6; margin-top: 8px; }
+.cap-msg a, .cap-msg .lien { color: #1a73e8; text-decoration: underline; }
+.cm-android { background: #F2F2F2; color: #1d1d1f; } .cm-android .txt { background: #E4E4E6; }
+.cm-iphone { background: #101012; color: #f2f2f7; } .cm-iphone .haut { justify-content: center; flex-direction: column; gap: 4px; } .cm-iphone .haut small { font: 500 20px var(--texte); opacity: .6; } .cm-iphone .txt { background: #26262a; } .cm-iphone .lien { color: #4aa3ff; }
+.cm-wa { background: #EFEAE2; color: #111; } .cm-wa .chiffre { background: #FFF1CC; border-radius: 22px; padding: 14px 18px; font: 500 20px/1.3 var(--texte); text-align: center; margin-top: 22px; } .cm-wa .txt { background: #fff; font-size: 30px; border-radius: 10px 28px 28px 28px; }
 </style>
 </head>
 <body>
@@ -236,21 +247,27 @@ h2 { font-size: 150px; }
 <main id="scene">
 
 <!-- 0 · l'accroche : vrai ou faux ? -->
-<section class="slide sombre" data-emo="surpris" data-notes="0:50 · L&#x27;ACCROCHE : VRAI OU FAUX ? Cette diapo s&#x27;affiche AVANT de dire qui vous êtes. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (SILENCE : dix secondes, pas moins ; laissez-les lire et hésiter.) « Levez la main pour A… pour B… pour C. » (Comptez les mains, regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury : vous lisez des dossiers toute la journée. Maintenant imaginez ce message reçu à 19 h, pendant qu&#x27;un homme poli vous dit au téléphone : vite, lisez-moi le code. » RÉPONSE : B est le vrai. A est un faux blocage de compte avec un lien piégé. C est un faux dépôt presque identique au vrai : seule la dernière phrase change. NE DÉVOILEZ PAS ENCORE : passez à la diapo suivante.">
-  <div class="meta"><span>Un petit test, avant de commencer</span><span>Pas de réponse à voix haute : levez la main</span></div>
+<section class="slide sombre" data-emo="surpris" data-notes="0:50 · L&#x27;ACCROCHE : VRAI OU FAUX ? Cette diapo s&#x27;affiche AVANT de dire qui vous êtes, sans titre. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (SILENCE : dix secondes, pas moins.) « Levez la main pour A… pour B… pour C. » (Comptez les mains, regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury. Imaginez ce message reçu à 19 h, pendant qu&#x27;un homme poli vous dit au téléphone : vite, lisez-moi le code. » RÉPONSE (à confirmer par l&#x27;équipe) : B est le vrai SMS MTN. A est un faux conseiller bancaire sur WhatsApp. C est un faux dépôt Celtiis, reçu d&#x27;un numéro ordinaire, avec une faute (« V5ous »). Les messages sont de vraies captures de téléphones de l&#x27;équipe, noms et fins de numéros masqués. NE DÉVOILEZ PAS ENCORE : passez à la diapo suivante.">
+  <div class="meta"><span></span><span></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
-    <h2 class="a" style="--d:.1s;font-size:96px;margin-bottom:70px">Un seul de ces trois SMS<br><em>est vrai.</em></h2>
-    <div class="trois-sms">
-      <div class="sms-carte a z" style="--d:.35s"><span class="lettre">A</span><div class="de"><i></i>MTN · SMS</div><div class="txt">MTN : Votre compte MoMo sera suspendu dans 24h faute de mise à jour. Confirmez votre identité sur mtn-momo-verif.top ou répondez avec votre code.</div></div>
-      <div class="sms-carte a z" style="--d:.55s"><span class="lettre">B</span><div class="de"><i></i>MTN MoMo · SMS</div><div class="txt">MTN MoMo : Vous avez reçu 25 000 FCFA de KOUASSI Marc. Nouveau solde : 31 500 FCFA. ID transaction : 7A3F9C21B0.</div></div>
-      <div class="sms-carte a z" style="--d:.75s"><span class="lettre">C</span><div class="de"><i></i>MTN MoMo · SMS</div><div class="txt">MTN MoMo : Vous avez reçu 25 000 FCFA de KOUASSI Marc. Nouveau solde : 31 500 FCFA. Erreur de l'expéditeur, merci de renvoyer le montant au 01 66 12 34 56.</div></div>
+    <h2 class="a" style="--d:.1s;font-size:92px;margin-bottom:64px">Un seul de ces trois messages<br><em>est vrai.</em></h2>
+    <div class="trois-sms" style="align-items:start">
+      <div class="cap-msg cm-wa a z" style="--d:.35s"><span class="lettre">A</span>
+        <div class="chiffre">🔒 Les messages et les appels sont chiffrés de bout en bout. Seules les personnes prenant part à cette discussion peuvent les lire, les écouter ou les partager.</div>
+        <div class="txt">Bonjour je suis votre conseiller bancaire. Nous avons détecté une fraude sur votre compte.<span class="heure">18:58</span></div></div>
+      <div class="cap-msg cm-android a z" style="--d:.55s"><span class="lettre">B</span>
+        <div class="haut">MTN MoMo</div>
+        <div class="txt">Depot recu 5000F de OMEGA SF GEST1(2290154336507 - RBCCM/ABC/21 A 32999) le 2026-11-16 18:20:02 Solde:5500F ID:13387815833Frais:0F.Nouvelle App MoMo <span class="lien">https://onelink.to/va7cnt</span></div></div>
+      <div class="cap-msg cm-iphone a z" style="--d:.75s"><span class="lettre">C</span>
+        <div class="haut">+229 01 49 77 ••••<small>Message texte · SMS · Aujourd'hui 08:36</small></div>
+        <div class="txt">CeltiisCash V5ous avez recu un depot de 67.000,00F de <span class="lien">229014487••••</span> CHALE_A••• B••• ce 13/11/2026 Votre solde 67.000,00F.REF: DF888YGwEQ4. Merci</div></div>
     </div>
   </div>
   <div class="pied"><span>Dix secondes. Levez la main pour A, B ou C.</span><span>00</span></div>
 </section>
 
 <!-- 1 · titre : la réponse -->
-<section class="slide sombre" data-emo="joyeux" data-notes="0:30 · LA RÉPONSE, EN DIRECT. « Voici KORA. Les autres détectent un message. KORA arrête un scénario. » Passez les trois messages dans KORA, en direct, un par un (touche « Vérifier un message » puis collez chaque texte) : A, arnaque, faux blocage de compte avec un lien piégé ; B, message normal ; C, arnaque, faux dépôt avec demande de renvoi. « Vous avez mis dix secondes à hésiter. KORA a mis quelques secondes pour tout juger, et il vous dit pourquoi. » CHRONOMÉTREZ KORA avant le pitch : dites le vrai temps. Ces trois messages sont écrits sur le modèle de vrais SMS d&#x27;opérateurs (format de dépôt, blocage de compte) ; ce ne sont pas des SMS copiés mot à mot.">
+<section class="slide sombre" data-emo="joyeux" data-notes="0:35 · LA RÉPONSE, EN DIRECT. « Voici KORA. Les autres détectent un message. KORA arrête un scénario. » Passez les trois messages dans KORA, un par un, avec les questions de contexte : A (WhatsApp) : arnaque, vu dès le texte. C (Celtiis) : KORA demande « qui l&#x27;a envoyé ? », choisissez « Un numéro de téléphone » : arnaque, car un vrai dépôt vient d&#x27;un expéditeur nommé, pas d&#x27;un numéro. B (MTN) : choisissez « Un nom (MTN, MobileMoney…) » puis « Non, je ne peux pas répondre » : message normal. « Vous avez mis dix secondes à hésiter. KORA a mis quelques secondes, et il vous dit pourquoi. » LIMITE À CONNAÎTRE : sur le texte seul, KORA ne voit pas que C est faux ; c&#x27;est la question « qui l&#x27;a envoyé ? » qui le démasque. Répétez ce passage et chronométrez-le.">
   <div class="meta"><span>GPU Challenge 2026 · Cas d'usage n°7</span><span>Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA</span></div>
   <div class="corps">
     <div class="col">
