@@ -295,20 +295,20 @@ h2 { font-size: 150px; }
 </section>
 
 <!-- 4 · démo -->
-<section class="slide clair" data-notes="1:15 · La vidéo démarre seule (clic pour pause, ou touche K) : un faux agent MTN écrit, KORA analyse, Korachoupi se fâche, verdict à 99 %. Puis EN DIRECT sur le téléphone : touchez la bulle, « Suivre un appel », un membre de l'équipe joue le faux agent en haut-parleur ; à la fin de l'appel, KORA pose ses questions et dit son verdict à voix haute.">
-  <div class="meta"><span>La démo</span><span>Vidéo de démo · 1 min</span></div>
+<section class="slide clair" data-notes="1:30 · La vidéo démarre seule et n'a pas de son : commentez-la en direct. 1) Un faux SMS de dépôt arrive, puis l'escroc appelle. 2) On touche la bulle, « Capture de l'écran » : KORA lit le SMS, demande qui l'a envoyé, et conclut à l'arnaque. 3) Nouvel appel : la bulle, « Suivre un appel » ; KORA écoute en haut-parleur, transcrit, pose ses questions. 4) Verdict : arnaque, dit à voix haute. La transcription (service en ligne) est accélérée ×6 dans la vidéo, c'est indiqué à l'écran.">
+  <div class="meta"><span>La démo</span><span>Vidéo de démo · 1 min 30 · sans son</span></div>
   <div class="corps" style="gap:60px">
     <div class="col" style="flex:1.1">
-      <h2 class="a" style="--d:.1s;font-size:82px">La démo,<br><em>puis un appel</em><br>en direct</h2>
+      <h2 class="a" style="--d:.1s;font-size:82px">Une capture,<br><em>un appel,</em><br>un verdict</h2>
       <ol class="beats" style="margin-top:34px;max-width:720px">
-        <li class="a g" style="--d:.4s"><span class="pastille" style="background:var(--violet)">1</span>Le SMS « agent MTN » arrive</li>
-        <li class="a g" style="--d:.55s"><span class="pastille" style="background:var(--orange);color:#2A1300">2</span>KORA analyse, Korachoupi s'inquiète</li>
-        <li class="a g" style="--d:.7s"><span class="pastille" style="background:var(--rouge)">3</span>Verdict rouge et bon réflexe</li>
-        <li class="a g" style="--d:.85s"><span class="pastille" style="background:var(--vert)">4</span>En direct : la bulle suit un appel</li>
+        <li class="a g" style="--d:.4s"><span class="pastille" style="background:var(--violet)">1</span>Un faux dépôt, puis un appel</li>
+        <li class="a g" style="--d:.55s"><span class="pastille" style="background:var(--orange);color:#2A1300">2</span>La bulle lit la capture : arnaque</li>
+        <li class="a g" style="--d:.7s"><span class="pastille" style="background:var(--rouge)">3</span>KORA suit l'appel et questionne</li>
+        <li class="a g" style="--d:.85s"><span class="pastille" style="background:var(--vert)">4</span>Le verdict, dit à voix haute</li>
       </ol>
     </div>
     <div class="cadre-video a z" style="--d:.3s">
-      <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline muted controls></video>
+      <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline controls></video>
     </div>
   </div>
   <div class="pied"><span>KORA-lite</span><span>05</span></div>
@@ -506,7 +506,6 @@ function aller(n) {
   document.getElementById("suiv").disabled = i === slides.length - 1
   s.querySelectorAll("[data-count]").forEach((el) => setTimeout(() => compter(el), 600))
   const v = s.querySelector("video")
-  if (v) v.muted = true // la démo passe sans le son : on la commente en direct
   document.querySelectorAll("video").forEach((x) => { if (x !== v) { x.pause(); x.currentTime = 0 } })
   if (v) { v.currentTime = 0; setTimeout(() => v.play().catch(() => {}), 900) }
   const slot = s.querySelector(".slot-mascotte")
