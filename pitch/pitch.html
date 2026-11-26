@@ -254,6 +254,11 @@ h2 { font-size: 150px; }
   90% { transform: translateY(6px) rotate(0) scaleY(.94); } 100% { transform: translateY(0) rotate(0) scaleY(1); } }
 @keyframes penche { 50% { transform: rotate(5deg) translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { .balade { transition: opacity .5s; } .balade.saut .corps-balade, .balade.penche .corps-balade { animation: none; } }
+
+.rep-badge { display: inline-block; font: 900 40px var(--titre); text-transform: uppercase; letter-spacing: -.01em; padding: 8px 28px; border-radius: 999px; color: #fff; }
+.rep-rouge { background: var(--rouge); } .rep-vert { background: var(--vert); }
+.rep-titre { font: 900 38px/1.1 var(--titre); text-transform: uppercase; letter-spacing: -.02em; margin: 20px 0 6px; }
+.sms-carte .txt { font-size: 28px; }
 </style>
 </head>
 <body>
@@ -261,7 +266,7 @@ h2 { font-size: 150px; }
 <main id="scene">
 
 <!-- 0 · l'accroche : vrai ou faux ? -->
-<section class="slide sombre" data-emo="surpris" data-balade="1" data-notes="0:50 · L&#x27;ACCROCHE : VRAI OU FAUX ? Cette diapo s&#x27;affiche AVANT de dire qui vous êtes, sans titre. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (SILENCE : dix secondes, pas moins.) « Levez la main pour A… pour B… pour C. » (Comptez les mains, regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury. Imaginez ce message reçu à 19 h, pendant qu&#x27;un homme poli vous dit au téléphone : vite, lisez-moi le code. » RÉPONSE (à confirmer par l&#x27;équipe) : B est le vrai SMS MTN. A est un faux conseiller bancaire sur WhatsApp. C est un faux dépôt Celtiis, reçu d&#x27;un numéro ordinaire, avec une faute (« V5ous »). Les messages sont de vraies captures de téléphones de l&#x27;équipe, noms et fins de numéros masqués. NE DÉVOILEZ PAS ENCORE : passez à la diapo suivante.">
+<section class="slide sombre" data-emo="surpris" data-balade="1" data-notes="1 · L&#x27;ACCROCHE « VRAI OU FAUX ? » (45 s). Diapo : trois messages côte à côte, A, B, C. Aucun titre, aucune explication. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (Silence. Dix secondes, pas moins. Laissez-les lire, hésiter, se regarder. Korachoupi saute d&#x27;un message à l&#x27;autre sans rien trahir.) « Levez la main pour A… pour B… pour C. » (Comptez les mains. Regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury. Vous lisez des dossiers toute la journée. Maintenant, imaginez une grand-mère à 19 h, qui ouvre ce message pendant qu&#x27;un homme poli lui parle au téléphone et lui dit : « Vite, madame, lisez-moi le code. » » Puis changez de diapo : la réponse.">
   <div class="meta"><span></span><span></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding-top:20px">
     <h2 class="a" style="--d:.1s;font-size:70px;margin-bottom:290px;white-space:nowrap">Un seul de ces trois messages <em>est vrai.</em></h2>
@@ -280,22 +285,22 @@ h2 { font-size: 150px; }
   <div class="pied"><span>Dix secondes. Levez la main pour A, B ou C.</span><span>00</span></div>
 </section>
 
-<!-- 1 · titre : la réponse -->
-<section class="slide sombre" data-emo="joyeux" data-notes="0:35 · LA RÉPONSE, EN DIRECT. « Voici KORA. Les autres détectent un message. KORA arrête un scénario. » Passez les trois messages dans KORA, un par un, avec les questions de contexte : A (WhatsApp) : arnaque, vu dès le texte. C (Celtiis) : KORA demande « qui l&#x27;a envoyé ? », choisissez « Un numéro de téléphone » : arnaque, car un vrai dépôt vient d&#x27;un expéditeur nommé, pas d&#x27;un numéro. B (MTN) : choisissez « Un nom (MTN, MobileMoney…) » puis « Non, je ne peux pas répondre » : message normal. « Vous avez mis dix secondes à hésiter. KORA a mis quelques secondes, et il vous dit pourquoi. » LIMITE À CONNAÎTRE : sur le texte seul, KORA ne voit pas que C est faux ; c&#x27;est la question « qui l&#x27;a envoyé ? » qui le démasque. Répétez ce passage et chronométrez-le.">
-  <div class="meta"><span>GPU Challenge 2026 · Cas d'usage n°7</span><span>Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA</span></div>
-  <div class="corps">
-    <div class="col">
-      <h1 class="titre-xl a" style="--d:.1s;font-size:230px">KORA</h1>
-      <p class="a" style="--d:.45s;font:900 62px/1.05 var(--titre);text-transform:uppercase;letter-spacing:-.02em;margin-top:24px">Les autres détectent<br><span style="opacity:.65">un message.</span><br><span style="color:var(--orange)">KORA arrête un scénario.</span></p>
-      <p class="sous-titre a" style="--d:.8s;margin-top:38px">Il écoute l'appel avec vous, lit vos messages et vous prévient <mark>avant que vous payiez</mark>. En français et en fon.</p>
+<!-- 0b · la réponse -->
+<section class="slide sombre" data-emo="content" data-notes="2 · LA RÉPONSE, EN DIRECT. (Lancez KORA sur les trois messages, un par un, avec ses questions de contexte.) « Voyons ce que KORA en dit. A : arnaque, et voilà pourquoi. B : c&#x27;est le vrai, et voilà pourquoi. C : arnaque, et voilà pourquoi. » ATTENTION, les réponses sont : A arnaque (faux blocage de compte, WhatsApp), B VRAI (SMS MTN, expéditeur « MTN MoMo », on ne peut pas y répondre), C arnaque (faux dépôt reçu d&#x27;un numéro ordinaire). Pour C, répondez « Un numéro de téléphone » à la question « qui l&#x27;a envoyé ? » : sur le texte seul, KORA ne le démasque pas. « Vous avez mis dix secondes à hésiter. KORA a mis quelques secondes pour tout juger, et il vous a dit pourquoi. » CHRONOMÉTREZ avant le pitch et dites le vrai temps. Si KORA se trompe sur un message, changez de message, pas de discours.">
+  <div class="meta"><span></span><span></span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
+    <h2 class="a" style="--d:.1s;font-size:78px;margin-bottom:70px;white-space:nowrap">Voyons ce que <em>KORA</em> en dit.</h2>
+    <div class="trois-sms" style="align-items:start">
+      <div class="sms-carte a z" style="--d:.35s"><span class="lettre">A</span><div style="margin-top:26px"><span class="rep-badge rep-rouge">Arnaque</span></div><p class="rep-titre">Faux blocage de compte</p><div class="txt">Un inconnu te contacte pour la première fois et te demande quelque chose.</div></div>
+      <div class="sms-carte a z" style="--d:.55s"><span class="lettre">B</span><div style="margin-top:26px"><span class="rep-badge rep-vert">Le vrai</span></div><p class="rep-titre">Message normal</p><div class="txt">Il vient d'un expéditeur officiel, un nom, et tu ne peux pas y répondre.</div></div>
+      <div class="sms-carte a z" style="--d:.75s"><span class="lettre">C</span><div style="margin-top:26px"><span class="rep-badge rep-rouge">Arnaque</span></div><p class="rep-titre">Faux dépôt</p><div class="txt">Il imite un SMS de dépôt, mais vient d'un numéro ordinaire : les vrais viennent d'un expéditeur nommé.</div></div>
     </div>
-    <div class="slot-mascotte a z" style="--d:.3s"><div class="disque"></div></div>
   </div>
-  <div class="pied"><span>KORA · modèle KORA-lite 1.0.13</span><span>01</span></div>
+  <div class="pied"><span>KORA pose ses questions : qui l'a envoyé ? peut-on y répondre ?</span><span>01</span></div>
 </section>
 
 <!-- 2 · problème -->
-<section class="slide clair" data-notes="0:35 · LE PROBLÈME. « Ce n&#x27;est pas un cas isolé. 11,6 millions de personnes utilisent le Mobile Money au Bénin. En 2025, les escroqueries financières déclarées ont coûté 3,37 milliards de FCFA. Et une arnaque n&#x27;est jamais un simple SMS : c&#x27;est un scénario. Un faux dépôt, puis un appel pressant. Un faux agent, puis un code demandé. Un proche piraté sur WhatsApp, puis un prêt urgent. Presque toujours, ça commence par un appel. » Le chiffre CNIN couvre toutes les escroqueries financières, pas seulement le Mobile Money.">
+<section class="slide clair" data-notes="3 · LE PROBLÈME (30 s). « Ce n&#x27;est pas un cas isolé. Au Bénin, 11,6 millions de personnes utilisent le Mobile Money. En 2025, les escroqueries financières déclarées ont coûté 3,37 milliards de FCFA. Dans un sondage de 800 personnes, 4 sur 10 avaient déjà été victimes. » (Le sondage est celui de Ngaoundéré, au Cameroun : le dire si on vous le demande.) « Et ce que vous venez de vivre, ce n&#x27;est que la moitié de l&#x27;arnaque. Parce que l&#x27;arnaque n&#x27;est jamais un simple SMS : c&#x27;est un scénario. Un faux message de dépôt, puis un appel pressant. Un faux agent, puis un code demandé. Un ami piraté sur WhatsApp, puis un prêt « urgent ». Presque toujours, ça commence par un appel. » « Les outils qui existent regardent un seul message, ou protègent une seule appli. Chaque opérateur et chaque banque protège la sienne. Mais l&#x27;escroc, lui, passe d&#x27;un canal à l&#x27;autre : l&#x27;appel, le SMS, le WhatsApp, puis le paiement. Et au moment où il vous parle au téléphone, personne n&#x27;est avec vous. »">
   <div class="meta"><span>Le besoin · une arnaque est un processus</span><span class="critere">Utilité métier <b>25 pts</b></span></div>
   <div class="corps">
     <div class="col" style="flex:1.1">
@@ -305,6 +310,7 @@ h2 { font-size: 150px; }
         <li class="a g" style="--d:.5s"><i class="n" style="font-style:normal">02</i><div><b>Le faux service client</b><span>Un appel « mise à jour, compte bloqué, gain » qui finit par : « dicte-moi ton code PIN »</span></div></li>
         <li class="a g" style="--d:.65s"><i class="n" style="font-style:normal">03</i><div><b>Le proche piraté</b><span>Sur WhatsApp, un ami « en urgence » demande un prêt ou un code à 6 chiffres</span></div></li>
       </ol>
+      <p class="a" style="--d:.8s;margin-top:24px;font:700 27px/1.35 var(--texte);background:var(--encre);color:#fff;border-radius:26px;padding:20px 28px">Les outils qui existent regardent <b style="color:var(--orange)">un seul message</b>, ou protègent <b style="color:var(--orange)">une seule appli</b>. L'escroc, lui, passe de l'appel au SMS, au WhatsApp, puis au paiement.</p>
     </div>
     <div class="col cartes-serrees" style="display:grid;gap:20px;flex:.75;margin-top:20px">
       <div class="carte c-violet a g" style="--d:.5s"><div class="gros"><span data-count="11.6" data-dec="1">11,6</span> M</div><p class="petit">de clients actifs des services financiers mobiles au Bénin (ARCEP, 2025)</p></div>
@@ -316,8 +322,22 @@ h2 { font-size: 150px; }
   <div class="pied"><span>KORA</span><span>02</span></div>
 </section>
 
+<!-- 1 · titre : la réponse -->
+<section class="slide sombre" data-emo="joyeux" data-notes="4 · « VOICI KORA » (10 s). « Voici KORA. Les autres détectent un message. KORA arrête un scénario. » Laissez la diapo parler : présentez l&#x27;équipe en une phrase si ce n&#x27;est pas déjà fait, puis passez à la suite.">
+  <div class="meta"><span>GPU Challenge 2026 · Cas d'usage n°7</span><span>Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA</span></div>
+  <div class="corps">
+    <div class="col">
+      <h1 class="titre-xl a" style="--d:.1s;font-size:230px">KORA</h1>
+      <p class="a" style="--d:.45s;font:900 62px/1.05 var(--titre);text-transform:uppercase;letter-spacing:-.02em;margin-top:24px">Les autres détectent<br><span style="opacity:.65">un message.</span><br><span style="color:var(--orange)">KORA arrête un scénario.</span></p>
+      <p class="sous-titre a" style="--d:.8s;margin-top:38px">Il écoute l'appel avec vous, lit vos messages et vous prévient <mark>avant que vous payiez</mark>. En français et en fon.</p>
+    </div>
+    <div class="slot-mascotte a z" style="--d:.3s"><div class="disque"></div></div>
+  </div>
+  <div class="pied"><span>KORA · modèle KORA-lite 1.0.13</span><span>03</span></div>
+</section>
+
 <!-- 3 · la boucle -->
-<section class="slide sombre" data-notes="0:30 · LA SOLUTION. « KORA, c&#x27;est un garde du corps dans votre téléphone. Un escroc appelle ? Vous touchez la petite mascotte qui flotte sur l&#x27;écran : KORA écoute l&#x27;appel avec vous, en français ou en fon, et vous dit à la fin, à voix haute : attention, c&#x27;est une arnaque. Un message bizarre, une notification de paiement suspecte ? Une capture, et KORA répond en quelques secondes. Et s&#x27;il a un doute, il vous pose les bonnes questions. »">
+<section class="slide sombre" data-notes="5 · LA SOLUTION (30 s). « Un escroc vous appelle ? Vous touchez la petite mascotte qui flotte sur votre écran, et KORA écoute l&#x27;appel avec vous, en français ou en fon. À la fin, il vous dit à voix haute : « Attention, c&#x27;est une arnaque. Un vrai agent ne demande jamais ton code. » » « Un message bizarre sur WhatsApp, une notification de paiement suspecte ? Une capture, et KORA répond en quelques secondes. S&#x27;il a un doute, il vous pose des questions, comme un ami méfiant : qui vous appelle ? que vous demande-t-il ? »">
   <div class="meta"><span>La solution · une boucle de vérification</span><span class="critere">Utilité métier <b>25 pts</b></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:0">
     <h2 class="a" style="--d:.1s;font-size:92px;margin-bottom:40px">KORA suit l'arnaque<br><em>à chaque étape</em></h2>
@@ -331,11 +351,11 @@ h2 { font-size: 150px; }
       <div class="carte c-blanc a z" style="--d:1.1s;min-height:400px"><span class="num">04 · AVANT DE PAYER</span><h3 style="font-size:50px">Il alerte</h3><p>Verdict, raisons vérifiables, bon réflexe : ne jamais donner son code.</p></div>
     </div>
   </div>
-  <div class="pied"><span>Chaque étape nourrit la suivante : l'appel, le SMS reçu pendant l'appel et tes réponses sont analysés ensemble</span><span>03</span></div>
+  <div class="pied"><span>Chaque étape nourrit la suivante : l'appel, le SMS reçu pendant l'appel et tes réponses sont analysés ensemble</span><span>04</span></div>
 </section>
 
 <!-- 4 · du côté de l'utilisateur -->
-<section class="slide clair" data-notes="0:25 · LA DIFFÉRENCE. « Aujourd&#x27;hui, chaque opérateur et chaque banque protège sa propre appli. Mais l&#x27;escroc, lui, passe d&#x27;un canal à l&#x27;autre : un appel, un SMS, un WhatsApp, puis le paiement. KORA ne remplace pas votre banque : il est de VOTRE côté, sur toutes vos applis, au moment où l&#x27;arnaque se joue. »">
+<section class="slide clair" data-notes="6 · LA DIFFÉRENCE (20 s). « Et tout cela ensemble : l&#x27;appel, le message reçu pendant l&#x27;appel, vos réponses. Parce que c&#x27;est comme ça que l&#x27;escroc travaille. KORA ne remplace pas votre banque : il est de votre côté, sur toutes vos applis, avant que vous payiez. » (Indépendant : Mobile Money, banques, applis de paiement, réseaux sociaux. La bulle flotte sur toutes les applis.)">
   <div class="meta"><span>La différence · KORA est du côté de l'utilisateur</span><span class="critere">Utilité métier <b>25 pts</b></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:34px">
     <h2 class="a" style="--d:.1s;font-size:92px">Pas une appli de plus :<br><em>un bouclier sur toutes</em></h2>
@@ -346,7 +366,7 @@ h2 { font-size: 150px; }
         <ul class="puces"><li>Indépendant : <b>Mobile Money, banques, applis de paiement, réseaux sociaux</b></li><li><b>La bulle</b> flotte sur toutes les applis : on lui partage l'écran ou l'appel d'un geste</li><li>Avant le paiement, au moment où l'arnaque se joue</li><li>Les messages sont analysés <b>dans le téléphone</b></li></ul></div>
     </div>
   </div>
-  <div class="pied"><span>KORA</span><span>04</span></div>
+  <div class="pied"><span>KORA</span><span>05</span></div>
 </section>
 
 <!-- 4 · démo -->
@@ -366,7 +386,7 @@ h2 { font-size: 150px; }
       <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline controls></video>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>05</span></div>
+  <div class="pied"><span>KORA-lite</span><span>06</span></div>
 </section>
 
 <!-- 5 · comment ça marche -->
@@ -382,7 +402,7 @@ h2 { font-size: 150px; }
       <div class="carte c-rouge a z" style="--d:1s"><span class="num">03 · VERDICT</span><h3>Écrit et<br>à voix haute</h3><p>Risque, raisons et bon réflexe, en français ou en fon. KORA n'invente jamais une raison.</p></div>
     </div>
   </div>
-  <div class="pied"><span>En préparation sur GPU : KORA AfroXLMR et notre oreille fon (référence mesurée : 54 % d'erreurs par mot)</span><span>06</span></div>
+  <div class="pied"><span>En préparation sur GPU : KORA AfroXLMR et notre oreille fon (référence mesurée : 54 % d'erreurs par mot)</span><span>07</span></div>
 </section>
 
 <!-- 6 · résultats -->
@@ -406,7 +426,7 @@ h2 { font-size: 150px; }
     </div>
   </div>
   <p class="source">Référence : règles seules (au moins un signal). Seuil de risque 50 %. Vrais messages : stop-arnaque-237 (CC-BY-4.0), validation croisée groupée à 5 plis, sans fuite. Détails : resultats/kora_lite_validation_croisee.json et comparaison_sources.json.</p>
-  <div class="pied"><span>KORA-lite</span><span>07</span></div>
+  <div class="pied"><span>KORA-lite</span><span>08</span></div>
 </section>
 
 <!-- 8 · données et reproductibilité -->
@@ -441,7 +461,7 @@ python -m pytest tests/</div>
     </div>
   </div>
   <p class="source">Découpage sans fuite (par formulation et par voix) · même résultat dans l'application et en Python sur 624 messages · version unique signée 1.0.12</p>
-  <div class="pied"><span>KORA</span><span>08</span></div>
+  <div class="pied"><span>KORA</span><span>09</span></div>
 </section>
 
 <!-- 9 · modèle économique -->
@@ -458,7 +478,7 @@ python -m pytest tests/</div>
     </div>
     <div class="pastilles a" style="--d:1.2s"><span>Licence annuelle</span><span>Frais d'intégration</span><span>Partenariats de prévention</span></div>
   </div>
-  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>09</span></div>
+  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>10</span></div>
 </section>
 
 <!-- 10 · faisabilité du pilote -->
@@ -483,11 +503,11 @@ python -m pytest tests/</div>
         <li>Objectif : au moins 85 % des arnaques signalées et au plus 5 % de fausses alertes sur des SMS béninois</li></ul></div>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>10</span></div>
+  <div class="pied"><span>KORA-lite</span><span>11</span></div>
 </section>
 
 <!-- 11 · merci -->
-<section class="slide sombre" data-emo="amoureux" data-notes="0:10 · LA PHRASE FINALE. « Tout à l&#x27;heure, mon téléphone a sonné, et c&#x27;était un escroc. Avec KORA, vous ne décrochez plus jamais seul. Merci. » Montrez le lien de l&#x27;appli.">
+<section class="slide sombre" data-emo="amoureux" data-notes="0:10 · LA PHRASE FINALE. « Une arnaque commence par un appel. Avec KORA, vous ne décrochez plus jamais seul. Merci. » Montrez le lien de l&#x27;appli.">
   <div class="meta"><span>GPU Challenge 2026 · Epitech Bénin</span><span>Cas d'usage n°7 · arnaques financières numériques</span></div>
   <div class="corps">
     <div class="col">
@@ -501,7 +521,7 @@ python -m pytest tests/</div>
       <figure class="a z" style="--d:.75s"><img src="equipe/satignon.png" alt="Fresnel SATIGNON" style="object-position:50% 25%"><figcaption><b>Fresnel SATIGNON</b><span>Ingénierie logicielle</span></figcaption></figure>
     </div>
   </div>
-  <div class="pied"><span>Essayez KORA sur votre téléphone</span><span>11</span></div>
+  <div class="pied"><span>Essayez KORA sur votre téléphone</span><span>12</span></div>
 </section>
 </main>
 
