@@ -51,6 +51,7 @@ let mascottePrete = false
 let messageEnAttente = null
 const bulles = creerBulles($("perso-bulle"))  // bulles de texte : voir bulles.js (désactivées pour l'instant)
 mascotte.addEventListener("load", () => { mascottePrete = true; if (messageEnAttente) envoyerMascotte(messageEnAttente) })
+addEventListener("message", (e) => { if (e.source === mascotte.contentWindow && e.data?.korachoupi === "pret") mascotte.classList.add("pret") })
 function envoyerMascotte(message) {
     if (!mascottePrete) { messageEnAttente = message; return }
     try { mascotte.contentWindow.postMessage({ kora: message }, "*") } catch (_) {}

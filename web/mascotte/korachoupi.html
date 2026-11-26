@@ -14,7 +14,9 @@
     - niveau  : volume de la voix entre 0 et 1, pour une bouche synchronisée (facultatif)
 
   Toute seule, elle réagit aussi : un clic la rend joyeuse, trop de clics la fâchent, quitter la page
-  la rend triste, la laisser seule l'endort. three.js 0.187.0 est chargé depuis jsDelivr (importmap).
+  la rend triste, la laisser seule l'endort. three.js 0.187.0 est embarqué, réduit aux seules pièces utilisées ici
+  (vendor/three/three-korachoupi.min.js, fait par outils/three_korachoupi.sh) : la mascotte se charge vite,
+  même sans internet. En attendant le premier rendu 3D, une image de Korachoupi s'affiche (korachoupi-apercu.webp).
   Une image détourée sert de bulle flottante à l'appli Android : outils/rendu_mascotte.mjs.
 -->
 <html lang="fr">
@@ -22,10 +24,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Korachoupi — la mascotte 3D de KORA-lite</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;800&display=swap">
+<script>
+// la police Rubik ne sert qu'à la page seule (boutons, texte) : dans l'appli, on ne l'attend pas
+if (!new URLSearchParams(location.search).has("embed")) document.write('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;800&display=swap">')
+</script>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #060607; }
+  /* l'image d'attente, remplacée par la 3D dès le premier rendu */
+  #apercu { position: fixed; left: 50%; bottom: 4%; height: 84%; transform: translateX(-50%); pointer-events: none; transition: opacity .35s; }
+  #apercu.parti { opacity: 0; }
+  body.embed #apercu { display: none; } /* dans l'appli, c'est la page de KORA qui montre l'image d'attente */
   body { font-family: Rubik, system-ui, sans-serif; color: #f4efe6; transition: color .3s; }
   body[data-theme="light"] { color: #1b2327; background: #ebe6dc; }
   canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: pointer; }
@@ -76,6 +84,7 @@
     }
 })()
 </script>
+<img id="apercu" src="korachoupi-apercu.webp" alt="" aria-hidden="true">
 <canvas id="c"></canvas>
 <div class="brand">Korachoupi <span>· KORA-lite</span></div>
 <div class="ui">
@@ -87,12 +96,12 @@
 <div class="now" id="now">Auto · Content</div>
 <div class="emos" id="emos"></div>
 <div class="hint">Clique pour le rendre joyeux · clique trop vite, il se fâche · pars de la page, il est triste · laisse-le seul, il s'endort</div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js","three/examples/jsm/":"https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"../vendor/three/three-korachoupi.min.js"}}</script>
 <script type="module">
 import * as t from "three";
 import {
     RoomEnvironment as st
-} from "three/examples/jsm/environments/RoomEnvironment.js";
+} from "three";
 var I = {
         wood: 12417598,
         woodDark: 11561520,
@@ -844,6 +853,11 @@ function ot(e) {
         Te.scale.set(Math.max(m.open, o), Math.max(m.open, o * 1.25), 1), Me.scale.setScalar(Math.max(1e-4, m.smile * (1 - o * .9))), F.scale.setScalar(1e-4)
     }
     L.render(M, k)
+    if (!window.__rendu) { // premier rendu 3D : on retire l'image d'attente (ici et dans l'appli)
+        window.__rendu = !0;
+        document.getElementById("apercu").classList.add("parti");
+        try { parent !== window && parent.postMessage({ korachoupi: "pret" }, "*") } catch (_) {}
+    }
 }
 Je();
 window.KORA_EMBED && document.body.classList.add("embed");

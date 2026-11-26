@@ -99,6 +99,8 @@
   .icone-btn:hover { background: var(--brun-2); color: var(--titre); }
 
   /* ---------- la mascotte, en bas à gauche sur chaque écran ---------- */
+  /* tant que la 3D n'est pas prête, une image de Korachoupi (12 Ko) tient sa place */
+  .perso:not(.pret) { background: url(mascotte/korachoupi-apercu.webp) center bottom 6% / auto 80% no-repeat; }
   body { --pl: max(8px, calc((100vw - 860px) / 2 + 8px)); --pw: 150px; --ph: 190px; --pb: calc(28px + env(safe-area-inset-bottom)); }
   body.s-onb { --pw: 138px; --ph: 172px; --pb: calc(8px + env(safe-area-inset-bottom)); }
   /* en discussion : la mascotte est en bas à gauche, à côté de la barre ; la toucher ouvre son menu */
@@ -710,7 +712,7 @@
       <button class="secondaire" id="installer" type="button" hidden>Installer l'appli</button>
       <a class="secondaire" id="telecharger" href="https://github.com/123Asoumi/kora-financial-model/releases/latest" target="_blank" rel="noopener">Télécharger l'appli Android</a>
     </div>
-    <p class="aide" id="version">KORA-lite version 1.0.6</p>
+    <p class="aide" id="version">KORA-lite version 1.0.7</p>
   </section>
 </div>
 

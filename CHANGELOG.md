@@ -4,6 +4,14 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.7] — 2026-11-26
+
+### Korachoupi se charge vite
+- **three.js embarqué et allégé** : avant, la mascotte téléchargeait three.js depuis internet (jsDelivr) à chaque ouverture, soit 2 Mo non minifiés. Elle utilise maintenant `web/vendor/three/three-korachoupi.min.js` : seules les pièces dont Korachoupi se sert, minifiées (594 Ko, 149 Ko compressés). Le fichier se refait avec `outils/three_korachoupi.sh`.
+- **Plus d'attente de la police Google** dans l'appli : la police Rubik ne se charge que sur la page de la mascotte seule.
+- **Image d'attente** : tant que la 3D n'est pas prête, une image de Korachoupi (12 Ko) tient sa place, puis s'efface au premier rendu.
+- Mesuré sur une 3G lente simulée (1,6 Mbit/s), avec compression comme sur Vercel : la 3D s'affiche en moins de 1,5 s, contre environ 9 s avant. Dans l'appli Android, tout est dans le téléphone : la mascotte marche aussi sans internet.
+
 ## [1.0.6] — 2026-11-26
 
 ### Accueil allégé
