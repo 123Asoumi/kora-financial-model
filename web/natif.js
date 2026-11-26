@@ -27,9 +27,11 @@ export async function arreterBulle() {
 /**
  * surImage(fichier, etiquette) : une capture faite par la bulle, ou une image partagée à KORA.
  * surTexte(texte) : du texte partagé à KORA depuis une autre appli.
+ * surAppel() : « Suivre un appel » choisi sur la bulle.
  */
-export function ecouterAppli({ surImage, surTexte }) {
+export function ecouterAppli({ surImage, surTexte, surAppel }) {
     if (!Bulle) return
+    Bulle.addListener("appel", () => surAppel?.())
     Bulle.addListener("capture", async ({ chemin, etiquette }) => {
         try {
             const reponse = await fetch(Capacitor.convertFileSrc(chemin))
@@ -72,4 +74,10 @@ export async function chercherMiseAJour() {
 export async function installerMiseAJour(maj, surProgres) {
     const ecoute = await MiseAJour.addListener("progres", ({ pourcent }) => surProgres?.(pourcent))
     try { await MiseAJour.installer({ url: maj.url, sha256: maj.sha256 }) } finally { ecoute.remove() }
+}
+
+/** Un appel (téléphone ou WhatsApp) est-il en cours ? { enCours, haut } ou null hors de l'appli Android. */
+export async function etatAppel() {
+    if (!VoixNative) return null
+    try { return await VoixNative.etatAppel() } catch (_) { return null }
 }

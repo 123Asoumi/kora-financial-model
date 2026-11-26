@@ -202,7 +202,58 @@ export function creerVoix({ mascotte, service }) {
         return { fon: String(r.data[0] || "").trim(), fr: String(r.data[1] || "").trim() }
     }
 
-    return { capacites, peutEnregistrer, parlerFr, parlerFon, arreter, ecouterFr, commencerEnregistrement, finirEnregistrement, arreterEcoute, comprendreFon, estAppli }
+    // ---------------------------------------------------------------- suivre un appel
+    /**
+     * Enregistre un appel mis en haut-parleur, avec le micro du téléphone. Sans annulation d'écho ni
+     * réduction de bruit : elles effaceraient justement la voix de l'autre personne, qui sort du haut-parleur.
+     * surNiveau(0..1) reçoit le volume en direct. Renvoie { fin: Promise<{ son, duree, niveauMax }>, arreter() }.
+     */
+    async function enregistrerAppel({ surNiveau, dureeMax = 300000 } = {}) {
+        arreter()
+        if (VoixNative) await VoixNative.autoriserMicro()
+        const flux = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true } })
+        const ctx = new (globalThis.AudioContext || globalThis.webkitAudioContext)()
+        const analyse = ctx.createAnalyser()
+        analyse.fftSize = 1024
+        ctx.createMediaStreamSource(flux).connect(analyse)
+        const tampon = new Float32Array(analyse.fftSize)
+        let niveauMax = 0, actif = true
+        const mesurer = () => {
+            if (!actif) return
+            analyse.getFloatTimeDomainData(tampon)
+            let s = 0
+            for (const x of tampon) s += x * x
+            const n = Math.min(1, Math.sqrt(s / tampon.length) * 5)
+            niveauMax = Math.max(niveauMax, n)
+            surNiveau?.(n)
+            setTimeout(mesurer, 120) // setTimeout : continue même si l'écran ne se redessine pas
+        }
+        mesurer()
+        const morceauxSon = []
+        const rec = new MediaRecorder(flux)
+        rec.ondataavailable = (e) => { if (e.data.size) morceauxSon.push(e.data) }
+        const debut = Date.now()
+        const fin = new Promise((ok) => {
+            rec.onstop = () => {
+                actif = false
+                flux.getTracks().forEach((t) => t.stop())
+                ctx.close?.()
+                ok({ son: new Blob(morceauxSon, { type: rec.mimeType }), duree: (Date.now() - debut) / 1000, niveauMax })
+            }
+        })
+        rec.start(1000)
+        const minuterie = setTimeout(() => { if (rec.state === "recording") rec.stop() }, dureeMax)
+        return { fin: fin.finally(() => clearTimeout(minuterie)), arreter: () => { if (rec.state === "recording") rec.stop() } }
+    }
+
+    /** Transcrit un appel : renvoie { texte, fr, duree }. Compter environ 2 fois plus vite que l'appel. */
+    async function transcrireAppel(son, langue, duree) {
+        const wav = await enWavTelephone(son)
+        const r = await service("/transcrire_appel", { audio: wav, langue }, 45000 + duree * 1500)
+        return { texte: String(r.data[0] || "").trim(), fr: String(r.data[1] || "").trim(), duree: Number(r.data[2]) || duree }
+    }
+
+    return { enregistrerAppel, transcrireAppel, capacites, peutEnregistrer, parlerFr, parlerFon, arreter, ecouterFr, commencerEnregistrement, finirEnregistrement, arreterEcoute, comprendreFon, estAppli }
 }
 
 /** Convertit un enregistrement (webm, ogg, mp4…) en WAV mono 16 kHz, lisible par le service sans ffmpeg. */
@@ -225,5 +276,40 @@ export async function enWav16k(son) {
     vue.setUint32(24, 16000, true); vue.setUint32(28, 32000, true); vue.setUint16(32, 2, true); vue.setUint16(34, 16, true)
     ecrire(36, "data"); vue.setUint32(40, pcm.length * 2, true)
     for (let i = 0; i < pcm.length; i++) vue.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 0x7fff, true)
+    return new Blob([vue], { type: "audio/wav" })
+}
+
+/** μ-law (G.711) : 8 bits par échantillon, la qualité d'une ligne téléphonique. */
+function versMulaw(x) {
+    let s = Math.max(-1, Math.min(1, x)) * 32767 | 0
+    const signe = s < 0 ? 0x80 : 0
+    if (signe) s = -s
+    s = Math.min(s, 32635) + 0x84
+    let exposant = 7
+    for (let masque = 0x4000; (s & masque) === 0 && exposant > 0; exposant--, masque >>= 1);
+    return ~(signe | (exposant << 4) | ((s >> (exposant + 3)) & 0x0f)) & 0xff
+}
+
+/** Convertit l'enregistrement d'un appel en WAV mono 8 kHz μ-law (8 Ko par seconde : 1,4 Mo pour 3 minutes). */
+export async function enWavTelephone(son) {
+    const Ctx = globalThis.AudioContext || globalThis.webkitAudioContext
+    const ctx = new Ctx()
+    let brut
+    try { brut = await ctx.decodeAudioData(await son.arrayBuffer()) } finally { ctx.close?.() }
+    const n = Math.max(1, Math.ceil(brut.duration * 8000))
+    const hors = new OfflineAudioContext(1, n, 8000)
+    const src = hors.createBufferSource()
+    src.buffer = brut
+    src.connect(hors.destination)
+    src.start()
+    const pcm = (await hors.startRendering()).getChannelData(0)
+    const vue = new DataView(new ArrayBuffer(58 + pcm.length))
+    const ecrire = (o, t) => { for (let i = 0; i < t.length; i++) vue.setUint8(o + i, t.charCodeAt(i)) }
+    ecrire(0, "RIFF"); vue.setUint32(4, 50 + pcm.length, true); ecrire(8, "WAVE")
+    ecrire(12, "fmt "); vue.setUint32(16, 18, true); vue.setUint16(20, 7, true); vue.setUint16(22, 1, true)
+    vue.setUint32(24, 8000, true); vue.setUint32(28, 8000, true); vue.setUint16(32, 1, true); vue.setUint16(34, 8, true); vue.setUint16(36, 0, true)
+    ecrire(38, "fact"); vue.setUint32(42, 4, true); vue.setUint32(46, pcm.length, true)
+    ecrire(50, "data"); vue.setUint32(54, pcm.length, true)
+    for (let i = 0; i < pcm.length; i++) vue.setUint8(58 + i, versMulaw(pcm[i]))
     return new Blob([vue], { type: "audio/wav" })
 }

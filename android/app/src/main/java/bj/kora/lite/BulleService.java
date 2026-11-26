@@ -34,6 +34,7 @@ import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,8 +53,11 @@ import java.util.Arrays;
  *
  * - on la déplace du doigt, elle se colle au bord le plus proche ;
  * - on la glisse sur la croix en bas de l'écran pour la fermer ;
- * - on la touche : elle se cache, prend une capture de l'écran, puis ouvre KORA qui lit
- *   le message sur la capture et dit si c'est une arnaque. L'analyse reste dans le téléphone.
+ * - on la touche : deux choix apparaissent à côté d'elle.
+ *   « Capture » : elle se cache, prend une capture de l'écran, puis ouvre KORA qui lit le message
+ *   sur la capture et dit si c'est une arnaque. L'analyse reste dans le téléphone.
+ *   « Appel » : ouvre KORA en mode « suivre un appel » (KORA écoute l'appel en haut-parleur,
+ *   puis dit à la fin si c'est une arnaque).
  */
 public class BulleService extends Service {
 
@@ -74,6 +78,8 @@ public class BulleService extends Service {
     private WindowManager fenetres;
     private ImageView bulle;
     private TextView croix;
+    private LinearLayout choix; // « Capture » ou « Appel », quand on touche la bulle
+    private WindowManager.LayoutParams posChoix;
     private WindowManager.LayoutParams posBulle;
     private WindowManager.LayoutParams posCroix;
     private boolean masqueeParKora;
@@ -161,6 +167,7 @@ public class BulleService extends Service {
         instance = null;
         try { if (bulle != null) fenetres.removeView(bulle); } catch (Exception ignore) { }
         try { if (croix != null) fenetres.removeView(croix); } catch (Exception ignore) { }
+        fermerChoix();
         if (ecran != null) ecran.release();
         synchronized (verrou) {
             if (derniere != null) derniere.close();
@@ -206,7 +213,7 @@ public class BulleService extends Service {
         Notification n = new NotificationCompat.Builder(this, CANAL)
                 .setSmallIcon(R.drawable.ic_stat_kora)
                 .setContentTitle("KORA veille sur tes messages")
-                .setContentText("Touche la bulle pour vérifier ce qui est à l'écran.")
+                .setContentText("Touche la bulle : capture de l'écran, ou suivre un appel.")
                 .setOngoing(true)
                 .setContentIntent(ouvrir)
                 .addAction(0, "Arrêter la bulle", arreter)
@@ -357,6 +364,66 @@ public class BulleService extends Service {
         majVisibilite();
     }
 
+    // ------------------------------------------------------------------ les deux choix de la bulle
+    private TextView boutonChoix(String texte, String description, Runnable action) {
+        TextView b = new TextView(this);
+        b.setText(texte);
+        b.setTextSize(15);
+        b.setTextColor(0xFF1B1530);
+        b.setPadding(dp(16), dp(11), dp(16), dp(11));
+        b.setContentDescription(description);
+        GradientDrawable fond = new GradientDrawable();
+        fond.setCornerRadius(dp(22));
+        fond.setColor(Color.WHITE);
+        fond.setStroke(dp(2), 0xFF5B2EE0);
+        b.setBackground(fond);
+        b.setElevation(dp(6));
+        b.setOnClickListener(v -> { fermerChoix(); action.run(); });
+        return b;
+    }
+
+    private void afficherChoix() {
+        fermerChoix();
+        choix = new LinearLayout(this);
+        choix.setOrientation(LinearLayout.VERTICAL);
+        choix.setPadding(dp(6), dp(6), dp(6), dp(6));
+        LinearLayout.LayoutParams marge = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        marge.bottomMargin = dp(8);
+        choix.addView(boutonChoix("📸  Capture de l'écran", "Vérifier ce qui est à l'écran", this::capturer), marge);
+        choix.addView(boutonChoix("📞  Suivre un appel", "KORA écoute l'appel et dit si c'est une arnaque", this::ouvrirAppel));
+        // un toucher ailleurs ferme les choix
+        choix.setOnTouchListener((v, e) -> {
+            if (e.getActionMasked() == MotionEvent.ACTION_OUTSIDE) { fermerChoix(); return true; }
+            return false;
+        });
+        posChoix = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+                typeFenetre(), WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        boolean aDroite = posBulle.x + dp(LARGEUR_DP) / 2 > tailleEcran().width() / 2;
+        posChoix.gravity = Gravity.TOP | (aDroite ? Gravity.END : Gravity.START);
+        posChoix.x = dp(LARGEUR_DP) + dp(10);
+        posChoix.y = posBulle.y + dp(6);
+        fenetres.addView(choix, posChoix);
+        principal.postDelayed(fermerSiOuvert, 6000);
+    }
+
+    private final Runnable fermerSiOuvert = this::fermerChoix;
+
+    private void fermerChoix() {
+        principal.removeCallbacks(fermerSiOuvert);
+        if (choix == null) return;
+        try { fenetres.removeView(choix); } catch (Exception ignore) { }
+        choix = null;
+    }
+
+    private void ouvrirAppel() {
+        Intent ouvrir = new Intent(this, MainActivity.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(BulleKoraPlugin.EXTRA_APPEL, true);
+        startActivity(ouvrir);
+    }
+
     private boolean surLaCroix() {
         int[] c = new int[2];
         croix.getLocationOnScreen(c);
@@ -410,6 +477,7 @@ public class BulleService extends Service {
                     float dx = e.getRawX() - x0, dy = e.getRawY() - y0;
                     if (!bouge && Math.hypot(dx, dy) > seuil) {
                         bouge = true;
+                        fermerChoix();
                         croix.setVisibility(View.VISIBLE);
                     }
                     if (bouge) {
@@ -432,7 +500,7 @@ public class BulleService extends Service {
                         aimanter(true);
                     } else if (e.getActionMasked() == MotionEvent.ACTION_UP) {
                         v.performClick();
-                        capturer();
+                        if (choix != null) fermerChoix(); else afficherChoix();
                     }
                     return true;
                 default:

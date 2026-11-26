@@ -52,6 +52,7 @@ Message en fon  → traduction en français (Space) ─────────�
 - **KORA parle et écoute** (depuis la 1.0.4) :
   - **Voix** : bouton haut-parleur sous chaque réponse, et réglage « KORA parle ». En français, c'est la voix du téléphone ; en fon, celle du service en ligne (`facebook/mms-tts-fon`). La bouche de Korachoupi bouge pendant qu'il parle.
   - **Micro** : en français, la dictée du téléphone ; en fon, un vocal transcrit par l'oreille fon du service (`Professor/mms-300m-fongbe`), puis traduit et analysé.
+  - **Suivre un appel** (depuis la 1.0.9, bulle ou menu de la mascotte) : KORA écoute un appel en haut-parleur et s'arrête à la fin de l'appel. Il le transcrit (`openai/whisper-small` en français, l'oreille fon en fon), pose trois questions de contexte (qui, quelle demande, une capture), puis dit son verdict à voix haute. Si le téléphone lui coupe le micro, il demande de raconter l'appel.
   - **Limite** : l'oreille fon se trompe sur un mot sur deux avec des voix de téléphone (mesure ci-dessous). Le texte reconnu et sa traduction s'affichent, pour qu'on voie ce que KORA a compris. L'entraînement sur J'aime Ma Langue (notebooks 3 à 5, GPU) doit l'améliorer.
 
 ## Résultats

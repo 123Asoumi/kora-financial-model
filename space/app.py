@@ -11,6 +11,9 @@ Deux routes, utilisées par l'application KORA (https://kora-0-01.vercel.app) :
 - /parler (texte fon) : la voix de KORA en fon (facebook/mms-tts-fon), sur processeur.
 - /ecouter (vocal) : un vocal en fon devient du texte fon et sa traduction française
     (Professor/mms-300m-fongbe, sur processeur ; mesuré à 54 % d'erreurs par mot sur J'aime Ma Langue).
+- /transcrire_appel (enregistrement, langue) : un appel suivi par KORA (haut-parleur, micro du téléphone)
+    devient du texte. Français : openai/whisper-small ; fon : Professor/mms-300m-fongbe puis traduction.
+    Sur processeur ; mesuré à environ 2 fois plus vite que la durée de l'appel. 4 minutes au plus.
 - /discuter (question, contexte, historique) : l'assistant de KORA répond aux questions de
     l'utilisateur (Qwen3-4B-Instruct, Apache 2.0). Le verdict « arnaque ou pas » vient toujours
     du modèle KORA-lite, sur le téléphone : l'assistant l'explique, il ne le remplace pas.
@@ -62,6 +65,9 @@ NOM_VERS_FR, TOK_VERS_FR, MODELE_VERS_FR = charger_traducteur(
 VOIX_TOK = AutoTokenizer.from_pretrained("facebook/mms-tts-fon")
 VOIX = VitsModel.from_pretrained("facebook/mms-tts-fon").eval()
 OREILLE = pipeline("automatic-speech-recognition", model="Professor/mms-300m-fongbe", device=-1, chunk_length_s=20)
+# l'oreille française, pour les appels (processeur)
+NOM_WHISPER = os.environ.get("KORA_WHISPER", "openai/whisper-small")
+OREILLE_FR = pipeline("automatic-speech-recognition", model=NOM_WHISPER, device=-1, chunk_length_s=30)
 print("Chargés sur processeur : facebook/mms-tts-fon, Professor/mms-300m-fongbe")
 
 NOM_ASSISTANT = "Qwen/Qwen3-4B-Instruct-2507"
@@ -133,6 +139,25 @@ def ecouter(audio):
     return fon, (traduire(fon, "fon→français") if fon else "")
 
 
+def transcrire_appel(audio, langue):
+    """Enregistrement d'un appel -> (texte dans la langue de l'appel, texte en français, durée en s)."""
+    if not audio:
+        return "", "", 0
+    debut = time.time()
+    son, _ = librosa.load(audio, sr=16000, mono=True)
+    duree = len(son) / 16000
+    son = son[: 16000 * 240]  # 4 minutes au plus
+    if langue == "fon":
+        fon = _propre(OREILLE({"raw": son, "sampling_rate": 16000})["text"]).replace("ε", "ɛ")
+        fr = traduire(fon, "fon→français") if fon else ""
+        texte = fon
+    else:
+        r = OREILLE_FR({"raw": son, "sampling_rate": 16000}, generate_kwargs={"language": "french", "task": "transcribe"})
+        texte = fr = _propre(r["text"])
+    print(f"appel {langue} de {duree:.0f} s transcrit en {time.time() - debut:.1f} s")
+    return texte, fr, round(duree)
+
+
 # ---------------------------------------------------------------- discussion
 CONSIGNES = """Tu es KORA, l'assistant anti-arnaque Mobile Money au Bénin (MTN MoMo, Moov Money, Celtiis Cash).
 Tu parles à des personnes qui ne sont pas expertes : tutoiement, phrases courtes, mots simples, en français.
@@ -191,6 +216,11 @@ with gr.Blocks(title="KORA — service fon et discussion") as demo:
         ae = gr.Audio(type="filepath", sources=["microphone", "upload"], label="Vocal en fon")
         fe, fr_e = gr.Textbox(label="Transcription fon"), gr.Textbox(label="Traduction française")
         gr.Button("Transcrire et traduire", variant="primary").click(ecouter, ae, [fe, fr_e], api_name="ecouter", concurrency_limit=2)
+    with gr.Tab("Appel"):
+        aa = gr.Audio(type="filepath", sources=["microphone", "upload"], label="Enregistrement de l'appel")
+        la = gr.Radio(["fr", "fon"], value="fr", label="Langue de l'appel")
+        ta, tfr, da = gr.Textbox(label="Transcription"), gr.Textbox(label="En français"), gr.Number(label="Durée (s)")
+        gr.Button("Transcrire l'appel", variant="primary").click(transcrire_appel, [aa, la], [ta, tfr, da], api_name="transcrire_appel", concurrency_limit=2)
     with gr.Tab("Discuter"):
         q = gr.Textbox(label="Question", lines=2)
         c = gr.Textbox(label="Contexte (verdict de KORA)", lines=3)

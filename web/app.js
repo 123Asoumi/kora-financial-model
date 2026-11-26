@@ -1,7 +1,7 @@
 import { BULLES_VERDICT, creerBulles } from "./bulles.js"
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
-import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli, chercherMiseAJour, installerMiseAJour } from "./natif.js"
+import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli, chercherMiseAJour, installerMiseAJour, etatAppel } from "./natif.js"
 import { creerVoix } from "./voix.js"
 import {
     STATUTS, PH, ETAPES_URGENCE, PUCES_EXPEDITEUR, PUCES_PREMIER, PUCES_REPONDRE, PUCES_SUITE, toutesLesPhrases,
@@ -100,6 +100,7 @@ $("menu-bulle").addEventListener("click", (e) => {
     else if (action === "ecrire") saisie.focus()
     else if (action === "astuce") expliquerPartage()
     else if (action === "flottante") activerBulle()
+    else if (action === "appel") suivreAppel()
 })
 piloter({ emotion: "joyeux", bulle: "Je me prépare…" })
 
@@ -134,6 +135,7 @@ pret.then(async () => {
     ecouterAppli({
         surImage: (fichier, etiquette) => { if (!document.body.classList.contains("s-chat")) entrerDiscussion(); lireImage(fichier, etiquette) },
         surTexte: (texte) => { if (!document.body.classList.contains("s-chat")) entrerDiscussion(); analyserMessage(texte) },
+        surAppel: () => suivreAppel(),
     })
 })
 
@@ -797,6 +799,9 @@ async function envoyer(brut, { vocal = false, fr: frVocal = null } = {}) {
     const moi = () => { if (!affiche) msgMoi(texte) }
     const t = fr.toLowerCase()
 
+    // 0. le récit d'un appel que KORA n'a pas pu entendre
+    if (appel?.etape === "recit") { moi(); appel.texte = fr; return questionQui() }
+
     // 1. réponse à une question de KORA
     if (attente && dernier) {
         // une vraie question passe avant tout : « … sur WhatsApp, il peut encore me nuire ? » n'est pas une réponse
@@ -929,6 +934,7 @@ async function lireImage(fichier, etiquette = "Capture d'écran") {
             return
         }
         ligne.textContent = `J'ai lu : « ${texte.length > 240 ? `${texte.slice(0, 240)}…` : texte} »`
+        if (surTexteCapture) { const suite = surTexteCapture; surTexteCapture = null; return suite(texte) } // capture demandée pendant un appel
         analyserMessage(texte, { deja: true })
     } catch (e) {
         console.error("Lecture de la capture :", e)
@@ -1168,6 +1174,173 @@ async function dicterFon() {
     trad.textContent = `Traduction : ${compris.fr || "—"}`
     bulle.append(trad)
     envoyer(compris.fon, { vocal: true, fr: compris.fr })
+}
+
+/* ================= suivre un appel ================= */
+// Depuis la bulle (« Suivre un appel ») ou le menu de la mascotte : KORA écoute un appel mis en
+// haut-parleur avec le micro du téléphone, s'arrête tout seul à la fin de l'appel, le transcrit
+// (service en ligne), pose trois questions de contexte (qui appelait, ce qu'on t'a demandé, un message
+// reçu pendant l'appel, avec sa capture), puis dit son verdict à voix haute.
+// Si Android coupe le micro pendant l'appel (certains téléphones le font), KORA demande de raconter l'appel.
+const QUI_APPEL = [["Un numéro inconnu", "inconnu"], ["Quelqu'un qui se dit agent (MTN, Moov, Celtiis…)", "agent"], ["Un proche ou un ami", "proche"], ["Je ne sais pas", "nsp"]]
+const DEMANDE_APPEL = [["Un code ou mon PIN", "code"], ["De l'argent ou un transfert", "argent"], ["Renvoyer un dépôt « fait par erreur »", "depot"], ["Ouvrir un lien ou installer une appli", "lien"], ["Rien de tout ça", "rien"]]
+const CAPTURE_APPEL = [["Envoyer une capture", "capture"], ["Non, rien reçu", "non"]]
+// ce que l'utilisateur répond, dit en phrases simples : le modèle et les règles les lisent avec l'appel
+const PHRASE_QUI = { agent: "Il se présente comme agent du service client Mobile Money." }
+const PHRASE_DEMANDE = {
+    code: "Il m'a demandé de lui donner le code secret reçu par SMS.",
+    argent: "Il m'a demandé d'envoyer de l'argent par transfert.",
+    depot: "Il dit qu'il a envoyé un dépôt par erreur et me demande de le renvoyer.",
+    lien: "Il m'a demandé de cliquer sur un lien et d'installer une application.",
+}
+const Q_APPEL = {
+    qui: "Qui t'a appelé ?",
+    demande: "Pendant l'appel, qu'est-ce qu'on t'a demandé ?",
+    capture: "As-tu reçu un SMS ou un message pendant l'appel ? Envoie-moi sa capture : je la vérifie avec l'appel.",
+}
+let appel = null          // l'appel suivi : { etape, langue, texte, qui, demande, capture }
+let surTexteCapture = null // une capture demandée pendant le suivi d'un appel
+const enMinutes = (s) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, "0")}`
+
+async function suivreAppel() {
+    await pret
+    if (!kora || appel?.etape === "ecoute") return
+    if (!document.body.classList.contains("s-chat")) entrerDiscussion()
+    retirerPuces()
+    attente = null
+    voix.arreter()
+    msgMoi("📞 Suivre un appel")
+    const corps = msgKora()
+    if (!SPACE_FON || !voix.peutEnregistrer()) {
+        dire(corps, "Je ne peux pas écouter d'appel ici. Raconte-moi ce que la personne t'a dit, je te dis si c'est une arnaque.", { traduire: false })
+        appel = { etape: "recit", langue: "fr" }
+        return
+    }
+    appel = { etape: "ecoute", langue: modeFon() ? "fon" : "fr" }
+    const carte = el("div", "carte-appel")
+    carte.innerHTML = `<b class="appel-titre">J'écoute ton appel</b>
+      <ol><li>Mets l'appel en <b>haut-parleur</b> 🔊 : j'entends ainsi l'autre personne.</li>
+      <li>Garde KORA ouvert pendant l'appel.</li>
+      <li>À la fin de l'appel, je m'arrête tout seul et je te dis si c'est une arnaque.</li></ol>
+      <div class="appel-direct"><span class="point" aria-hidden="true"></span><span class="chrono">0:00</span><i class="niveau" aria-hidden="true"><b></b></i></div>
+      <p class="appel-aide" role="status"></p>
+      <div class="actions"><button type="button" data-a="fin">L'appel est fini</button><button type="button" class="discret" data-a="annuler">Annuler</button></div>`
+    corps.append(carte)
+    defiler()
+    piloter({ emotion: "surpris", bulle: "" })
+    etat("Écoute l'appel…")
+    const jauge = carte.querySelector(".niveau b"), aide = carte.querySelector(".appel-aide")
+    let enreg
+    try {
+        enreg = await voix.enregistrerAppel({ surNiveau: (n) => { jauge.style.width = `${Math.round(n * 100)}%` } })
+    } catch (e) {
+        carte.remove()
+        dire(corps, `Je ne peux pas utiliser le micro : ${erreurMicro(e) || "il n'est pas disponible"}. Raconte-moi plutôt l'appel.`, { traduire: false })
+        appel.etape = "recit"
+        etat("Prêt à vérifier", "pret")
+        return
+    }
+    const debut = Date.now()
+    let annule = false, vuAppel = false, finAppel = 0
+    const tic = setInterval(async () => {
+        const s = (Date.now() - debut) / 1000
+        carte.querySelector(".chrono").textContent = enMinutes(s)
+        const e = await etatAppel() // dans l'appli Android : KORA voit quand l'appel commence et finit
+        if (!e) return
+        if (e.enCours) {
+            vuAppel = true
+            finAppel = 0
+            aide.textContent = e.haut ? "" : "Mets le haut-parleur : sinon je n'entends que toi."
+        } else if (vuAppel) {
+            finAppel ||= Date.now()
+            if (Date.now() - finAppel > 1500) enreg.arreter() // l'appel est fini
+        } else if (s > 25) {
+            aide.textContent = "Je ne vois pas encore d'appel. Lance-le, ou touche « L'appel est fini »."
+        }
+    }, 1000)
+    carte.querySelector('[data-a="fin"]').addEventListener("click", () => enreg.arreter())
+    carte.querySelector('[data-a="annuler"]').addEventListener("click", () => { annule = true; enreg.arreter() })
+    const { son, duree, niveauMax } = await enreg.fin
+    clearInterval(tic)
+    carte.querySelector(".actions").remove()
+    aide.textContent = ""
+    carte.classList.add("fini")
+    carte.querySelector(".appel-titre").textContent = annule ? "Écoute annulée" : `Appel écouté (${enMinutes(duree)})`
+    if (annule) { appel = null; etat("Prêt à vérifier", "pret"); piloter({ emotion: "content", bulle: "" }); return }
+    reponseVocale = true // le verdict sera dit à voix haute
+    if (duree < 4 || niveauMax < 0.02) return demanderRecit(corps, "Je n'ai presque rien entendu.")
+
+    appel.etape = "transcription"
+    const tape = reflechir(corps)
+    const ligne = dire(corps, `Je transcris l'appel… (environ ${Math.max(15, Math.round(duree * 0.8))} secondes)`, { classe: "doux", traduire: false })
+    etat("Transcrit l'appel…")
+    let tr
+    try {
+        tr = await voix.transcrireAppel(son, appel.langue, duree)
+    } catch (e) {
+        console.warn("KORA : transcription de l'appel", e)
+        tape.remove(); ligne.remove()
+        return demanderRecit(corps, `Je n'arrive pas à transcrire l'appel : ${panneService(e)}.`)
+    }
+    tape.remove(); ligne.remove()
+    const entendu = tr.fr || tr.texte
+    if (entendu.replace(/\W/g, "").length < 10) return demanderRecit(corps, "Je n'ai pas compris ce qui s'est dit : le son était trop faible.")
+    appel.texte = entendu
+    const d = el("details", "transcription")
+    d.innerHTML = `<summary>Ce que j'ai entendu</summary>`
+    for (const t of appel.langue === "fon" ? [tr.texte, `Traduction : ${tr.fr}`] : [tr.texte]) { const p = el("p"); p.textContent = t; d.append(p) }
+    corps.append(d)
+    defiler()
+    return questionQui()
+}
+function demanderRecit(corps, raison) {
+    appel.etape = "recit"
+    dire(corps, `${raison} Certains téléphones coupent le micro des autres applis pendant un appel. Raconte-moi ce que la personne t'a dit : écris-le, ou touche le micro 🎤.`, { traduire: false })
+    etat("Prêt à vérifier", "pret")
+    piloter({ emotion: "triste", bulle: "" })
+}
+async function questionQui() {
+    appel.etape = "questions"
+    const corps = await nouveauTour([Q_APPEL.qui, ...QUI_APPEL.map(([l]) => l)])
+    dire(corps, Q_APPEL.qui)
+    puces(corps, QUI_APPEL, (v, affiche) => { msgMoi(affiche); appel.qui = v; questionDemande() })
+}
+async function questionDemande() {
+    const corps = await nouveauTour([Q_APPEL.demande, ...DEMANDE_APPEL.map(([l]) => l)])
+    dire(corps, Q_APPEL.demande)
+    puces(corps, DEMANDE_APPEL, (v, affiche) => { msgMoi(affiche); appel.demande = v; questionCapture() })
+}
+async function questionCapture() {
+    const corps = await nouveauTour([Q_APPEL.capture, ...CAPTURE_APPEL.map(([l]) => l)])
+    dire(corps, Q_APPEL.capture)
+    const choisir = (v, affiche) => {
+        msgMoi(affiche)
+        if (v !== "capture") { surTexteCapture = null; return verdictAppel() }
+        surTexteCapture = (texte) => { appel.capture = texte; verdictAppel() }
+        $("fichier").click()
+        // si on referme le choix d'image sans rien choisir, on peut toujours passer
+        puces(fil.lastElementChild.querySelector(".corps") || msgKora(), [["Passer", "non"]], choisir)
+    }
+    puces(corps, CAPTURE_APPEL, choisir)
+}
+async function verdictAppel() {
+    const texte = [appel.texte, PHRASE_QUI[appel.qui], PHRASE_DEMANDE[appel.demande],
+        appel.capture ? `Message reçu pendant l'appel : ${appel.capture}` : ""].filter(Boolean).join("\n")
+    const ctx = { expediteur: "", canal: "appel", repondre: "oui",
+        premier: appel.qui === "proche" ? "non" : appel.qui === "inconnu" || appel.qui === "agent" ? "oui" : "" }
+    const r = kora.analyserComplet(texte, ctx)
+    dernier = { texte, original: `Appel : ${appel.texte}`, ctx, r, niveau1: r.niveau }
+    noterHisto(`📞 ${appel.texte}`, r)
+    appel = null
+    reponseVocale = true
+    const intro = r.niveau === "arnaque" ? "Cet appel ressemble à une arnaque." : r.niveau === "suspect" ? "Cet appel est suspect." : "Je ne vois pas de signe d'arnaque dans cet appel."
+    const corps = await nouveauTour([intro, ...phrasesCarte(r), ...PUCES_SUITE.map(([l]) => l)])
+    dire(corps, intro)
+    carteVerdict(corps, r, { maj: true })
+    etat(ETATS[r.niveau], r.niveau)
+    piloter({ emotion: r.emotion, bulle: BULLES[r.niveau], gratter: r.niveau === "sur" })
+    await pause(300)
+    suite(corps)
 }
 
 /* ================= menu, feuilles et paramètres (structure reprise de Dan) ================= */

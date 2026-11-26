@@ -4,6 +4,25 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.9] — 2026-11-26
+
+### KORA suit un appel
+- **La bulle propose deux choix** quand on la touche : « Capture de l'écran » (comme avant) ou **« Suivre un appel »**. Le choix « Suivre un appel » est aussi dans le menu de la mascotte.
+- **Pendant l'appel**, on le met en haut-parleur et on garde KORA ouvert. KORA écoute avec le micro du téléphone, sans annulation d'écho, qui effacerait la voix de l'autre personne. Il affiche la durée et le volume, et rappelle de mettre le haut-parleur s'il ne l'est pas.
+- **À la fin de l'appel, KORA s'arrête tout seul** : l'appli voit quand l'appel (téléphone ou WhatsApp) se termine. On peut aussi toucher « L'appel est fini ».
+- **Transcription** par le service en ligne : route `/transcrire_appel`, sur processeur, environ 0,7 fois la durée de l'appel, 4 minutes au plus.
+  - En français : `openai/whisper-small`.
+  - En fon : `Professor/mms-300m-fongbe` puis traduction.
+  - L'appel est envoyé en WAV 8 kHz μ-law, la qualité d'une ligne téléphonique : environ 1,4 Mo pour 3 minutes.
+- **Questions de contexte** :
+  - qui a appelé (numéro inconnu, quelqu'un qui se dit agent, un proche) ;
+  - ce qui a été demandé (code ou PIN, argent, renvoyer un dépôt, lien ou appli) ;
+  - si un SMS est arrivé pendant l'appel, avec sa capture, lue dans le téléphone.
+- **Verdict** : KORA-lite analyse la transcription et les réponses, avec les règles propres aux appels (« un opérateur ne t'appelle jamais pour te demander un code »). KORA pose ses questions et dit son verdict à voix haute.
+- **Si KORA n'entend rien** (certains téléphones coupent le micro des autres applis pendant un appel), il demande de raconter l'appel, à l'écrit ou au micro, puis pose les mêmes questions.
+- **Testé dans un navigateur**, avec un faux micro qui joue un faux appel de « l'agent MTN » (22 s, voix de synthèse) : transcription en 18 s, puis « Arnaque probable · 100 % ». Le cas silencieux est testé aussi.
+- **Pas encore essayé sur un vrai téléphone pendant un vrai appel.** KORA-lite a été entraîné sur des SMS : sur des transcriptions d'appels, il s'appuie surtout sur les mots-clés et sur les réponses aux questions.
+
 ## [1.0.8] — 2026-11-26
 
 ### Barre de message

@@ -1,7 +1,9 @@
 package bj.kora.lite;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -79,6 +81,20 @@ public class VoixKoraPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("parole", voixPrete);
         r.put("ecoute", SpeechRecognizer.isRecognitionAvailable(getContext()));
+        call.resolve(r);
+    }
+
+    // ------------------------------------------------------------------ appel en cours ?
+    /** { enCours, haut } : un appel (téléphone ou WhatsApp) est-il en cours, et le haut-parleur est-il mis ?
+     *  Sert à KORA pour savoir quand l'appel qu'il suit est fini. Aucune autorisation nécessaire. */
+    @PluginMethod
+    public void etatAppel(PluginCall call) {
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        int mode = am.getMode();
+        JSObject r = new JSObject();
+        r.put("enCours", mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION
+                || mode == AudioManager.MODE_RINGTONE || mode == AudioManager.MODE_CALL_SCREENING);
+        r.put("haut", am.isSpeakerphoneOn());
         call.resolve(r);
     }
 

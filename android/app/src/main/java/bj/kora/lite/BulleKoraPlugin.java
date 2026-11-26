@@ -35,7 +35,8 @@ import java.io.OutputStream;
  *   puis lance la bulle flottante (BulleService) ;
  * - arreter(), etat() ;
  * - évènements envoyés à la page : « capture » (image prise par la bulle ou partagée depuis une
- *   autre appli) et « texte » (texte partagé depuis une autre appli).
+ *   autre appli), « texte » (texte partagé depuis une autre appli) et « appel » (« Suivre un appel »
+ *   choisi sur la bulle).
  */
 @CapacitorPlugin(
         name = "BulleKora",
@@ -44,6 +45,7 @@ import java.io.OutputStream;
 public class BulleKoraPlugin extends Plugin {
 
     static final String EXTRA_CAPTURE = "bj.kora.lite.CAPTURE";
+    static final String EXTRA_APPEL = "bj.kora.lite.APPEL";
 
     @Override
     public void load() {
@@ -72,6 +74,11 @@ public class BulleKoraPlugin extends Plugin {
     // ------------------------------------------------------------------ ce qui arrive dans l'appli
     private void traiterIntent(Intent intent) {
         if (intent == null) return;
+        if (intent.getBooleanExtra(EXTRA_APPEL, false)) {
+            intent.removeExtra(EXTRA_APPEL);
+            notifyListeners("appel", new JSObject(), true);
+            return;
+        }
         String chemin = intent.getStringExtra(EXTRA_CAPTURE);
         if (chemin != null) {
             intent.removeExtra(EXTRA_CAPTURE);
