@@ -1,6 +1,6 @@
 {
   "name": "kora-lite",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "private": true,
   "description": "KORA-lite : le bouclier anti-arnaque Mobile Money (appli web + appli Android Capacitor)",
   "scripts": {

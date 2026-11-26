@@ -59,9 +59,20 @@ function mascotteChargee() {
 }
 mascotte.addEventListener("load", mascotteChargee)
 try { if (mascotte.contentDocument?.readyState === "complete" && mascotte.contentWindow.location.href !== "about:blank") mascotteChargee() } catch (_) {}
+function mascotteRendue() { mascotte.classList.add("pret"); mascotteChargee() } // l'image d'attente s'efface
 addEventListener("message", (e) => {
-    if (e.source === mascotte.contentWindow && e.data?.korachoupi === "pret") { mascotte.classList.add("pret"); mascotteChargee() }
+    if (e.source === mascotte.contentWindow && e.data?.korachoupi === "pret") mascotteRendue()
 })
+// Le message « pret » peut partir avant que ce script l'écoute : on regarde aussi directement si la 3D
+// est affichée (même origine), et au bout de 15 s on retire l'image d'attente quoi qu'il arrive.
+{
+    const debutAttente = Date.now()
+    const verifierRendu = setInterval(() => {
+        let rendu = false
+        try { rendu = !!mascotte.contentWindow?.__rendu } catch (_) {}
+        if (rendu || Date.now() - debutAttente > 15000) { clearInterval(verifierRendu); mascotteRendue() }
+    }, 250)
+}
 function envoyerMascotte(message) {
     if (!mascottePrete) { messageEnAttente = message; return }
     try { mascotte.contentWindow.postMessage({ kora: message }, "*") } catch (_) {}

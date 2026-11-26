@@ -4,6 +4,11 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.12] — 2026-11-26
+
+### Korachoupi en double
+- **Bug corrigé** : l'image d'attente de Korachoupi (ajoutée en 1.0.7) restait affichée sous la mascotte 3D, et on voyait deux Korachoupi superposés. Korachoupi envoie un signal « prêt » à son premier rendu, mais ce signal pouvait partir avant que la page l'écoute. La page vérifie maintenant elle-même si la 3D est affichée, et retire l'image d'attente au plus tard après 15 s.
+
 ## [1.0.11] — 2026-11-26
 
 ### Discuter n'est plus analyser
