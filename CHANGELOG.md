@@ -4,6 +4,11 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.6] — 2026-11-26
+
+### Accueil allégé
+- Retrait des rubriques « Tes dernières vérifications » et « Ou essaie un exemple » de la page d'accueil. L'historique reste dans le menu (Historique), et les exemples d'arnaques dans « Arnaques courantes ».
+
 ## [1.0.5] — 2026-11-25
 
 ### Mises à jour automatiques

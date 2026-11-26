@@ -467,7 +467,7 @@ function afficherHisto() {
     }
 }
 $("fermer-histo").addEventListener("click", () => fermerFeuille($("voile-histo")))
-$("vider-histo").addEventListener("click", () => { memoire(CLE_HISTO, "[]"); afficherHisto(); majReprendre(); toast("Historique effacé") })
+$("vider-histo").addEventListener("click", () => { memoire(CLE_HISTO, "[]"); afficherHisto(); toast("Historique effacé") })
 
 function reflechir(corps) {
     const t = el("div", "tape")
@@ -580,7 +580,6 @@ async function analyserMessage(texte, { deja = false, original = null } = {}) {
     const r = kora.analyserComplet(texte, ctx)
     dernier = { texte, original, ctx, r, niveau1: r.niveau }
     noterHisto(original || texte, r)
-    majReprendre()
     const question = r.niveau === "sur" ? PH.qExpediteurSur : PH.qExpediteur
     await suivi.jusquauBout(modeFon() ? 160 : 230)
     // en mode fon, on traduit tout le tour d'un seul coup avant de répondre
@@ -876,15 +875,6 @@ async function urgenceDirecte() {
     for (const e of ETAPES_URGENCE) { const li = el("li"); bilingue(li, e); ol.append(li) }
     corps.append(ol)
     defiler()
-}
-
-// exemples
-for (const [titre, texte] of EXEMPLES) {
-    const b = el("button")
-    b.type = "button"
-    b.innerHTML = `<b>${echapper(titre)}</b><span>${echapper(texte)}</span>`
-    b.addEventListener("click", async () => { await pret; if (kora) analyserMessage(texte) })
-    $("suggestions").append(b)
 }
 
 // nouvelle conversation
@@ -1187,7 +1177,6 @@ function sauverReglages() { memoire(CLE_REGLAGES, JSON.stringify(reglages)) }
 function appliquerReglages() {
     document.body.classList.toggle("grand", reglages.grand)
     document.body.classList.toggle("calme", reglages.calme)
-    majReprendre()
 }
 let finToast = 0
 function toast(texte) {
@@ -1307,23 +1296,6 @@ $("r-effacer").addEventListener("click", (e) => {
     toast("Tes données sont effacées")
 })
 
-// accueil : reprendre là où tu en étais
-function majReprendre() {
-    const liste = reglages.histo ? lireHisto().slice(0, 2) : []
-    $("reprendre").hidden = !liste.length
-    const ol = $("reprendre-liste")
-    ol.innerHTML = ""
-    for (const h of liste) {
-        const li = el("li")
-        li.tabIndex = 0
-        li.setAttribute("role", "button")
-        li.innerHTML = `<span class="statut" style="--c:${COULEURS[h.niveau]}">${STATUTS[h.niveau]} · ${h.pct} %</span><q>${echapper(h.extrait)}</q>`
-        const relancer = async () => { await pret; if (kora) analyserMessage(h.extrait) }
-        li.addEventListener("click", relancer)
-        li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); relancer() } })
-        ol.append(li)
-    }
-}
 // le conseil du jour
 const CONSEILS = [
     ["Aucun agent ne te demandera ton code.", "Ni MTN, ni Moov, ni Celtiis. Un code secret ne se donne jamais, même à quelqu'un qui connaît ton nom."],
