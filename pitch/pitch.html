@@ -269,6 +269,26 @@ h2 { font-size: 150px; }
 .rep-rouge { background: var(--rouge); } .rep-vert { background: var(--vert); }
 .rep-titre { font: 900 38px/1.1 var(--titre); text-transform: uppercase; letter-spacing: -.02em; margin: 20px 0 6px; }
 .sms-carte .txt { font-size: 28px; }
+
+/* Business Model Canvas */
+.bmc { display: grid; width: 100%; gap: 12px; grid-template-columns: 1fr 1fr 1.05fr 1fr 1fr; grid-template-rows: 1fr 1fr 196px;
+  grid-template-areas: "part act val rel cli" "part res val can cli" "cout cout rev rev rev"; flex: 1; min-height: 0; margin-top: 12px; }
+.bmc > div { border-radius: 24px; padding: 16px 22px; border: 2px solid #D9D6EA; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.bmc h3 { display: flex; align-items: center; gap: 12px; font: 900 22px/1.05 var(--titre); text-transform: uppercase; letter-spacing: -.01em; }
+.bmc h3 i { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--violet); color: #fff; display: grid; place-items: center; font: 900 22px var(--titre); font-style: normal; }
+.bmc ul { list-style: none; display: grid; gap: 6px; }
+.bmc li { position: relative; padding-left: 18px; font: 500 21px/1.22 var(--texte); }
+.bmc li::before { content: ""; position: absolute; left: 0; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--violet); }
+.bmc .b-part { grid-area: part; background: #E7EEFA; } .bmc .b-act { grid-area: act; background: #fff; } .bmc .b-res { grid-area: res; background: #ECE7F8; }
+.bmc .b-val { grid-area: val; background: #ECE7F8; border-color: var(--violet); box-shadow: inset 0 0 0 3px var(--violet); } .bmc .b-rel { grid-area: rel; background: #fff; }
+.bmc .b-can { grid-area: can; background: #E7EEFA; } .bmc .b-cli { grid-area: cli; background: #E7EEFA; }
+.bmc .b-cout { grid-area: cout; background: #14213D; color: #fff; border-color: #14213D; } .bmc .b-rev { grid-area: rev; background: #1F3059; color: #fff; border-color: #1F3059; }
+.bmc .b-cout li::before, .bmc .b-rev li::before { background: var(--orange); } .bmc .b-cout h3 i, .bmc .b-rev h3 i { background: var(--orange); color: #2A1300; }
+.bmc .b-val li { font-weight: 700; }
+.bmc-titre { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.bmc-titre h2 { font: 900 56px/1 var(--titre); text-transform: uppercase; letter-spacing: -.03em; }
+.bmc-titre h2 span { color: var(--violet); }
+.bmc-pastille { font: 900 22px var(--titre); text-transform: uppercase; background: var(--violet); color: #fff; border-radius: 999px; padding: 10px 26px; }
 </style>
 </head>
 <body>
@@ -292,7 +312,7 @@ h2 { font-size: 150px; }
         <div class="txt">CeltiisCash V5ous avez recu un depot de 67.000,00F de <span class="lien">229014487••••</span> CHALE_A••• B••• ce 13/11/2026 Votre solde 67.000,00F.REF: DF888YGwEQ4. Merci</div></div>
     </div>
   </div>
-  <div class="pied"><span>Dix secondes. Levez la main pour A, B ou C.</span><span>00</span></div>
+  <div class="pied"><span>Dix secondes. Levez la main pour A, B ou C.</span><span>01</span></div>
 </section>
 
 <!-- 0b · la réponse -->
@@ -306,7 +326,7 @@ h2 { font-size: 150px; }
       <div class="sms-carte a z" style="--d:.75s"><span class="lettre">C</span><div style="margin-top:26px"><span class="rep-badge rep-rouge">Arnaque</span></div><p class="rep-titre">Faux dépôt</p><div class="txt">Il imite un SMS de dépôt, mais vient d'un numéro ordinaire : les vrais viennent d'un expéditeur nommé.</div></div>
     </div>
   </div>
-  <div class="pied"><span>KORA pose ses questions : qui l'a envoyé ? peut-on y répondre ?</span><span>01</span></div>
+  <div class="pied"><span>KORA pose ses questions : qui l'a envoyé ? peut-on y répondre ?</span><span>02</span></div>
 </section>
 
 <!-- 2 · problème -->
@@ -329,7 +349,7 @@ h2 { font-size: 150px; }
     </div>
   </div>
   <p class="source">Sources : ARCEP Bénin 2025 · CNIN 2025 · Mobile Money Phone Scam Survey (Kaggle, Ngaoundéré) · reportages Africa 24 et France 24 sur les arnaques au Mobile Money</p>
-  <div class="pied"><span>KORA</span><span>02</span></div>
+  <div class="pied"><span>KORA</span><span>03</span></div>
 </section>
 
 <!-- 1 · titre : la réponse -->
@@ -343,7 +363,7 @@ h2 { font-size: 150px; }
     </div>
     <div class="slot-mascotte a z" style="--d:.3s"><div class="disque"></div></div>
   </div>
-  <div class="pied"><span>KORA · modèle KORA-lite 1.0.13</span><span>03</span></div>
+  <div class="pied"><span>KORA · modèle KORA-lite 1.0.13</span><span>04</span></div>
 </section>
 
 <!-- 3 · la boucle -->
@@ -361,7 +381,7 @@ h2 { font-size: 150px; }
       <div class="carte c-blanc a z" style="--d:1.1s;min-height:400px"><span class="num">04 · AVANT DE PAYER</span><h3 style="font-size:50px">Il alerte</h3><p>Verdict, raisons vérifiables, bon réflexe : ne jamais donner son code.</p></div>
     </div>
   </div>
-  <div class="pied"><span>Chaque étape nourrit la suivante : l'appel, le SMS reçu pendant l'appel et tes réponses sont analysés ensemble</span><span>04</span></div>
+  <div class="pied"><span>Chaque étape nourrit la suivante : l'appel, le SMS reçu pendant l'appel et tes réponses sont analysés ensemble</span><span>05</span></div>
 </section>
 
 <!-- 4 · du côté de l'utilisateur -->
@@ -376,7 +396,7 @@ h2 { font-size: 150px; }
         <ul class="puces"><li>Indépendant : <b>Mobile Money, banques, applis de paiement, réseaux sociaux</b></li><li><b>La bulle</b> flotte sur toutes les applis : on lui partage l'écran ou l'appel d'un geste</li><li>Avant le paiement, au moment où l'arnaque se joue</li><li>Les messages sont analysés <b>dans le téléphone</b></li></ul></div>
     </div>
   </div>
-  <div class="pied"><span>KORA</span><span>05</span></div>
+  <div class="pied"><span>KORA</span><span>06</span></div>
 </section>
 
 <!-- 4 · démo -->
@@ -396,7 +416,7 @@ h2 { font-size: 150px; }
       <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline controls></video>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>06</span></div>
+  <div class="pied"><span>KORA-lite</span><span>07</span></div>
 </section>
 
 <!-- 5 · comment ça marche -->
@@ -412,7 +432,7 @@ h2 { font-size: 150px; }
       <div class="carte c-rouge a z" style="--d:1s"><span class="num">03 · VERDICT</span><h3>Écrit et<br>à voix haute</h3><p>Risque, raisons et bon réflexe, en français ou en fon. KORA n'invente jamais une raison.</p></div>
     </div>
   </div>
-  <div class="pied"><span>En préparation sur GPU : KORA AfroXLMR et notre oreille fon (référence mesurée : 54 % d'erreurs par mot)</span><span>07</span></div>
+  <div class="pied"><span>En préparation sur GPU : KORA AfroXLMR et notre oreille fon (référence mesurée : 54 % d'erreurs par mot)</span><span>08</span></div>
 </section>
 
 <!-- 6 · résultats -->
@@ -436,7 +456,7 @@ h2 { font-size: 150px; }
     </div>
   </div>
   <p class="source">Référence : règles seules (au moins un signal). Seuil de risque 50 %. Vrais messages : stop-arnaque-237 (CC-BY-4.0), validation croisée groupée à 5 plis, sans fuite. Détails : resultats/kora_lite_validation_croisee.json et comparaison_sources.json.</p>
-  <div class="pied"><span>KORA-lite</span><span>08</span></div>
+  <div class="pied"><span>KORA-lite</span><span>09</span></div>
 </section>
 
 <!-- 8 · données et reproductibilité -->
@@ -471,7 +491,7 @@ python -m pytest tests/</div>
     </div>
   </div>
   <p class="source">Découpage sans fuite (par formulation et par voix) · même résultat dans l'application et en Python sur 624 messages · version unique signée 1.0.12</p>
-  <div class="pied"><span>KORA</span><span>09</span></div>
+  <div class="pied"><span>KORA</span><span>10</span></div>
 </section>
 
 <!-- 9 · modèle économique -->
@@ -488,7 +508,7 @@ python -m pytest tests/</div>
     </div>
     <div class="pastilles a" style="--d:1.2s"><span>Licence annuelle</span><span>Frais d'intégration</span><span>Partenariats de prévention</span></div>
   </div>
-  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>10</span></div>
+  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>11</span></div>
 </section>
 
 <!-- 10 · faisabilité du pilote -->
@@ -513,7 +533,28 @@ python -m pytest tests/</div>
         <li>Objectif : au moins 85 % des arnaques signalées et au plus 5 % de fausses alertes sur des SMS béninois</li></ul></div>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>11</span></div>
+  <div class="pied"><span>KORA-lite</span><span>12</span></div>
+</section>
+
+<!-- 12 · business model canvas -->
+<section class="slide clair" data-notes="13 · LE BUSINESS MODEL CANVAS, EN UNE PAGE (20 s). Ne lisez pas les neuf cases : pointez trois choses. 1) La proposition de valeur, au centre : repérer les signes de fraude, alerter et guider, renforcer la confiance dans le Mobile Money. 2) Les clientèles : les PAYEURS sont les institutions (opérateurs, banques, microfinances, assurances) ; les UTILISATEURS (particuliers et commerçants) ont un accès gratuit. C&#x27;est le modèle B2B2C. 3) Les revenus, en bas : licences annuelles, frais d&#x27;intégration technique, partenariats et prestations de prévention. DITES CLAIREMENT : accès gratuit « envisagé », partenaires, tarifs et revenus à confirmer après le pilote, aucun accord signé à ce jour. Si on demande les chiffres : on n&#x27;en invente pas, le pilote sert à les établir.">
+  <div class="meta"><span>Le modèle économique · en une page</span><span class="critere">Faisabilité d'un pilote <b>20 pts</b></span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding-top:0">
+    <div class="bmc-titre a" style="--d:.05s"><h2>KORA · <span>Business Model Canvas</span></h2><span class="bmc-pastille">Modèle B2B2C</span></div>
+    <div class="bmc">
+      <div class="b-part a g" style="--d:0.2s"><h3><i>1</i>Partenaires clés</h3><ul><li>Opérateurs : MTN, Moov, Celtiis</li><li>Banques et microfinances</li><li>Incubateurs et experts cyber</li></ul></div>
+      <div class="b-act a g" style="--d:0.3s"><h3><i>2</i>Activités clés</h3><ul><li>Développer KORA</li><li>Analyser les messages</li><li>Tester et améliorer l'IA</li><li>Sensibiliser les utilisateurs</li></ul></div>
+      <div class="b-res a g" style="--d:0.4s"><h3><i>3</i>Ressources clés</h3><ul><li>Application et modèle IA</li><li>Données fiables</li><li>Équipe et infrastructure sécurisée</li></ul></div>
+      <div class="b-val a g" style="--d:0.5s"><h3><i>4</i>Proposition de valeur</h3><ul><li>Repérer les signes de fraude</li><li>Alerter et guider l'utilisateur</li><li>Renforcer la confiance Mobile Money</li></ul></div>
+      <div class="b-rel a g" style="--d:0.6s"><h3><i>5</i>Relation client</h3><ul><li>Assistance et support</li><li>Accompagnement des partenaires</li><li>Sensibilisation continue</li></ul></div>
+      <div class="b-can a g" style="--d:0.7s"><h3><i>6</i>Canaux</h3><ul><li>Application web</li><li>API / intégration partenaire</li><li>Campagnes de sensibilisation</li></ul></div>
+      <div class="b-cli a g" style="--d:0.8s"><h3><i>7</i>Clientèles</h3><ul><li>Payeurs : opérateurs, banques, microfinances, assurances</li><li>Utilisateurs : particuliers et commerçants</li></ul></div>
+      <div class="b-cout a g" style="--d:0.9s"><h3><i>8</i>Structure des coûts</h3><ul><li>Développement et maintenance</li><li>Hébergement et sécurité</li><li>Données, communication et assistance</li></ul></div>
+      <div class="b-rev a g" style="--d:1.0s"><h3><i>9</i>Sources de revenus</h3><ul><li>Licences annuelles pour les institutions</li><li>Frais d'intégration technique</li><li>Partenariats et prestations de prévention</li></ul></div>
+    </div>
+  </div>
+  <p class="source">Accès gratuit envisagé pour les utilisateurs finaux. Partenaires, tarifs et revenus à confirmer après le pilote : aucun accord n'est signé à ce jour.</p>
+  <div class="pied"><span>KORA</span><span>13</span></div>
 </section>
 
 <!-- 11 · merci -->
@@ -531,7 +572,7 @@ python -m pytest tests/</div>
       <figure class="a z" style="--d:.75s"><img src="equipe/satignon.png" alt="Fresnel SATIGNON" style="object-position:50% 25%"><figcaption><b>Fresnel SATIGNON</b><span>Ingénierie logicielle</span></figcaption></figure>
     </div>
   </div>
-  <div class="pied"><span>Essayez KORA sur votre téléphone</span><span>12</span></div>
+  <div class="pied"><span>Essayez KORA sur votre téléphone</span><span>14</span></div>
 </section>
 </main>
 
