@@ -4,6 +4,19 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.11] — 2026-11-26
+
+### Discuter n'est plus analyser
+- **Avant**, tout message tapé qui n'était ni une salutation ni une question partait en analyse : « merci » ou « je veux acheter un téléphone » recevaient un verdict d'arnaque.
+- **Maintenant, dans le chat, KORA discute.** Les petites phrases (« merci », « ça va ? », « qui es-tu ? », « ok ») ont une réponse immédiate, même sans internet ; le reste va à l'assistant.
+- **L'analyse se fait** :
+  - sur une **capture** (bulle, bouton ou partage d'image) ;
+  - sur un **appel suivi** ;
+  - quand on la demande : « Vérifier un message » ou « Écrire ou coller ». La barre affiche alors « Colle le message à vérifier… » et le message suivant est analysé ;
+  - quand on partage un texte vers KORA depuis une autre appli, et pour les exemples d'arnaques.
+- **Un SMS collé dans le chat** (montant, lien, « vous avez reçu »…) n'est plus analysé d'office : KORA demande « Tu veux que je le vérifie ? », avec deux boutons : « Oui, vérifie-le » ou « Non, on discute ».
+- Le texte d'aide de la barre devient « Écris à KORA… ».
+
 ## [1.0.10] — 2026-11-26
 
 ### La voix française marche partout

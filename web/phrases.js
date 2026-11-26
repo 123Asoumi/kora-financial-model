@@ -17,7 +17,7 @@ export const PH = {
     urgence: "Pas de panique, on agit vite :",
     aucun: "Je n'ai trouvé aucun signe d'arnaque : pas de demande de code, pas d'argent à renvoyer, pas de lien piégé. Reste prudent quand même.",
     merci: "Avec plaisir. Souviens-toi : ton code secret, c'est la clé de ta maison. Tu ne le donnes à personne. Envoie-moi un autre message quand tu veux.",
-    salut: "Bonjour ! Colle-moi le message qui te paraît louche (SMS, WhatsApp ou capture d'écran). Je te dis si c'est une arnaque.",
+    salut: "Bonjour ! On peut discuter. Et si un message, une capture ou un appel te paraît louche, je te dis si c'est une arnaque.",
     fonActif: "Je vois que tu écris en fon : je te réponds en fon.",
     pasCompris: "Je n'ai pas bien compris. Touche une des réponses ci-dessous, ou écris-la autrement.",
 }

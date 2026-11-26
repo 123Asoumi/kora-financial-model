@@ -346,7 +346,7 @@ function majLangue() {
     $("langue-txt").textContent = modeFon() ? "FON" : "FR"
     $("langue").setAttribute("aria-pressed", String(modeFon()))
     $("langue").title = modeFon() ? "Écrire en français" : "Écrire en fon"
-    saisie.placeholder = modeFon() ? "Message en fon…" : "Message reçu…"
+    saisie.placeholder = modeVerif ? "Colle le message à vérifier…" : modeFon() ? "Écris en fon…" : "Écris à KORA…"
     $("clavier-fon").hidden = !modeFon()
 }
 
@@ -842,10 +842,55 @@ async function envoyer(brut, { vocal = false, fr: frVocal = null } = {}) {
         piloter({ emotion: "joyeux", bulle: "Bonjour !" })
         return
     }
-    // 4. une question posée à KORA : l'assistant répond librement
-    if (SPACE_FON && estQuestion(fr)) { moi(); return converser(fr) }
-    // 5. sinon, c'est un message reçu à vérifier
-    analyserMessage(fr, { deja: affiche, original: affiche ? texte : null })
+    // 4. un message à vérifier : seulement quand on l'a demandé (« Vérifier un message », « Écrire ou coller »)
+    if (modeVerif) { activerVerif(false); return analyserMessage(fr, { deja: affiche, original: affiche ? texte : null }) }
+    // 5. un SMS collé tel quel (montant, lien, « vous avez reçu »…) : KORA propose de le vérifier, sans l'imposer
+    if (ressembleMessageRecu(fr)) { moi(); return proposerVerif(fr, affiche ? texte : null) }
+    // 6. sinon, on discute : l'analyse se fait sur une capture, un appel suivi, ou quand on la demande
+    moi()
+    return discuter(fr)
+}
+
+/* ================= discuter ou vérifier ================= */
+let modeVerif = false // le prochain message tapé sera vérifié
+function activerVerif(oui = true) {
+    modeVerif = oui
+    saisie.placeholder = oui ? "Colle le message à vérifier…" : modeFon() ? "Écris en fon…" : "Écris à KORA…"
+    if (oui) saisie.focus()
+}
+function ressembleMessageRecu(fr) {
+    return RESSEMBLE_SMS.test(fr) || (fr.length > 140 && /\b(code|pin|compte|transfert|retrait|d[ée]p[ôo]t|solde|fcfa)\b/i.test(fr))
+}
+async function proposerVerif(fr, original) {
+    const q = "On dirait un message que tu as reçu. Tu veux que je le vérifie ?"
+    const choix = [["Oui, vérifie-le", "oui"], ["Non, on discute", "non"]]
+    const corps = await nouveauTour([q, ...choix.map(([l]) => l)])
+    dire(corps, q)
+    puces(corps, choix, (v, affiche) => {
+        msgMoi(affiche)
+        if (v === "oui") analyserMessage(fr, { deja: true, original })
+        else discuter(fr)
+    })
+}
+// les petites phrases de tous les jours : réponse tout de suite, même sans internet
+const PETITES_PHRASES = [
+    [/^(merci|mrc|thanks|thank you)\b/i, "Avec plaisir ! Je reste là si tu as un message, une capture ou un appel à vérifier."],
+    [/(?:^|[\s,.!?])(ça va|ca va|cv|comment (tu )?vas|comment allez)(?=$|[\s,.!?])/i, "Ça va bien, merci ! Et toi ? Si quelque chose te paraît louche (un SMS, un appel, un message WhatsApp), montre-le-moi."],
+    [/\b(qui es[- ]tu|tu es qui|t'es qui|c'est quoi kora|tu sers à quoi|que sais[- ]tu faire)\b/i, "Je suis KORA, ton assistant contre les arnaques Mobile Money. Envoie-moi une capture d'écran, suis un appel avec moi, ou touche « Vérifier un message » : je te dis si c'est une arnaque et quoi faire."],
+    [/^(ok|okay|d'accord|dac|super|cool|top|parfait|bien)\b[ !.]*$/i, "Parfait ! Je suis là si tu as besoin de vérifier quelque chose."],
+]
+async function discuter(fr) {
+    const petite = fr.length < 60 && PETITES_PHRASES.find(([rx]) => rx.test(fr.trim()))
+    if (petite) {
+        const corps = await nouveauTour([petite[1]])
+        dire(corps, petite[1])
+        piloter({ emotion: "joyeux", bulle: "" })
+        return
+    }
+    if (SPACE_FON) return converser(fr)
+    const r = "Je peux surtout vérifier des messages. Envoie-moi une capture, ou touche « Vérifier un message » puis colle le texte."
+    const corps = await nouveauTour([r])
+    dire(corps, r)
 }
 
 function ajusterSaisie() {
@@ -867,7 +912,7 @@ const IC = {
     question: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.3-2.5 4M12 17.2v.3"/></svg>',
 }
 const IDEES = [
-    ["sms", "Vérifier un message", "Colle le SMS ou le message WhatsApp", () => { saisie.focus() }],
+    ["sms", "Vérifier un message", "Colle le SMS ou le message WhatsApp", () => { if (!document.body.classList.contains("s-chat")) entrerDiscussion(); activerVerif() }],
     ["capture", "Envoyer une capture", "KORA lit le texte de l'image", () => $("fichier").click()],
     ["urgence", "J'ai déjà payé", "Les gestes à faire tout de suite", () => urgenceDirecte()],
     ["question", "Reconnaître un faux agent", "Les signes qui ne trompent pas", () => envoyer("Comment reconnaître un faux agent Mobile Money ?")],
@@ -1114,7 +1159,7 @@ function marquerMicro(actif, aide = "") {
     ecouteEnCours = actif
     $("micro").classList.toggle("ecoute", actif)
     $("micro").setAttribute("aria-label", actif ? "Arrêter l'écoute" : "Parler à KORA")
-    saisie.placeholder = actif ? aide : (modeFon() ? "Message en fon…" : "Message reçu…")
+    saisie.placeholder = actif ? aide : modeVerif ? "Colle le message à vérifier…" : modeFon() ? "Écris en fon…" : "Écris à KORA…"
     if (actif) piloter({ emotion: "surpris", bulle: "" })
 }
 function erreurMicro(e) {
@@ -1406,6 +1451,7 @@ const ALLER = {
     accueil: () => { fil.scrollTo({ top: 0, behavior: calme() ? "auto" : "smooth" }); majNav("accueil") },
     nouveau: () => { $("nouveau").click(); saisie.focus() },
     discussion: () => saisie.focus(),
+    verifier: () => activerVerif(),
     historique: () => { afficherHisto(); ouvrirFeuille($("voile-histo")) },
     arnaques: () => ouvrirFeuille($("voile-arnaques")),
     reglages: () => { remplirReglages(); ouvrirFeuille($("voile-reglages")) },
