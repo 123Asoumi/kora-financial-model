@@ -9,6 +9,8 @@ Deux routes, utilisées par l'application KORA (https://kora-0-01.vercel.app) :
     français → fon : nellaw/nllb-fongbe-french-translation (affiné uniquement dans ce sens)
     fon → français : facebook/nllb-200-distilled-1.3B (le modèle de nellaw ne sait pas faire ce sens)
 - /parler (texte fon) : la voix de KORA en fon (facebook/mms-tts-fon), sur processeur.
+- /parler_fr (texte) : une voix française de secours (facebook/mms-tts-fra), sur processeur, pour les
+    téléphones qui n'ont pas de voix française installée.
 - /ecouter (vocal) : un vocal en fon devient du texte fon et sa traduction française
     (Professor/mms-300m-fongbe, sur processeur ; mesuré à 54 % d'erreurs par mot sur J'aime Ma Langue).
 - /transcrire_appel (enregistrement, langue) : un appel suivi par KORA (haut-parleur, micro du téléphone)
@@ -64,6 +66,8 @@ NOM_VERS_FR, TOK_VERS_FR, MODELE_VERS_FR = charger_traducteur(
 # La voix et l'oreille fon : petites, sur processeur (pas de quota GPU)
 VOIX_TOK = AutoTokenizer.from_pretrained("facebook/mms-tts-fon")
 VOIX = VitsModel.from_pretrained("facebook/mms-tts-fon").eval()
+VOIX_FR_TOK = AutoTokenizer.from_pretrained("facebook/mms-tts-fra")
+VOIX_FR = VitsModel.from_pretrained("facebook/mms-tts-fra").eval()
 OREILLE = pipeline("automatic-speech-recognition", model="Professor/mms-300m-fongbe", device=-1, chunk_length_s=20)
 # l'oreille française, pour les appels (processeur)
 NOM_WHISPER = os.environ.get("KORA_WHISPER", "openai/whisper-small")
@@ -127,6 +131,22 @@ def parler(texte_fon):
         if len(CACHE_VOIX) > 500:
             CACHE_VOIX.popitem(last=False)
     return CACHE_VOIX[texte_fon]
+
+
+def parler_fr(texte):
+    """Texte français -> voix (taux d'échantillonnage, signal) : la voix de secours de KORA en français."""
+    texte = _propre(texte).lower()[:600]  # comme la voix fon, ce modèle n'a pas de majuscules
+    if not texte:
+        return None
+    cle = ("fr", texte)
+    if cle not in CACHE_VOIX:
+        enc = VOIX_FR_TOK(texte, return_tensors="pt")
+        with torch.inference_mode():
+            signal = VOIX_FR(**enc).waveform[0].numpy()
+        CACHE_VOIX[cle] = (VOIX_FR.config.sampling_rate, signal)
+        if len(CACHE_VOIX) > 500:
+            CACHE_VOIX.popitem(last=False)
+    return CACHE_VOIX[cle]
 
 
 def ecouter(audio):
@@ -212,6 +232,10 @@ with gr.Blocks(title="KORA — service fon et discussion") as demo:
         tp = gr.Textbox(label="Texte en fon", lines=2)
         ap = gr.Audio(label="Voix de KORA")
         gr.Button("Dire en fon", variant="primary").click(parler, tp, ap, api_name="parler", concurrency_limit=2)
+    with gr.Tab("Parler français"):
+        tpf = gr.Textbox(label="Texte en français", lines=2)
+        apf = gr.Audio(label="Voix de secours de KORA")
+        gr.Button("Dire en français", variant="primary").click(parler_fr, tpf, apf, api_name="parler_fr", concurrency_limit=2)
     with gr.Tab("Écouter fon"):
         ae = gr.Audio(type="filepath", sources=["microphone", "upload"], label="Vocal en fon")
         fe, fr_e = gr.Textbox(label="Transcription fon"), gr.Textbox(label="Traduction française")

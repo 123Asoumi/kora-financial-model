@@ -50,8 +50,18 @@ function memoire(cle, valeur) {
 let mascottePrete = false
 let messageEnAttente = null
 const bulles = creerBulles($("perso-bulle"))  // bulles de texte : voir bulles.js (désactivées pour l'instant)
-mascotte.addEventListener("load", () => { mascottePrete = true; if (messageEnAttente) envoyerMascotte(messageEnAttente) })
-addEventListener("message", (e) => { if (e.source === mascotte.contentWindow && e.data?.korachoupi === "pret") mascotte.classList.add("pret") })
+// Korachoupi peut avoir fini de charger AVANT ce script (il se charge vite depuis la 1.0.7) : on vérifie
+// tout de suite, puis à l'évènement « load », puis à son message « pret » (premier rendu 3D).
+function mascotteChargee() {
+    if (mascottePrete) return
+    mascottePrete = true
+    if (messageEnAttente) { const m = messageEnAttente; messageEnAttente = null; envoyerMascotte(m) }
+}
+mascotte.addEventListener("load", mascotteChargee)
+try { if (mascotte.contentDocument?.readyState === "complete" && mascotte.contentWindow.location.href !== "about:blank") mascotteChargee() } catch (_) {}
+addEventListener("message", (e) => {
+    if (e.source === mascotte.contentWindow && e.data?.korachoupi === "pret") { mascotte.classList.add("pret"); mascotteChargee() }
+})
 function envoyerMascotte(message) {
     if (!mascottePrete) { messageEnAttente = message; return }
     try { mascotte.contentWindow.postMessage({ kora: message }, "*") } catch (_) {}
@@ -1345,12 +1355,13 @@ async function verdictAppel() {
 
 /* ================= menu, feuilles et paramètres (structure reprise de Dan) ================= */
 const CLE_REGLAGES = "kora-reglages"
-const REGLAGES_DEFAUT = { grand: false, calme: false, histo: true, voix: false }
+const REGLAGES_DEFAUT = { grand: false, calme: false, histo: true, voix: false, prenom: "" }
 const reglages = (() => { try { return { ...REGLAGES_DEFAUT, ...JSON.parse(memoire(CLE_REGLAGES) || "{}") } } catch (_) { return { ...REGLAGES_DEFAUT } } })()
 function sauverReglages() { memoire(CLE_REGLAGES, JSON.stringify(reglages)) }
 function appliquerReglages() {
     document.body.classList.toggle("grand", reglages.grand)
     document.body.classList.toggle("calme", reglages.calme)
+    majSalut()
 }
 let finToast = 0
 function toast(texte) {
@@ -1432,6 +1443,7 @@ function remplirReglages() {
     $("r-grand").checked = reglages.grand
     $("r-calme").checked = reglages.calme
     $("r-voix").checked = reglages.voix
+    $("r-prenom").value = reglages.prenom || ""
     $("r-histo").checked = reglages.histo
     if (estAppli) etatBulle().then((e) => { $("r-bulle").checked = e.active })
     $("r-effacer").textContent = "Effacer mes données"
@@ -1443,6 +1455,19 @@ document.querySelectorAll('input[name="r-langue"]').forEach((r) => r.addEventLis
 }))
 $("r-grand").addEventListener("change", (e) => { reglages.grand = e.target.checked; sauverReglages(); appliquerReglages(); toast(reglages.grand ? "Texte agrandi" : "Taille normale") })
 $("r-calme").addEventListener("change", (e) => { reglages.calme = e.target.checked; sauverReglages(); appliquerReglages(); toast(reglages.calme ? "Animations réduites" : "Animations activées") })
+// repris de Dan : KORA t'accueille par ton prénom (gardé sur le téléphone)
+function majSalut() {
+    const p = (reglages.prenom || "").trim()
+    const h = new Date().getHours()
+    $("salut").innerHTML = `${h >= 18 || h < 4 ? "Bonsoir" : "Bonjour"}${p ? `, <em>${echapper(p)}</em>` : ""} 👋`
+}
+$("r-prenom").addEventListener("change", (e) => {
+    reglages.prenom = e.target.value.trim().slice(0, 24)
+    sauverReglages()
+    majSalut()
+    toast(reglages.prenom ? `Enchanté, ${reglages.prenom} !` : "Prénom effacé")
+})
+$("nav-revoir").addEventListener("click", () => revoirOnboarding())
 $("r-voix").addEventListener("change", (e) => {
     reglages.voix = e.target.checked
     sauverReglages()

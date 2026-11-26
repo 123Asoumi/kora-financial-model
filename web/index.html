@@ -569,6 +569,7 @@
 
   <main class="fil" id="fil" aria-live="polite" aria-label="Discussion avec KORA">
     <div class="accueil" id="accueil">
+      <p class="salut" id="salut">Bonjour 👋</p>
       <section class="hero" aria-label="Vérifier un message">
         <h1>Un message te paraît louche ?</h1>
         <p>Envoie-le à KORA : il te dit si c'est une arnaque Mobile Money, et quoi faire.</p>
@@ -610,11 +611,17 @@
 </div>
 
 <nav class="nav-bas" id="nav-bas" aria-label="Navigation principale">
+  <div class="nav-marque grand-ecran" aria-hidden="true">KORA<small>lite</small></div>
   <button type="button" data-nav="accueil" aria-current="page"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Accueil</button>
   <button type="button" data-nav="historique"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Historique</button>
-  <button type="button" class="fab" data-nav="nouveau" aria-label="Nouvelle vérification"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button type="button" class="fab" data-nav="nouveau" aria-label="Nouvelle vérification"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="grand-ecran">Nouvelle vérification</span></button>
   <button type="button" data-nav="arnaques"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>Arnaques</button>
   <button type="button" data-nav="reglages"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+  <div class="nav-aide grand-ecran">
+    <b>Un coup de main ?</b>
+    <p>KORA vérifie tes messages, tes captures et tes appels, et te dit quoi faire.</p>
+    <button type="button" id="nav-revoir">Revoir la présentation ↗</button>
+  </div>
 </nav>
 
 <div class="voile-tiroir" id="voile-tiroir" hidden></div>
@@ -654,6 +661,9 @@
       <h2 id="reglages-titre">Paramètres</h2>
       <button class="icone-btn" data-fermer type="button" aria-label="Fermer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
+    <h3>Profil</h3>
+    <label class="champ" for="r-prenom"><span>Ton prénom<small>KORA t'accueille par ton prénom. Il reste sur ce téléphone.</small></span>
+      <input type="text" id="r-prenom" maxlength="24" autocomplete="given-name" placeholder="Ex. : Augustino"></label>
     <h3>Langue</h3>
     <div class="choix" role="radiogroup" aria-label="Langue de KORA">
       <label><input type="radio" name="r-langue" value="fr"><span>Français</span></label>
@@ -732,7 +742,7 @@
       <button class="secondaire" id="installer" type="button" hidden>Installer l'appli</button>
       <a class="secondaire" id="telecharger" href="https://github.com/123Asoumi/kora-financial-model/releases/latest" target="_blank" rel="noopener">Télécharger l'appli Android</a>
     </div>
-    <p class="aide" id="version">KORA-lite version 1.0.9</p>
+    <p class="aide" id="version">KORA-lite version 1.0.10</p>
   </section>
 </div>
 

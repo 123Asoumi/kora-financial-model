@@ -4,6 +4,22 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.10] — 2026-11-26
+
+### La voix française marche partout
+- **Panne corrigée** : le bouton 🔊 ne disait rien sur certains téléphones. KORA essaie maintenant dans l'ordre :
+  1. la voix du téléphone. Le plugin attend que le moteur de voix soit prêt, et essaie les voix françaises de France, générique, du Canada et de Belgique ;
+  2. la voix française du navigateur, avec une pause après « couper », car Chrome se tait parfois sinon ;
+  3. sinon, une **voix française de secours** du service en ligne (`facebook/mms-tts-fra`, route `/parler_fr`, environ 2 s par phrase).
+- Testé sur un navigateur sans aucune voix française : KORA lit la réponse avec la voix de secours, et la bouche de Korachoupi suit le volume.
+
+### Korachoupi réagit de nouveau
+- **Bug de la 1.0.7 corrigé** : depuis qu'il se charge vite, Korachoupi pouvait finir de charger avant la page. Celle-ci croyait qu'il n'était jamais prêt et gardait ses messages : la bouche ne bougeait pas et les émotions du verdict n'arrivaient pas. La page vérifie maintenant aussi s'il est déjà chargé, et écoute son signal « prêt ».
+
+### Repris de Dan
+- **Accueil par le prénom** : « Bonjour, Augustino 👋 » (« Bonsoir » le soir). Le prénom se choisit dans Profil et reste sur le téléphone.
+- **Barre latérale sur grand écran** (à partir de 1 100 px de large) : la marque, le bouton « Nouvelle vérification », la navigation et une carte « Un coup de main ? ». Sur téléphone, la barre du bas ne change pas.
+
 ## [1.0.9] — 2026-11-26
 
 ### KORA suit un appel

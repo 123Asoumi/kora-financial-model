@@ -23,6 +23,7 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -42,15 +43,25 @@ public class VoixKoraPlugin extends Plugin {
     private final Handler principal = new Handler(Looper.getMainLooper());
     private TextToSpeech voix;
     private boolean voixPrete;
+    private int etatVoix; // 0 : le moteur démarre ; 1 : prêt ; -1 : pas de voix française utilisable
+    private String raisonVoix = "";
+    private final List<PluginCall> enAttente = new ArrayList<>(); // « parler » demandé avant que le moteur soit prêt
     private SpeechRecognizer oreille;
     private PluginCall appelEcoute;
 
     @Override
     public void load() {
         voix = new TextToSpeech(getContext(), statut -> {
-            if (statut != TextToSpeech.SUCCESS) return;
-            int r = voix.setLanguage(Locale.FRANCE);
-            voixPrete = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED;
+            if (statut != TextToSpeech.SUCCESS) {
+                finirDemarrage(false, "Ce téléphone n'a pas de moteur de voix.");
+                return;
+            }
+            // la première voix française disponible : France, puis français générique, Canada, Belgique
+            boolean ok = false;
+            for (Locale l : new Locale[]{Locale.FRANCE, Locale.FRENCH, Locale.CANADA_FRENCH, new Locale("fr", "BE")}) {
+                int r = voix.setLanguage(l);
+                if (r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED) { ok = true; break; }
+            }
             voix.setSpeechRate(0.95f);
             voix.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                 @Override public void onStart(String id) { evenement("debut", id); }
@@ -58,7 +69,20 @@ public class VoixKoraPlugin extends Plugin {
                 @Override public void onError(String id) { evenement("fin", id); }
                 @Override public void onStop(String id, boolean interrompu) { evenement("fin", id); }
             });
+            finirDemarrage(ok, ok ? "" : "Aucune voix française n'est installée sur ce téléphone.");
         });
+    }
+
+    private void finirDemarrage(boolean ok, String raison) {
+        List<PluginCall> appels;
+        synchronized (enAttente) {
+            voixPrete = ok;
+            etatVoix = ok ? 1 : -1;
+            raisonVoix = raison;
+            appels = new ArrayList<>(enAttente);
+            enAttente.clear();
+        }
+        for (PluginCall c : appels) parler(c);
     }
 
     private void evenement(String etat, String id) {
@@ -79,7 +103,7 @@ public class VoixKoraPlugin extends Plugin {
     @PluginMethod
     public void disponible(PluginCall call) {
         JSObject r = new JSObject();
-        r.put("parole", voixPrete);
+        r.put("parole", voixPrete || etatVoix == 0);
         r.put("ecoute", SpeechRecognizer.isRecognitionAvailable(getContext()));
         call.resolve(r);
     }
@@ -102,12 +126,18 @@ public class VoixKoraPlugin extends Plugin {
     @PluginMethod
     public void parler(PluginCall call) {
         String texte = call.getString("texte", "");
+        synchronized (enAttente) {
+            if (etatVoix == 0) { enAttente.add(call); return; } // le moteur démarre encore : on attend
+        }
         if (!voixPrete || voix == null) {
-            call.reject("La voix française du téléphone n'est pas disponible.", "VOIX");
+            call.reject(raisonVoix.isEmpty() ? "La voix française du téléphone n'est pas disponible." : raisonVoix, "VOIX");
             return;
         }
         String id = "kora-" + System.currentTimeMillis();
-        voix.speak(texte, TextToSpeech.QUEUE_FLUSH, null, id);
+        if (voix.speak(texte, TextToSpeech.QUEUE_FLUSH, null, id) != TextToSpeech.SUCCESS) {
+            call.reject("La voix du téléphone a refusé de parler.", "VOIX");
+            return;
+        }
         JSObject r = new JSObject();
         r.put("id", id);
         call.resolve(r);

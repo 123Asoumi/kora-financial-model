@@ -67,33 +67,73 @@ export function creerVoix({ mascotte, service }) {
         return voix.find((v) => /^fr[-_]FR/i.test(v.lang) && v.localService) || voix.find((v) => /^fr/i.test(v.lang)) || null
     }
 
-    /** Dit un texte en français. Se résout quand KORA a fini (ou a été interrompu). */
+    /** Le navigateur a-t-il une voix française ? (la liste des voix arrive parfois après le chargement) */
+    async function voixNavigateur() {
+        if (!synthese) return null
+        let v = voixFrancaise()
+        if (!v && !synthese.getVoices().length) {
+            await new Promise((ok) => { synthese.addEventListener?.("voiceschanged", ok, { once: true }); setTimeout(ok, 1200) })
+            v = voixFrancaise()
+        }
+        return v
+    }
+
+    /** Dit un texte en français. Se résout quand KORA a fini (ou a été interrompu).
+     *  1. la voix du téléphone (appli Android) ; 2. la voix française du navigateur ;
+     *  3. sinon, la voix française de secours du service en ligne. */
     async function parlerFr(texte) {
         arreter()
         const moi = ++jeton
         texte = texte.trim()
         if (!texte) return
         if (VoixNative) {
-            await new Promise((fini, echec) => {
-                surFin = fini
-                mascotte({ parle: true })
-                VoixNative.parler({ texte }).catch((e) => { surFin = null; mascotte({ parle: false }); echec(e) })
-            })
-            return
+            try {
+                await new Promise((fini, echec) => {
+                    surFin = fini
+                    mascotte({ parle: true })
+                    VoixNative.parler({ texte }).catch((e) => { surFin = null; mascotte({ parle: false }); echec(e) })
+                })
+                return
+            } catch (e) {
+                console.warn("KORA : voix du téléphone indisponible, voix du service en ligne", e?.message || e)
+                if (moi !== jeton) return
+                return parlerService("/parler_fr", "texte", texte, moi)
+            }
         }
-        if (!synthese) throw new Error("pas de voix dans ce navigateur")
-        const v = voixFrancaise()
+        const v = await voixNavigateur()
+        if (moi !== jeton) return
+        if (!v) return parlerService("/parler_fr", "texte", texte, moi)
+        try {
+            await parlerNavigateur(texte, v, moi)
+        } catch (e) {
+            console.warn("KORA : voix du navigateur en panne, voix du service en ligne", e?.message || e)
+            if (moi === jeton) return parlerService("/parler_fr", "texte", texte, moi)
+        }
+    }
+
+    async function parlerNavigateur(texte, v, moi) {
+        await new Promise((ok) => setTimeout(ok, 80)) // Chrome : parler juste après « cancel » ne dit parfois rien
         mascotte({ parle: true })
+        let premier = true
         for (const m of morceaux(texte)) {
             if (moi !== jeton) return
-            await new Promise((fini) => {
+            await new Promise((fini, echec) => {
                 const u = new SpeechSynthesisUtterance(m)
-                u.lang = "fr-FR"
-                if (v) u.voice = v
+                u.lang = v.lang || "fr-FR"
+                u.voice = v
                 u.rate = 0.98
-                u.onend = u.onerror = fini
+                // si la voix ne démarre jamais (bug connu de certains navigateurs), on passe au secours
+                const garde = premier ? setTimeout(() => { synthese.cancel(); echec(new Error("la voix ne démarre pas")) }, 4000) : 0
+                u.onstart = () => clearTimeout(garde)
+                u.onend = () => { clearTimeout(garde); fini() }
+                u.onerror = (e) => {
+                    clearTimeout(garde)
+                    if (e.error === "interrupted" || e.error === "canceled") fini()
+                    else echec(new Error(e.error || "erreur de la voix"))
+                }
                 synthese.speak(u)
             })
+            premier = false
         }
         if (moi === jeton) finParole()
     }
@@ -101,12 +141,24 @@ export function creerVoix({ mascotte, service }) {
     /** Dit un texte en fon avec la voix du service en ligne ; la bouche suit le volume réel. */
     async function parlerFon(texte) {
         arreter()
-        const moi = ++jeton
-        const r = await service("/parler", { texte_fon: texte.slice(0, 600) }, DELAI_VOIX_FON)
-        if (moi !== jeton) return
-        const fichier = r.data[0]
-        const lien = fichier?.url || fichier
-        if (!lien) throw new Error("pas de son")
+        return parlerService("/parler", "texte_fon", texte, ++jeton)
+    }
+
+    /** Une voix du service en ligne (fon ou français de secours), morceau par morceau. */
+    async function parlerService(route, champ, texte, moi) {
+        for (const m of morceaux(texte, 500)) {
+            if (moi !== jeton) return
+            const r = await service(route, { [champ]: m }, DELAI_VOIX_FON)
+            if (moi !== jeton) return
+            const fichier = r.data[0]
+            const lien = fichier?.url || fichier
+            if (!lien) throw new Error("pas de son")
+            await jouer(lien, moi)
+        }
+    }
+
+    /** Joue un son ; la bouche de Korachoupi suit son volume. */
+    async function jouer(lien, moi) {
         let source = lien
         try { source = URL.createObjectURL(await (await fetch(lien)).blob()) } catch (_) {}
         if (moi !== jeton) return
@@ -124,7 +176,6 @@ export function creerVoix({ mascotte, service }) {
         } catch (_) { analyse = null }
         mascotte({ parle: true })
         await new Promise((fini) => {
-            surFin = fini
             const tampon = analyse ? new Float32Array(analyse.fftSize) : null
             const suivre = () => {
                 if (a !== audio || a.paused || a.ended) return
@@ -134,9 +185,11 @@ export function creerVoix({ mascotte, service }) {
                 mascotte({ niveau: Math.min(1, Math.sqrt(s / tampon.length) * 6) })
                 requestAnimationFrame(suivre)
             }
+            const termine = () => { if (a === audio) { audio = null; mascotte({ parle: false }) } fini() }
             a.onplay = () => { if (analyse) requestAnimationFrame(suivre) }
-            a.onended = a.onerror = () => { if (a === audio) { audio = null; finParole() } else fini() }
-            a.play().catch(() => { if (a === audio) { audio = null; finParole() } })
+            a.onended = a.onerror = termine
+            a.onpause = () => { if (a !== audio) fini() } // interrompu par une autre parole
+            a.play().catch(termine)
         })
     }
 

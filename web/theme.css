@@ -210,3 +210,44 @@ body.grand .fil, body.grand .feuille { zoom: 1.14; }
   background: #fff; color: var(--titre); font: 700 19px/1 var(--police); box-shadow: 0 4px 14px -8px rgba(30,21,53,.45); }
 .clavier-fon button:active { transform: scale(.94); }
 .clavier-fon .ton { color: var(--bois); }
+
+/* ---------- repris de Dan : le salut par le prénom ---------- */
+.salut { margin: 0 2px 4px; font-weight: 800; font-size: clamp(21px, 2.4vw, 28px); line-height: 1.2; color: var(--titre); letter-spacing: -.5px; }
+.salut em { font-style: normal; color: var(--bois); }
+.champ { display: grid; gap: 8px; padding: 4px 0 8px; }
+.champ > span { display: grid; gap: 2px; font-weight: 700; color: var(--titre); }
+.champ small { font-weight: 500; color: var(--texte-doux); }
+.champ input { font: inherit; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--ligne); background: #fff; color: var(--titre); }
+.champ input:focus { outline: none; border-color: var(--bois); }
+
+/* ---------- repris de Dan : barre latérale sur grand écran ---------- */
+.grand-ecran { display: none; }
+@media (min-width: 1100px) {
+  body.s-chat { --nav-l: 236px; --pb: calc(6px + env(safe-area-inset-bottom)); }
+  /* le contenu se centre dans la place laissée à droite de la barre ; la mascotte suit */
+  body.s-chat .app { padding-bottom: 0; margin-left: calc(var(--nav-l) + max(0px, (100vw - var(--nav-l) - 860px) / 2)); margin-right: 0; }
+  body.s-chat { --pl: calc(var(--nav-l) + max(8px, (100vw - var(--nav-l) - 860px) / 2 + 8px)); }
+  body.s-chat .nav-bas {
+    top: 0; bottom: 0; right: auto; width: var(--nav-l); height: auto; padding: 22px 14px 18px;
+    flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 6px;
+    border-radius: 0 28px 28px 0; box-shadow: 10px 0 28px -18px rgba(30,21,53,.35);
+  }
+  .nav-bas .grand-ecran { display: block; }
+  .nav-bas button { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px; font-size: 15px; justify-content: flex-start; }
+  .nav-bas button[aria-current="page"] { background: var(--brun-2); }
+  .nav-bas button:hover { background: var(--brun-2); }
+  .nav-marque { font-weight: 800; font-size: 24px; color: var(--titre); padding: 0 12px 18px; letter-spacing: -.5px; }
+  .nav-marque small { font-size: 12px; color: var(--bois); margin-left: 4px; font-weight: 700; }
+  .nav-bas .fab {
+    order: -1; width: auto; height: 52px; min-width: 0; margin: 0 0 14px; border: 0; border-radius: 16px;
+    color: #fff; box-shadow: 0 10px 20px -10px rgba(91,47,214,.75); justify-content: center; white-space: nowrap; font-size: 15px;
+  }
+  .nav-bas .fab:hover { background: var(--bois-fonce); }
+  .nav-bas .fab svg { width: 22px; height: 22px; }
+  .nav-marque { order: -2; }
+  .nav-aide { margin-top: auto; border: 1.5px solid var(--ligne); border-radius: 18px; padding: 14px; background: #fff; }
+  .nav-aide b { display: block; color: var(--titre); }
+  .nav-aide p { font-size: 13px; color: var(--texte-doux); line-height: 1.5; margin: 6px 0 8px; }
+  .nav-aide button { min-height: 0; padding: 0; color: var(--bois); font-size: 13px; font-weight: 800; }
+  .nav-aide button:hover { background: none; }
+}
