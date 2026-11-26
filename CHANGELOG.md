@@ -4,6 +4,11 @@ Une seule version pour tout le projet : celle de `package.json`. L'application w
 
 Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
 
+## [1.0.8] — 2026-11-26
+
+### Barre de message
+- Sur l'accueil, la barre de message prend toute la largeur : Korachoupi est déjà dans la carte d'accroche. En pleine discussion, il reste posé à gauche de la barre.
+
 ## [1.0.7] — 2026-11-26
 
 ### Korachoupi se charge vite

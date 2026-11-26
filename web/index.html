@@ -265,7 +265,10 @@
   .proba i b { display: block; height: 100%; background: var(--bois-fonce); }
 
   /* ---------- barre de discussion ---------- */
-  .compo { flex: none; padding: 6px 12px calc(10px + env(safe-area-inset-bottom)) calc(var(--pw) + 12px); }
+  .compo { flex: none; padding: 6px 12px calc(10px + env(safe-area-inset-bottom)) calc(var(--pw) + 12px); transition: padding-left .5s cubic-bezier(.2, .8, .2, 1); }
+  /* sur l'accueil, Korachoupi est dans la carte d'accroche : la barre prend toute la largeur.
+     En pleine discussion, il se pose à gauche de la barre. */
+  .app:not(.actif) .compo { padding-left: 12px; }
   .barre-chat {
     display: flex; align-items: flex-end; gap: 4px; background: var(--brun); border-radius: 28px; padding: 6px;
     box-shadow: inset 0 0 0 1px var(--ligne), 0 -12px 32px rgba(27, 35, 39, .08);
@@ -712,7 +715,7 @@
       <button class="secondaire" id="installer" type="button" hidden>Installer l'appli</button>
       <a class="secondaire" id="telecharger" href="https://github.com/123Asoumi/kora-financial-model/releases/latest" target="_blank" rel="noopener">Télécharger l'appli Android</a>
     </div>
-    <p class="aide" id="version">KORA-lite version 1.0.7</p>
+    <p class="aide" id="version">KORA-lite version 1.0.8</p>
   </section>
 </div>
 
