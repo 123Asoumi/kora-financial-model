@@ -12,6 +12,8 @@
     - gratter : true pour qu'elle joue une note
     - parle   : true pendant que KORA parle (la bouche s'anime), false à la fin
     - niveau  : volume de la voix entre 0 et 1, pour une bouche synchronisée (facultatif)
+    - tourne  : angle en radians : 0 = de face, 3.14 = de dos (elle pivote doucement) ; instant: true pour sauter l'animation
+    - interroge : true pour qu'un « ? » apparaisse à côté de sa tête (elle penche la tête), false pour l'enlever
 
   Toute seule, elle réagit aussi : un clic la rend joyeuse, trop de clics la fâchent, quitter la page
   la rend triste, la laisser seule l'endort. three.js 0.187.0 est embarqué, réduit aux seules pièces utilisées ici
@@ -852,6 +854,19 @@ function ot(e) {
         let o = Math.max(.18, KORA_PAROLE.ouvert);
         Te.scale.set(Math.max(m.open, o), Math.max(m.open, o * 1.25), 1), Me.scale.setScalar(Math.max(1e-4, m.smile * (1 - o * .9))), F.scale.setScalar(1e-4)
     }
+    { // Korachoupi se tourne (0 = de face, π = de dos) et s'interroge : un « ? » apparaît à côté de sa tête
+        const T = KORA_TOUR
+        T.angle += (T.cible - T.angle) * (1 - Math.exp(-n * 3.2))
+        T.interro += (T.interroCible - T.interro) * (1 - Math.exp(-n * 6))
+        E.rotation.y = T.angle
+        E.rotation.z = T.interro * (.1 + .05 * Math.sin(u * 2.6)) // la tête penchée de celui qui se demande
+        const q = T.interro, mat = KORA_INTERRO.material
+        mat.opacity = Math.min(1, q * 1.4)
+        KORA_INTERRO.visible = q > .02
+        KORA_INTERRO.position.set(1.05, 1.1 + .06 * Math.sin(u * 3.2), .8)
+        KORA_INTERRO.scale.setScalar(.2 + q * 1.1 * (1 + .12 * Math.sin(u * 4.4)))
+        KORA_INTERRO.material.rotation = Math.sin(u * 2.2) * .18
+    }
     L.render(M, k)
     if (!window.__rendu) { // premier rendu 3D : on retire l'image d'attente (ici et dans l'appli)
         window.__rendu = !0;
@@ -862,6 +877,17 @@ function ot(e) {
 Je();
 window.KORA_EMBED && document.body.classList.add("embed");
 var KORA_PAROLE = { actif: !1, niveau: 0, ouvert: 0 }; // KORA parle (voir le message « parle »)
+var KORA_TOUR = { cible: 0, angle: 0, interro: 0, interroCible: 0 }; // se tourner et s'interroger (messages « tourne » et « interroge »)
+var KORA_INTERRO = (() => { // le « ? » : un sprite orange cerclé de blanc, qui reste visible par-dessus le corps
+    const c = document.createElement("canvas"); c.width = c.height = 160
+    const g = c.getContext("2d")
+    g.font = "900 130px Rubik, Arial Black, system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"
+    g.lineWidth = 16; g.lineJoin = "round"; g.strokeStyle = "#fff"; g.strokeText("?", 80, 86)
+    g.fillStyle = "#FF8A2B"; g.fillText("?", 80, 86)
+    const tx = new t.CanvasTexture(c); tx.colorSpace = t.SRGBColorSpace
+    const sp = new t.Sprite(new t.SpriteMaterial({ map: tx, transparent: !0, depthTest: !1, depthWrite: !1, opacity: 0 }))
+    sp.visible = !1; sp.renderOrder = 10; H.add(sp); return sp
+})();
 window.addEventListener("message", e => {
     let n = e.data && e.data.kora;
     if (n) {
@@ -870,6 +896,8 @@ window.addEventListener("message", e => {
             let o = document.getElementById("bulle");
             o.textContent = n.bulle, o.classList.toggle("on", n.bulle.length > 0)
         }
+        if (typeof n.tourne == "number") { KORA_TOUR.cible = n.tourne; if (n.instant) KORA_TOUR.angle = n.tourne }
+        if (typeof n.interroge == "boolean") KORA_TOUR.interroCible = n.interroge ? 1 : 0;
         if (typeof n.parle == "boolean") KORA_PAROLE.actif = n.parle, KORA_PAROLE.niveau = 0;
         if (typeof n.niveau == "number") KORA_PAROLE.niveau = n.niveau;
         n.gratter && ne(), V = performance.now()

@@ -241,24 +241,10 @@ h2 { font-size: 150px; }
 .cm-iphone { background: #101012; color: #f2f2f7; } .cm-iphone .haut { justify-content: center; flex-direction: column; gap: 4px; } .cm-iphone .haut small { font: 500 20px var(--texte); opacity: .6; } .cm-iphone .txt { background: #26262a; } .cm-iphone .lien { color: #4aa3ff; }
 .cm-wa { background: #EFEAE2; color: #111; } .cm-wa .chiffre { background: #FFF1CC; border-radius: 22px; padding: 14px 18px; font: 500 20px/1.3 var(--texte); text-align: center; margin-top: 22px; } .cm-wa .txt { background: #fff; font-size: 30px; border-radius: 10px 28px 28px 28px; }
 
-/* la mascotte qui saute d'un message à l'autre, comme si elle s'amusait */
-.balade { position: absolute; width: 230px; height: 290px; z-index: 6; pointer-events: none; opacity: 0;
-  transition: left 1s cubic-bezier(.45,.05,.3,1), top 1s cubic-bezier(.45,.05,.3,1), opacity .5s; }
+/* Korachoupi, en bas de la diapo d'accroche : de dos devant le « tableau », puis tournée vers le jury avec un « ? » */
+.balade { position: absolute; z-index: 6; pointer-events: none; opacity: 0; transition: opacity .6s; }
 .balade.vue { opacity: 1; }
-.balade .corps-balade { width: 100%; height: 100%; transform-origin: 50% 92%; }
 .balade iframe { width: 100%; height: 100%; border: 0; background: transparent; }
-.balade.saut .corps-balade { animation: saute 1s ease-in-out; }
-.balade.penche .corps-balade { animation: penche 1.6s ease-in-out infinite; }
-@keyframes saute { 0% { transform: translateY(0) rotate(0) scaleY(1); } 12% { transform: translateY(8px) rotate(0) scaleY(.92); }
-  38% { transform: translateY(-48px) rotate(-14deg) scaleY(1.04); } 68% { transform: translateY(-56px) rotate(14deg); }
-  90% { transform: translateY(6px) rotate(0) scaleY(.94); } 100% { transform: translateY(0) rotate(0) scaleY(1); } }
-@keyframes penche { 50% { transform: rotate(5deg) translateY(-6px); } }
-@media (prefers-reduced-motion: reduce) { .balade { transition: opacity .5s; } .balade.saut .corps-balade, .balade.penche .corps-balade { animation: none; } }
-
-.rep-badge { display: inline-block; font: 900 40px var(--titre); text-transform: uppercase; letter-spacing: -.01em; padding: 8px 28px; border-radius: 999px; color: #fff; }
-.rep-rouge { background: var(--rouge); } .rep-vert { background: var(--vert); }
-.rep-titre { font: 900 38px/1.1 var(--titre); text-transform: uppercase; letter-spacing: -.02em; margin: 20px 0 6px; }
-.sms-carte .txt { font-size: 28px; }
 </style>
 </head>
 <body>
@@ -266,10 +252,10 @@ h2 { font-size: 150px; }
 <main id="scene">
 
 <!-- 0 · l'accroche : vrai ou faux ? -->
-<section class="slide sombre" data-emo="surpris" data-balade="1" data-notes="1 · L&#x27;ACCROCHE « VRAI OU FAUX ? » (45 s). Diapo : trois messages côte à côte, A, B, C. Aucun titre, aucune explication. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (Silence. Dix secondes, pas moins. Laissez-les lire, hésiter, se regarder. Korachoupi saute d&#x27;un message à l&#x27;autre sans rien trahir.) « Levez la main pour A… pour B… pour C. » (Comptez les mains. Regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury. Vous lisez des dossiers toute la journée. Maintenant, imaginez une grand-mère à 19 h, qui ouvre ce message pendant qu&#x27;un homme poli lui parle au téléphone et lui dit : « Vite, madame, lisez-moi le code. » » Puis changez de diapo : la réponse.">
+<section class="slide sombre" data-emo="surpris" data-balade="1" data-notes="1 · L&#x27;ACCROCHE « VRAI OU FAUX ? » (45 s). Diapo : trois messages côte à côte, A, B, C. Aucun titre, aucune explication. « Avant de commencer, un petit test. Vous recevez ces trois messages sur votre téléphone. Un seul est vrai. Je vous laisse dix secondes. » (Silence. Dix secondes, pas moins. Laissez-les lire, hésiter, se regarder. Korachoupi reste en bas, de dos, comme si elle regardait le tableau ; vers 7 secondes elle se retourne vers le jury et s&#x27;interroge : « ? ».) « Levez la main pour A… pour B… pour C. » (Comptez les mains. Regardez le jury, pas l&#x27;écran.) « Vous venez d&#x27;hésiter, et vous êtes un jury. Vous lisez des dossiers toute la journée. Maintenant, imaginez une grand-mère à 19 h, qui ouvre ce message pendant qu&#x27;un homme poli lui parle au téléphone et lui dit : « Vite, madame, lisez-moi le code. » » Puis changez de diapo : la réponse.">
   <div class="meta"><span></span><span></span></div>
   <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding-top:20px">
-    <h2 class="a" style="--d:.1s;font-size:70px;margin-bottom:290px;white-space:nowrap">Un seul de ces trois messages <em>est vrai.</em></h2>
+    <h2 class="a" style="--d:.1s;font-size:70px;margin-bottom:70px;white-space:nowrap">Un seul de ces trois messages <em>est vrai.</em></h2>
     <div class="trois-sms" style="align-items:start">
       <div class="cap-msg cm-wa a z" style="--d:.35s"><span class="lettre">A</span>
         <div class="chiffre">🔒 Les messages et les appels sont chiffrés de bout en bout. Seules les personnes prenant part à cette discussion peuvent les lire, les écouter ou les partager.</div>
@@ -558,42 +544,32 @@ function poserMascotte(parent, emo) {
 }
 function retirerMascotte() { mascotte?.remove(); mascotte = null }
 
-// la balade de Korachoupi sur la diapo d'accroche : elle saute de message en message, réagit, joue une note
+// Korachoupi sur la diapo d'accroche : elle reste en bas, de dos, comme si elle regardait le tableau (les trois
+// messages) pendant que le jury lit ; puis elle se tourne vers le jury, s'étonne et s'interroge avec un « ? ».
 let balade = null
 function retirerBalade() { balade?.remove(); balade = null }
 function lancerBalade(diapo) {
   retirerBalade()
   balade = document.createElement("div")
   balade.className = "balade"
-  balade.innerHTML = '<div class="corps-balade"><iframe title="Korachoupi joue entre les trois messages" tabindex="-1" allowtransparency="true"></iframe></div>'
+  balade.innerHTML = '<iframe title="Korachoupi regarde les messages, puis se tourne vers vous" tabindex="-1" allowtransparency="true"></iframe>'
   const cadre = balade.querySelector("iframe")
-  cadre.src = MASCOTTE
+  // sous les cartes, sans jamais les cacher : on mesure où elles s'arrêtent
+  let bas = 0
+  for (const c of diapo.querySelectorAll(".cap-msg")) { let y = c.offsetHeight, n = c; while (n && n !== diapo) { y += n.offsetTop; n = n.offsetParent } bas = Math.max(bas, y) }
+  const haut = bas + 8, hauteur = Math.min(360, 1065 - haut)
+  Object.assign(balade.style, { left: "750px", top: `${haut}px`, width: "420px", height: `${hauteur}px` })
   diapo.appendChild(balade)
-  const dire = (e, gratter) => { try { cadre.contentWindow.postMessage({ kora: { emotion: e, bulle: "", gratter: !!gratter } }, "*") } catch (_) {} }
-  const cartes = () => [...diapo.querySelectorAll(".cap-msg")].map((c) => { // offsetLeft/Top : insensibles aux animations d'entrée
-    let x = 0, y = 0, n = c; while (n && n !== diapo) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent }
-    return { x, y, w: c.offsetWidth }
+  const dire = (k) => { try { cadre.contentWindow.postMessage({ kora: { bulle: "", ...k } }, "*") } catch (_) {} }
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches
+  cadre.addEventListener("load", () => {
+    dire({ tourne: Math.PI, instant: true, emotion: "content" }) // de dos
+    minuteurs.push(setTimeout(() => balade && balade.classList.add("vue"), 700))
+    // ~7 s : le temps du vote, elle regarde les messages ; puis elle se retourne
+    minuteurs.push(setTimeout(() => dire({ tourne: 0, instant: calme, emotion: "surpris" }), calme ? 7000 : 7500))
+    minuteurs.push(setTimeout(() => dire({ interroge: true, emotion: "surpris" }), calme ? 7200 : 9200))
   })
-  const ordre = [0, 1, 2, 1, 0, 2, 0, 1, 2]
-  const humeurs = ["surpris", "joyeux", "amoureux", "surpris", "joyeux", "content"]
-  let etape = 0
-  const place = (c) => { balade.style.left = `${c.x + c.w * 0.62 - 115}px`; balade.style.top = `${c.y - 262}px` }
-  const suivant = () => {
-    const c = cartes()[ordre[etape % ordre.length]]
-    if (!c || !balade) return
-    balade.classList.remove("penche")
-    balade.classList.add("saut"); minuteurs.push(setTimeout(() => balade && balade.classList.remove("saut"), 1050))
-    place(c)
-    minuteurs.push(setTimeout(() => { dire(humeurs[etape % humeurs.length], etape % 2 === 0); balade && balade.classList.add("penche") }, 1000))
-    etape++
-    minuteurs.push(setTimeout(suivant, 3200))
-  }
-  minuteurs.push(setTimeout(() => {
-    const c = cartes()[0]; if (!c || !balade) return
-    balade.style.transition = "none"; place({ ...c, x: c.x - 180 }); void balade.offsetWidth; balade.style.transition = ""
-    balade.classList.add("vue"); dire("surpris")
-    minuteurs.push(setTimeout(suivant, 900))
-  }, 1500))
+  cadre.src = MASCOTTE
 }
 function viderMinuteurs() { minuteurs.forEach(clearTimeout); minuteurs.forEach(clearInterval); minuteurs = [] }
 
