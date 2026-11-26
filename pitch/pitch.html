@@ -181,6 +181,8 @@ h2 { font-size: 150px; }
 .code { font: 600 25px/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; background: #120a2e; color: #E9E2FF; border-radius: 26px; padding: 26px 32px; white-space: pre; }
 .code .c { color: #FFB86B; }
 .puces { display: grid; gap: 16px; margin-top: 26px; }
+.puces.petites li { font-size: 21px; padding-left: 32px; margin-bottom: 6px; }
+.puces.petites li::before { width: 16px; height: 16px; top: 6px; }
 .puces li { list-style: none; position: relative; padding-left: 40px; font-size: 26px; line-height: 1.3; }
 .puces li::before { content: ""; position: absolute; left: 0; top: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--orange); }
 .c-blanc .puces li::before { background: var(--rouge); }
@@ -306,7 +308,7 @@ h2 { font-size: 150px; }
       </ol>
     </div>
     <div class="cadre-video a z" style="--d:.3s">
-      <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline controls></video>
+      <video id="video-demo" src="video/kora-demo.mp4" preload="auto" playsinline muted controls></video>
     </div>
   </div>
   <div class="pied"><span>KORA-lite</span><span>05</span></div>
@@ -352,55 +354,39 @@ h2 { font-size: 150px; }
   <div class="pied"><span>KORA-lite</span><span>07</span></div>
 </section>
 
-<!-- 7 · qualité des données -->
-<section class="slide clair" data-notes="0:45 · DES DONNÉES ADAPTÉES, SOURCÉES ET DOCUMENTÉES. Chaque source a une licence et un rôle. Point fort : nous avons MESURÉ ce que chaque source apporte, et écarté celles qui faisaient baisser le score (les 4 800 conversations en anglais : AUC 0,947 → 0,875). Le découpage évite la fuite : une même phrase à trous, une même formulation ou une même voix n'est jamais à la fois en entraînement et en test.">
-  <div class="meta"><span>Les données · d'où elles viennent, à quoi elles servent</span><span class="critere">Qualité des données <b>15 pts</b></span></div>
-  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:24px">
-    <h2 class="a" style="--d:.1s;font-size:88px">Sourcées, mesurées,<br><em>et triées</em></h2>
-    <table class="sources a" style="--d:.4s">
-      <thead><tr><th>Source</th><th>Contenu</th><th>Licence</th><th>Utilisation</th></tr></thead>
-      <tbody>
-        <tr><td>Messages KORA<small>data/kora_fr.csv</small></td><td>5 342 messages générés depuis 142 modèles d'arnaques béninoises, avec de vrais SMS légitimes pièges</td><td>Projet</td><td class="ok">Entraînement</td></tr>
-        <tr><td>stop-arnaque-237<small>Cameroun, 2026</small></td><td>267 <b>vrais</b> messages : arnaques et vrais SMS MTN et Orange</td><td>CC-BY-4.0</td><td class="ok">Entraînement ×5 et test</td></tr>
-        <tr><td>J'aime Ma Langue<small>Bénin, MTDI · ASIN</small></td><td>134 h de voix fon au téléphone, 650 voix, transcriptions validées</td><td>CC-BY-SA-4.0</td><td class="ok">Mesure de l'oreille fon</td></tr>
-        <tr><td>Sondage Mobile Money<small>Kaggle</small></td><td>800 personnes : victimes, méthodes des escrocs</td><td>—</td><td class="ok">Le besoin</td></tr>
-        <tr><td>Conversations en anglais<small>menaattia · teeconnie</small></td><td>4 800 appels génériques<small>AUC 0,947 → 0,875 avec elles</small></td><td>non publiée</td><td class="non">Écartées</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="source">Découpage sans fuite : par modèle de phrase, par formulation réelle et par voix. Préparation : data/externes/preparer.py · comparaison des sources : lite/comparer_sources.py.</p>
-  <div class="pied"><span>KORA-lite</span><span>08</span></div>
-</section>
-
-<!-- 8 · reproductibilité et limites -->
-<section class="slide sombre" data-notes="0:40 · UN TEST RÉITÉRABLE ET DES LIMITES EXPLICITES. N'importe qui refait nos chiffres en moins d'une minute, sans GPU. Des tests automatiques vérifient à chaque modification que l'application donne exactement les mêmes résultats que Python (624 messages, écart inférieur à un millionième). Puis lisez les limites : c'est une force, pas une faiblesse.">
-  <div class="meta"><span>Refaire le test · et savoir où il s'arrête</span><span class="critere">Reproductibilité <b>15 pts</b></span></div>
-  <div class="corps" style="gap:44px">
-    <div class="col" style="flex:1.1">
-      <h2 class="a" style="--d:.1s;font-size:84px;margin-bottom:30px">Nos chiffres,<br><em>en une minute</em></h2>
-      <div class="code a" style="--d:.35s"><span class="c"># sur un ordinateur, sans GPU</span>
+<!-- 8 · données et reproductibilité -->
+<section class="slide clair" data-notes="0:50 · DES DONNÉES SOURCÉES, UN TEST QUE TOUT LE MONDE PEUT REFAIRE. Chaque source a une licence et un rôle ; nous avons MESURÉ ce que chaque source apporte et écarté celle qui faisait baisser le score (les 4 800 conversations en anglais : AUC 0,947 → 0,875). Découpage sans fuite : une même formulation ou une même voix n'est jamais à la fois en entraînement et en test. Trois commandes refont nos chiffres en une minute, sans GPU ; l'application et Python donnent les mêmes résultats sur 624 messages. Puis lisez les limites : c'est une force, pas une faiblesse.">
+  <div class="meta"><span>Les données et le test · d'où elles viennent, comment le refaire</span><span style="display:flex;gap:12px"><span class="critere">Qualité des données <b>15 pts</b></span><span class="critere">Reproductibilité <b>15 pts</b></span></span></div>
+  <div class="corps" style="flex-direction:column;align-items:stretch;justify-content:center;gap:26px">
+    <h2 class="a" style="--d:.1s;font-size:80px">Des données sourcées,<br><em>un test refait en une minute</em></h2>
+    <div style="display:grid;grid-template-columns:1.25fr .75fr;gap:30px;align-items:start">
+      <table class="sources a" style="--d:.35s;font-size:22px">
+        <thead><tr><th>Source</th><th>Contenu</th><th>Licence</th><th>Utilisation</th></tr></thead>
+        <tbody>
+          <tr><td>Messages KORA</td><td>5 342 messages issus de 142 modèles d'arnaques béninoises</td><td>Projet</td><td class="ok">Entraînement</td></tr>
+          <tr><td>stop-arnaque-237</td><td>267 <b>vrais</b> messages (arnaques et vrais SMS)</td><td style="white-space:nowrap">CC-BY-4.0</td><td class="ok">Entraînement et test</td></tr>
+          <tr><td>J'aime Ma Langue</td><td>134 h de voix fon au téléphone, 650 voix</td><td style="white-space:nowrap">CC-BY-SA-4.0</td><td class="ok">Mesure de l'oreille fon</td></tr>
+          <tr><td>Conversations en anglais</td><td>4 800 appels<small>AUC 0,947 → 0,875 avec elles</small></td><td>non publiée</td><td class="non">Écartées</td></tr>
+        </tbody>
+      </table>
+      <div style="display:grid;gap:20px">
+        <div class="code a" style="--d:.5s;font-size:22px"><span class="c"># sans GPU, en une minute</span>
 python data/externes/preparer.py
 python lite/entrainer_kora_lite.py
 python -m pytest tests/</div>
-      <ul class="puces a" style="--d:.6s">
-        <li>Mêmes résultats dans l'application et en Python : 624 messages testés, écart &lt; 0,000001</li>
-        <li>Tests et APK refaits à chaque modification (GitHub Actions)</li>
-        <li>Une seule version, signée par une seule clé, publiée et proposée en mise à jour automatiquement : 1.0.12</li>
-      </ul>
-    </div>
-    <div class="carte c-blanc a z" style="--d:.5s;flex:.9;align-self:stretch">
-      <p style="font-family:var(--titre);font-weight:900;font-size:50px;text-transform:uppercase;color:var(--rouge);line-height:1">Nos limites</p>
-      <ul class="puces">
-        <li>267 vrais messages, <b>tous du Cameroun</b> ; seulement 22 messages normaux en français</li>
-        <li>Fon : traduction automatique, pas encore relue par des locuteurs</li>
-        <li>Service en ligne gratuit (fon, assistant) : peut être saturé</li>
-        <li>Oreille fon actuelle : 54 % d'erreurs par mot</li>
-        <li>Appels : certains téléphones coupent le micro des autres applis ; KORA demande alors de raconter l'appel. Détection sur appels pas encore mesurée sur de vrais appels</li>
-        <li>KORA lit le contenu : un faux SMS parfait ne se trahit que par l'expéditeur</li>
-      </ul>
+        <div class="carte c-blanc a g" style="--d:.65s;padding:24px 28px;box-shadow:inset 0 0 0 3px var(--rouge)">
+          <p style="font-family:var(--titre);font-weight:900;font-size:30px;text-transform:uppercase;color:var(--rouge);margin-bottom:10px">Nos limites</p>
+          <ul class="puces petites">
+            <li>Vrais messages venus du Cameroun</li>
+            <li>Fon pas encore relu par des locuteurs ; oreille fon : 54&nbsp;% d'erreurs par mot</li>
+            <li>Appels pas encore mesurés sur de vrais appels</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>09</span></div>
+  <p class="source">Découpage sans fuite (par formulation et par voix) · même résultat dans l'application et en Python sur 624 messages · version unique signée 1.0.12</p>
+  <div class="pied"><span>KORA</span><span>08</span></div>
 </section>
 
 <!-- 9 · modèle économique -->
@@ -417,7 +403,7 @@ python -m pytest tests/</div>
     </div>
     <div class="pastilles a" style="--d:1.2s"><span>Licence annuelle</span><span>Frais d'intégration</span><span>Partenariats de prévention</span></div>
   </div>
-  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>10</span></div>
+  <div class="pied"><span>Aucun accord signé à ce jour : partenaires potentiels</span><span>09</span></div>
 </section>
 
 <!-- 10 · faisabilité du pilote -->
@@ -442,7 +428,7 @@ python -m pytest tests/</div>
         <li>Objectif : au moins 85 % des arnaques signalées et au plus 5 % de fausses alertes sur des SMS béninois</li></ul></div>
     </div>
   </div>
-  <div class="pied"><span>KORA-lite</span><span>11</span></div>
+  <div class="pied"><span>KORA-lite</span><span>10</span></div>
 </section>
 
 <!-- 11 · merci -->
@@ -460,7 +446,7 @@ python -m pytest tests/</div>
       <figure class="a z" style="--d:.75s"><img src="equipe/satignon.png" alt="Fresnel SATIGNON" style="object-position:50% 25%"><figcaption><b>Fresnel SATIGNON</b><span>Ingénierie logicielle</span></figcaption></figure>
     </div>
   </div>
-  <div class="pied"><span>Essayez KORA sur votre téléphone</span><span>12</span></div>
+  <div class="pied"><span>Essayez KORA sur votre téléphone</span><span>11</span></div>
 </section>
 </main>
 
@@ -520,6 +506,7 @@ function aller(n) {
   document.getElementById("suiv").disabled = i === slides.length - 1
   s.querySelectorAll("[data-count]").forEach((el) => setTimeout(() => compter(el), 600))
   const v = s.querySelector("video")
+  if (v) v.muted = true // la démo passe sans le son : on la commente en direct
   document.querySelectorAll("video").forEach((x) => { if (x !== v) { x.pause(); x.currentTime = 0 } })
   if (v) { v.currentTime = 0; setTimeout(() => v.play().catch(() => {}), 900) }
   const slot = s.querySelector(".slot-mascotte")
