@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KORA, le bouclier anti-arnaque Mobile Money</title>
+<meta name="description" content="Colle un SMS, un message WhatsApp ou une capture d'écran, en français ou en fon : KORA dit si c'est une arnaque, explique pourquoi et donne le bon réflexe, avant que tu paies.">
+<meta name="theme-color" content="#5B2FD6">
+<link rel="icon" href="icone-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+<style>
+  /* Site de présentation de KORA. Structure d'une page produit : héros avec démonstration, « comment ça marche » en 3 étapes,
+     fonctionnalités, pièges reconnus, téléchargement, questions. Couleurs et police de l'appli (violet, crème, Plus Jakarta Sans). */
+  :root {
+    --bg: #F6F3FF; --bg-2: #EFE9FF; --card: #FFFFFF; --fg: #1E1535; --muted: #5E5679; --line: #E2D8FB;
+    --violet: #5B2FD6; --violet-2: #7A4DF0; --on-violet: #FFFFFF; --creme: #FFD9AE;
+    --danger: #D92D20; --danger-bg: #FDE4E1; --warn: #B45309; --warn-bg: #FDF0D5; --ok: #17803D; --ok-bg: #DDF4E4;
+    --hero: radial-gradient(900px 480px at 85% -10%, #E3D8FF 0%, rgba(227,216,255,0) 70%), radial-gradient(700px 400px at -10% 30%, #FFE9CF 0%, rgba(255,233,207,0) 65%);
+    --ombre: 0 18px 40px -18px rgba(60, 30, 140, .35);
+    --police: "Plus Jakarta Sans", "Noto Fon", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #130F20; --bg-2: #1B1530; --card: #201A36; --fg: #F2EDFF; --muted: #B4AAD2; --line: #372B5C; --violet: #8F6BFF; --on-violet: #130F20; --danger: #FF8A80; --danger-bg: #3B1B24; --warn: #F5B461; --warn-bg: #3A2C14; --ok: #6EDC97; --ok-bg: #163425;
+      --hero: radial-gradient(900px 480px at 85% -10%, #2C1F58 0%, rgba(44,31,88,0) 70%), radial-gradient(700px 400px at -10% 30%, #3A2A1C 0%, rgba(58,42,28,0) 65%); --ombre: 0 18px 40px -18px rgba(0, 0, 0, .7); color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #130F20; --bg-2: #1B1530; --card: #201A36; --fg: #F2EDFF; --muted: #B4AAD2; --line: #372B5C; --violet: #8F6BFF; --on-violet: #130F20; --danger: #FF8A80; --danger-bg: #3B1B24; --warn: #F5B461; --warn-bg: #3A2C14; --ok: #6EDC97; --ok-bg: #163425;
+    --hero: radial-gradient(900px 480px at 85% -10%, #2C1F58 0%, rgba(44,31,88,0) 70%), radial-gradient(700px 400px at -10% 30%, #3A2A1C 0%, rgba(58,42,28,0) 65%); --ombre: 0 18px 40px -18px rgba(0, 0, 0, .7); color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--police); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--violet-2); outline-offset: 3px; border-radius: 8px; }
+  .ct { width: 100%; max-width: 1120px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  h1, h2, h3 { font-weight: 800; line-height: 1.1; letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+  h1 { font-size: clamp(36px, 6.2vw, 64px); }
+  h2 { font-size: clamp(28px, 4.4vw, 42px); }
+  h3 { font-size: 20px; letter-spacing: -.01em; }
+  p { margin: 0; }
+  .etiquette { display: inline-block; font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--violet); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font: 800 16px var(--police); text-decoration: none; padding: 14px 24px; border-radius: 999px; border: 2px solid transparent; cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.plein { background: var(--violet); color: var(--on-violet); box-shadow: 0 10px 24px -10px var(--violet); }
+  .btn.contour { background: transparent; color: var(--fg); border-color: var(--line); }
+  .btn.contour:hover { border-color: var(--violet); }
+
+  /* ---------- barre du haut ---------- */
+  .haut { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; padding-top: env(safe-area-inset-top, 0px); }
+  .haut .ct { display: flex; align-items: center; gap: 22px; height: 68px; }
+  .marque { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 24px; letter-spacing: .06em; }
+  .marque img { width: 34px; height: 34px; border-radius: 10px; }
+  .haut nav { display: flex; gap: 26px; margin-left: auto; }
+  .haut nav a { text-decoration: none; font-weight: 700; font-size: 15px; color: var(--muted); }
+  .haut nav a:hover { color: var(--fg); }
+  .haut .btn { padding: 10px 20px; font-size: 15px; }
+
+  /* ---------- héros ---------- */
+  .heros { background: var(--hero); padding: 56px 0 72px; overflow: hidden; }
+  .heros .ct { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  .heros h1 em { font-style: normal; color: var(--violet); }
+  .heros .sous { margin-top: 20px; font-size: clamp(18px, 2.2vw, 21px); color: var(--muted); max-width: 34em; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .garanties { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 26px 0 0; padding: 0; list-style: none; font-size: 15px; font-weight: 700; color: var(--muted); }
+  .garanties li::before { content: "✓"; color: var(--ok); font-weight: 800; margin-right: 7px; }
+
+  .demo { position: relative; padding-bottom: 8px; }
+  .onglets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .onglets button { font: 700 14px var(--police); color: var(--fg); background: var(--card); border: 2px solid var(--line); border-radius: 999px; padding: 7px 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .onglets button:hover { border-color: var(--violet-2); }
+  .onglets button[aria-selected="true"] { background: var(--violet); border-color: var(--violet); color: var(--on-violet); }
+  .msg { background: var(--bg-2); border: 1px solid var(--line); border-radius: 22px 22px 22px 6px; padding: 14px 18px; font-size: 16px; max-width: 92%; box-shadow: var(--ombre); }
+  .msg small { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; letter-spacing: .04em; text-transform: uppercase; }
+  .verdict { position: relative; margin: 14px 0 0 auto; max-width: 96%; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 20px 22px 20px 26px; box-shadow: var(--ombre); overflow: hidden; animation: arrive .55s .15s cubic-bezier(.2, .9, .3, 1.1) backwards; }
+  .verdict::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 8px; background: var(--etat); }
+  .verdict[data-etat="arnaque"] { --etat: var(--danger); --etat-bg: var(--danger-bg); }
+  .verdict[data-etat="suspect"] { --etat: var(--warn); --etat-bg: var(--warn-bg); }
+  .verdict[data-etat="normal"] { --etat: var(--ok); --etat-bg: var(--ok-bg); }
+  .verdict h3 { font-size: 22px; color: var(--etat); }
+  .verdict .cat { color: var(--muted); font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .jauge { display: flex; height: 8px; border-radius: 99px; overflow: hidden; margin: 14px 0 4px; background: var(--line); }
+  .jauge i { flex: 1; } .jauge i:nth-child(1) { background: #8AD3A5; } .jauge i:nth-child(2) { background: #F3CE7C; } .jauge i:nth-child(3) { background: #EE9A93; }
+  .jauge-etiq { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--muted); position: relative; }
+  .pointeur { position: absolute; top: -17px; width: 14px; height: 14px; border-radius: 50%; background: var(--fg); border: 3px solid var(--card); transform: translateX(-50%); transition: left .6s cubic-bezier(.3, 1.3, .5, 1); }
+  .verdict h4 { margin: 14px 0 4px; font-size: 14px; font-weight: 800; }
+  .verdict ul { margin: 0; padding-left: 20px; font-size: 15px; }
+  .faire { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--etat-bg); font-size: 15px; }
+  .faire b { font-weight: 800; }
+  @keyframes arrive { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+  .korachoupi { position: absolute; left: -44px; bottom: -26px; width: 92px; pointer-events: none; z-index: 2; filter: drop-shadow(0 10px 12px rgba(40, 20, 90, .3)); animation: balance 4.8s ease-in-out infinite; transform-origin: 50% 100%; }
+  @keyframes balance { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg) translateY(-4px); } }
+
+  /* ---------- sections ---------- */
+  section { padding: 88px 0; }
+  .tete { max-width: 640px; margin: 0 auto 52px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+  .tete p { color: var(--muted); font-size: 19px; }
+  .etapes { display: grid; gap: 28px; counter-reset: etape; }
+  .etape { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 32px; padding: 36px 44px; }
+  .etape:nth-child(even) .texte { order: 2; }
+  .etape .num { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--violet); color: var(--on-violet); font-weight: 800; font-size: 20px; margin-bottom: 16px; }
+  .etape h3 { font-size: clamp(24px, 3.2vw, 32px); margin-bottom: 10px; }
+  .etape p { color: var(--muted); }
+  .vis { background: var(--bg-2); border-radius: 24px; min-height: 220px; display: grid; place-items: center; padding: 24px; position: relative; overflow: hidden; }
+  .vis .zone { width: 100%; max-width: 330px; display: grid; gap: 10px; }
+  .champ { background: var(--card); border: 2px dashed var(--line); border-radius: 18px; padding: 14px 16px; font-size: 15px; color: var(--muted); }
+  .champ b { color: var(--fg); }
+  .bulle-wa { background: var(--card); border: 1px solid var(--line); border-radius: 18px 18px 18px 4px; padding: 10px 14px; font-size: 14px; max-width: 86%; }
+  .bulle-wa.moi { margin-left: auto; background: var(--bg); border-radius: 18px 18px 4px 18px; }
+  .pastille { position: absolute; right: 22px; bottom: 22px; width: 62px; height: 62px; border-radius: 50%; background: var(--creme); display: grid; place-items: center; box-shadow: 0 10px 20px -8px rgba(40, 20, 90, .5); overflow: hidden; animation: flotte 3s ease-in-out infinite; }
+  .pastille img { width: 30px; margin-top: 8px; }
+  @keyframes flotte { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .signal { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 14px; padding: 10px 14px; font-size: 14px; font-weight: 700; border: 1px solid var(--line); }
+  .signal i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--danger); }
+  .signal.bon i { background: var(--ok); }
+
+  .grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .carte { background: var(--card); border: 1px solid var(--line); border-radius: 26px; padding: 28px 26px; display: grid; gap: 10px; align-content: start; transition: transform .2s, border-color .2s; }
+  .carte:hover { transform: translateY(-4px); border-color: var(--violet-2); }
+  .carte .ico { width: 48px; height: 48px; border-radius: 16px; background: var(--bg-2); display: grid; place-items: center; font-size: 24px; }
+  .carte p { color: var(--muted); font-size: 16px; }
+  .carte .tag { justify-self: start; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--violet); background: var(--bg-2); border-radius: 99px; padding: 3px 10px; }
+
+  .pieges { background: var(--bg-2); }
+  .liste-pieges { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+  .piege { background: var(--card); border-radius: 22px; padding: 22px; border: 1px solid var(--line); display: grid; gap: 8px; align-content: start; }
+  .piege b { font-size: 17px; }
+  .piege span { font-size: 15px; color: var(--muted); }
+  .piege.ok { border-color: var(--ok); }
+  .regles { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .regle { background: var(--violet); color: var(--on-violet); border-radius: 24px; padding: 26px 28px; font-weight: 800; font-size: clamp(19px, 2.4vw, 24px); line-height: 1.25; }
+  .regle small { display: block; font-size: 13px; font-weight: 700; opacity: .8; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+
+  .plateformes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .plateformes .carte .btn { margin-top: 10px; justify-self: start; }
+  .plateformes .note { font-size: 13px; color: var(--muted); }
+
+  .faq { max-width: 760px; margin: 0 auto; display: grid; gap: 12px; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 0 22px; }
+  summary { cursor: pointer; list-style: none; font-weight: 800; padding: 18px 0; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font-size: 26px; font-weight: 700; color: var(--violet); transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { color: var(--muted); padding: 0 0 20px; }
+
+  .fin { text-align: center; background: var(--violet); color: var(--on-violet); border-radius: 36px; padding: 64px 28px; display: grid; gap: 18px; justify-items: center; }
+  .fin p { opacity: .9; max-width: 34em; font-size: 19px; }
+  .fin .btn { background: var(--on-violet); color: var(--violet); }
+  footer { padding: 44px 0 calc(44px + env(safe-area-inset-bottom, 0px)); color: var(--muted); font-size: 14px; }
+  footer .ct { display: flex; flex-wrap: wrap; gap: 14px 32px; justify-content: space-between; }
+  footer a { text-decoration: none; font-weight: 700; } footer a:hover { color: var(--fg); }
+
+  @media (max-width: 900px) {
+    .heros .ct, .etape { grid-template-columns: 1fr; }
+    .etape { padding: 28px 22px; gap: 26px; } .etape:nth-child(even) .texte { order: 0; }
+    .grille, .plateformes { grid-template-columns: 1fr; }
+    .haut nav { display: none; } .haut .btn { margin-left: auto; }
+    .regles { grid-template-columns: 1fr; }
+    .korachoupi { left: -10px; bottom: -34px; width: 76px; }
+    section { padding: 64px 0; }
+  }
+  @media (min-width: 901px) and (max-width: 1060px) { .grille { grid-template-columns: repeat(2, 1fr); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="haut">
+  <div class="ct">
+    <a class="marque" href="#"><img src="icone-192.png" alt="">KORA</a>
+    <nav aria-label="Navigation principale">
+      <a href="#how-it-works">Comment ça marche</a>
+      <a href="#fonctions">Fonctions</a>
+      <a href="#pieges">Les pièges</a>
+      <a href="#telecharger">Télécharger</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <a class="btn plein" href="https://kora-0-01.vercel.app">Essayer KORA</a>
+  </div>
+</header>
+
+<main>
+  <div class="heros">
+    <div class="ct">
+      <div>
+        <span class="etiquette">Bouclier anti-arnaque Mobile Money</span>
+        <h1 style="margin-top:14px">Un doute sur un message ? <em>KORA vérifie</em> avant que tu paies.</h1>
+        <p class="sous">Colle un SMS, un message WhatsApp ou une capture d'écran, en français ou en fon. KORA dit si c'est une arnaque, explique pourquoi et te donne le bon réflexe.</p>
+        <div class="actions">
+          <a class="btn plein" href="https://kora-0-01.vercel.app">Essayer dans le navigateur</a>
+          <a class="btn contour" href="#telecharger">Télécharger l'appli</a>
+        </div>
+        <ul class="garanties">
+          <li>Analyse dans ton téléphone</li>
+          <li>Français et fon</li>
+          <li>Marche sans internet</li>
+        </ul>
+      </div>
+
+      <div class="demo" aria-live="polite">
+        <div class="onglets" role="tablist" aria-label="Exemples de messages">
+          <button role="tab" aria-selected="true" data-i="0">Faux prêt</button>
+          <button role="tab" aria-selected="false" data-i="1">Faux agent</button>
+          <button role="tab" aria-selected="false" data-i="2">Vrai SMS</button>
+        </div>
+        <div class="msg"><small>Exemple de message reçu</small><span id="d-msg"></span></div>
+        <div class="verdict" id="d-verdict" data-etat="arnaque">
+          <h3 id="d-titre"></h3>
+          <div class="cat" id="d-cat"></div>
+          <div class="jauge"><i></i><i></i><i></i></div>
+          <div class="jauge-etiq"><span>Normal</span><span>Arnaque</span><span class="pointeur" id="d-point"></span></div>
+          <h4>Pourquoi ?</h4>
+          <ul id="d-raisons"></ul>
+          <div class="faire"><b>Que faire :</b> <span id="d-faire"></span></div>
+        </div>
+        <img class="korachoupi" src="korachoupi.webp" alt="Korachoupi, la mascotte de KORA">
+      </div>
+    </div>
+  </div>
+
+  <section id="how-it-works">
+    <div class="ct">
+      <div class="tete">
+        <span class="etiquette">Comment ça marche</span>
+        <h2>Trois gestes, et tu sais.</h2>
+        <p>Pas de compte à créer, pas de formulaire. Tu montres le message, KORA répond.</p>
+      </div>
+      <div class="etapes">
+        <article class="etape">
+          <div class="texte">
+            <div class="num">1</div>
+            <h3>Montre-lui le message</h3>
+            <p>Colle le texte, envoie une capture d'écran ou, sur Android et Windows, touche la bulle KORA qui flotte par-dessus WhatsApp ou tes SMS. Tu peux aussi lui parler : en français comme en fon.</p>
+          </div>
+          <div class="vis" aria-hidden="true">
+            <div class="zone">
+              <div class="bulle-wa">Bonjour, je suis votre agent MTN. Donnez-moi le code reçu par SMS…</div>
+              <div class="bulle-wa moi">Hum, c'est louche…</div>
+            </div>
+            <div class="pastille"><img src="korachoupi.webp" alt=""></div>
+          </div>
+        </article>
+        <article class="etape">
+          <div class="texte">
+            <div class="num">2</div>
+            <h3>KORA lit, classe et explique</h3>
+            <p>Il lit l'écran dans ton appareil, range le message parmi cinq types de messages et affiche les raisons, en mots simples. Ces raisons viennent de règles écrites à la main : KORA n'en invente jamais.</p>
+          </div>
+          <div class="vis" aria-hidden="true">
+            <div class="zone">
+              <div class="signal"><i></i>On te demande un code secret</div>
+              <div class="signal"><i></i>La personne se dit agent de l'opérateur</div>
+              <div class="signal bon"><i></i>Aucun lien suspect</div>
+            </div>
+          </div>
+        </article>
+        <article class="etape">
+          <div class="texte">
+            <div class="num">3</div>
+            <h3>Tu fais le bon réflexe</h3>
+            <p>KORA te dit quoi faire : ne rien envoyer, ne pas cliquer, appeler le service client officiel, prévenir un proche. Il peut te le lire à voix haute, en français ou en fon.</p>
+          </div>
+          <div class="vis" aria-hidden="true">
+            <div class="zone">
+              <div class="champ"><b>Que faire :</b> ne donne jamais ton code. Raccroche et appelle le service client officiel.</div>
+              <div class="champ">🔊 Écouter &nbsp;·&nbsp; 🔊 En fon &nbsp;·&nbsp; Prévenir un proche</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="fonctions" style="padding-top:0">
+    <div class="ct">
+      <div class="tete">
+        <span class="etiquette">Fonctions</span>
+        <h2>Pensé pour ceux qui reçoivent ces messages tous les jours.</h2>
+      </div>
+      <div class="grille">
+        <article class="carte"><div class="ico">🫧</div><h3>La bulle KORA</h3><p>La mascotte flotte par-dessus tes autres applis, comme les bulles de Messenger. Touche-la dans WhatsApp : elle capture l'écran et KORA dit si c'est une arnaque.</p><span class="tag">Android · Windows</span></article>
+        <article class="carte"><div class="ico">📞</div><h3>Suivre un appel</h3><p>Mets l'appel en haut-parleur : KORA écoute, comprend la demande, te pose trois questions et donne son verdict à voix haute à la fin de l'appel.</p><span class="tag">Android</span></article>
+        <article class="carte"><div class="ico">🗣️</div><h3>Français et fon</h3><p>KORA lit les messages en fon, te répond dans ta langue et lit ses réponses à voix haute. Sa reconnaissance du fon progresse encore : il te montre ce qu'il a compris.</p></article>
+        <article class="carte"><div class="ico">🔒</div><h3>Ton message reste chez toi</h3><p>Le modèle de KORA ne pèse que 964 Ko et tourne dans l'appareil. Un message en français ne le quitte jamais, et la lecture des captures se fait sur place.</p></article>
+        <article class="carte"><div class="ico">🔍</div><h3>Des raisons vérifiables</h3><p>La décision vient du modèle, mais les raisons affichées viennent de règles transparentes. Pas de « parce que l'IA l'a dit » : tu vois pourquoi.</p></article>
+        <article class="carte"><div class="ico">📶</div><h3>Même sans internet</h3><p>Hors connexion, KORA analyse toujours et répond aux questions courantes avec des conseils écrits et vérifiés à la main.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="pieges" class="pieges">
+    <div class="ct">
+      <div class="tete">
+        <span class="etiquette">Ce que KORA reconnaît</span>
+        <h2>Les cinq types de messages</h2>
+        <p>Quatre pièges fréquents, et les vrais messages, pour que KORA ne crie pas au loup.</p>
+      </div>
+      <div class="liste-pieges">
+        <div class="piege"><b>Demande de code secret</b><span>Un faux agent te demande le code reçu par SMS.</span></div>
+        <div class="piege"><b>Faux dépôt et renvoi d'argent</b><span>« Je me suis trompé, renvoie-moi l'argent. »</span></div>
+        <div class="piege"><b>Faux gain, fausse offre de crédit</b><span>Un prêt facile ou un lot gagné, mais payant d'abord.</span></div>
+        <div class="piege"><b>Faux blocage de compte</b><span>Un lien piégé pour « débloquer » ton compte.</span></div>
+        <div class="piege ok"><b>Message normal</b><span>Vrais SMS de l'opérateur, de la banque, de tes proches.</span></div>
+      </div>
+      <div class="regles">
+        <div class="regle"><small>Règle d'or n°1</small>Ne donne jamais ton code.</div>
+        <div class="regle"><small>Règle d'or n°2</small>Vérifie toujours auprès du service client officiel.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="telecharger">
+    <div class="ct">
+      <div class="tete">
+        <span class="etiquette">Télécharger</span>
+        <h2>KORA est là où tu es.</h2>
+        <p>La même application sur ton téléphone, ton ordinateur et dans ton navigateur.</p>
+      </div>
+      <div class="plateformes">
+        <article class="carte"><div class="ico">🌐</div><h3>Dans le navigateur</h3><p>Rien à installer. Ouvre la page et colle ton message.</p><a class="btn plein" href="https://kora-0-01.vercel.app">Ouvrir KORA</a></article>
+        <article class="carte"><div class="ico">📱</div><h3>Android</h3><p>L'application avec la bulle flottante et le suivi d'appel. Installation hors Play Store : Android te demandera de confirmer.</p><a class="btn plein" href="https://github.com/123Asoumi/kora-financial-model/releases/latest">Télécharger l'APK</a></article>
+        <article class="carte"><div class="ico">💻</div><h3>Windows</h3><p>L'application dans une fenêtre, avec la bulle par-dessus tes autres fenêtres.</p><a class="btn plein" href="https://github.com/123Asoumi/kora-financial-model/releases/latest">Télécharger l'installateur</a><span class="note">Non signé pour l'instant : Windows affichera « Windows a protégé votre PC ». Clique sur « Informations complémentaires », puis « Exécuter quand même ».</span></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" style="padding-top:0">
+    <div class="ct">
+      <div class="tete"><span class="etiquette">Questions</span><h2>Ce qu'on nous demande souvent</h2></div>
+      <div class="faq">
+        <details><summary>Mes messages sont-ils envoyés quelque part ?</summary><p>Non. L'analyse d'un message en français se fait dans ton appareil et il ne le quitte pas. Seuls le fon (traduction, voix) et les questions libres à l'assistant passent par un service en ligne.</p></details>
+        <details><summary>KORA peut-il se tromper ?</summary><p>Oui, aucun outil n'est parfait. C'est pour cela que KORA explique ses raisons et rappelle deux règles simples : ne jamais donner ton code et vérifier auprès du service client officiel. En cas de doute, ne paie pas.</p></details>
+        <details><summary>Ça marche sans internet ?</summary><p>Oui pour l'analyse des messages en français et pour les conseils de base. Le fon et l'assistant ont besoin d'une connexion.</p></details>
+        <details><summary>Que fait la bulle exactement ?</summary><p>Elle flotte au-dessus des autres applis. Quand tu la touches, elle capture ton écran, et KORA lit le message affiché. Elle ne regarde l'écran que quand tu la touches, et la capture reste sur ton appareil.</p></details>
+        <details><summary>D'où viennent les données de KORA ?</summary><p>De messages inspirés d'arnaques réelles au Bénin, ainsi que de vrais messages publics (arnaques et vrais SMS d'opérateurs) du jeu de données stop-arnaque-237.</p></details>
+        <details><summary>Qui a fait KORA ?</summary><p>KORA est un projet du GPU Challenge 2026 (Epitech Bénin, UDU Technologies, Alliance Fintech UEMOA), pour le cas d'usage n°7 : la détection des arnaques financières numériques.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="ct">
+      <div class="fin">
+        <img src="korachoupi.webp" alt="" width="64" style="width:64px">
+        <h2>Avant de payer, demande à KORA.</h2>
+        <p>Ça prend quelques secondes, et ça peut t'éviter de perdre ton argent.</p>
+        <a class="btn" href="https://kora-0-01.vercel.app">Essayer KORA</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="ct">
+    <span>KORA · GPU Challenge 2026 · Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA</span>
+    <span><a href="https://github.com/123Asoumi/kora-financial-model">Code source</a> &nbsp; <a href="https://github.com/123Asoumi/kora-financial-model/blob/main/CHANGELOG.md">Journal des versions</a></span>
+  </div>
+</footer>
+
+<script>
+  // la démonstration : trois messages d'exemple avec le verdict que donne KORA
+  const EX = [
+    { msg: "Prêt rapide sans garantie : recevez 300 000 F en 10 minutes sur votre MoMo. Payez d'abord 7 500 F de frais de dossier au 01 66 00 00 00.",
+      etat: "arnaque", titre: "Arnaque probable", cat: "Faux gain / fausse offre de crédit", pos: 94,
+      raisons: ["On te demande de payer des frais pour recevoir quelque chose.", "On te propose un prêt trop facile, ou qui demande de payer avant de recevoir."],
+      faire: "On ne paie jamais de frais pour recevoir un gain ou un prêt. Un vrai prêt se signe en agence, sans frais envoyés par Mobile Money. N'envoie pas d'argent et ne clique pas." },
+    { msg: "Bonjour, je suis votre agent MTN. Donnez-moi le code reçu par SMS pour annuler le débit sur votre compte.",
+      etat: "arnaque", titre: "Arnaque probable", cat: "Demande de code secret", pos: 92,
+      raisons: ["On te demande un code secret ou un code reçu par SMS.", "La personne se présente comme un agent de l'opérateur ou de la banque."],
+      faire: "Ne donne jamais ton code. Raccroche, puis appelle toi-même le service client officiel." },
+    { msg: "Vous avez reçu 5 000 F de Awa. Nouveau solde : 12 300 F.",
+      etat: "normal", titre: "Ça a l'air normal", cat: "Message normal", pos: 6,
+      raisons: ["Aucun lien, aucune demande d'argent ni de code."],
+      faire: "Rien à faire. Si tu as un doute sur l'expéditeur, vérifie dans l'application de ton opérateur." },
+  ];
+  const $ = (id) => document.getElementById(id);
+  function montrer(i) {
+    const e = EX[i], v = $("d-verdict");
+    $("d-msg").textContent = e.msg; $("d-titre").textContent = e.titre; $("d-cat").textContent = e.cat; $("d-faire").textContent = e.faire;
+    $("d-raisons").innerHTML = e.raisons.map((r) => `<li></li>`).join(""); [...$("d-raisons").children].forEach((li, k) => (li.textContent = e.raisons[k]));
+    $("d-point").style.left = e.pos + "%";
+    v.dataset.etat = e.etat; v.style.animation = "none"; void v.offsetWidth; v.style.animation = "";
+    document.querySelectorAll(".onglets button").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.i === i)));
+  }
+  document.querySelectorAll(".onglets button").forEach((b) => b.addEventListener("click", () => { clearInterval(tour); montrer(+b.dataset.i); }));
+  let n = 0; montrer(0);
+  const tour = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : setInterval(() => montrer((n = (n + 1) % EX.length)), 6500);
+</script>
+</body>
+</html>

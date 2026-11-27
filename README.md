@@ -19,6 +19,7 @@ KORA vérifie un **SMS**, un **message WhatsApp** ou une **capture d'écran** (e
 | Livrable | Où |
 |---|---|
 | Prototype utilisable | `web/` : application en ligne sur Vercel (voir ci-dessous) |
+| Site de présentation | `site/` : une page statique (ouvrir `site/index.html`, ou déployer le dossier tel quel sur Vercel) |
 | Application Windows | `desktop/` : la même application dans une fenêtre Electron, avec la bulle flottante ([BUREAU.md](BUREAU.md)) |
 | Application Android | `android/` : la même application emballée avec Capacitor, avec la bulle flottante et le partage vers KORA ; APK signée publiée par `.github/workflows/publier.yml` ([ANDROID.md](ANDROID.md)) |
 | Service fon et assistant | `space/` : Space Hugging Face (ZeroGPU) pour la traduction fon ⇄ français et la discussion avec KORA |
