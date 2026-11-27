@@ -14,7 +14,7 @@ Pour publier une nouvelle version : changer le numéro dans `package.json`, `des
 - Dans l'appli Windows, la dictée du navigateur (sans service derrière dans Electron) est remplacée par l'enregistrement du micro de KORA, comme dans un navigateur qui n'a pas la dictée.
 - Changements dans `web/` : `natif.js` (pont Windows à côté du pont Android : `estBureau`, `estAndroid`), `app.js` et `voix.js` (textes et réglages propres au PC).
 - `tests/test_version_unique.py` vérifie aussi la version de `desktop/`.
-- **Site de présentation** (`site/`, une page statique sans outil de construction) : héros avec démonstration interactive (faux prêt, faux agent, vrai SMS), « comment ça marche » en trois étapes, fonctions, les cinq types de messages, téléchargements (navigateur, Android, Windows), questions fréquentes. Aux couleurs de l'application, clair et sombre, lisible sur téléphone.
+- **Site de présentation** (`site/`, une page statique sans outil de construction), dans un style épuré : héros pastel (« Vérifie avant de payer. »), pastilles qui défilent, carte sombre à chiffres vrais (modèle de 964 Ko, 5 types de messages, 2 langues, 3 écrans), trois scènes avec un téléphone dont une démonstration à trois exemples (faux prêt, faux agent, vrai SMS), carrousel des réflexes, grande carte de téléchargement (navigateur, Android, Windows) et questions fréquentes. Aux couleurs de l'application, clair et sombre, lisible sur téléphone. Aucun avis ni chiffre d'usage inventé.
 - Pas encore signé : au premier lancement, Windows SmartScreen affiche « Windows a protégé votre PC » → « Informations complémentaires » → « Exécuter quand même ».
 
 ## [1.0.13] — 2026-11-26
