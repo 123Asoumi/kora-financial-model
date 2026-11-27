@@ -1,7 +1,7 @@
 import { BULLES_VERDICT, creerBulles } from "./bulles.js"
 import { Kora } from "./kora-engine.js"
 import { SPACE_FON } from "./config.js"
-import { estAppli, etatBulle, demarrerBulle, arreterBulle, ecouterAppli, chercherMiseAJour, installerMiseAJour, etatAppel } from "./natif.js"
+import { estAppli, estAndroid, estBureau, etatBulle, demarrerBulle, arreterBulle, ecouterAppli, chercherMiseAJour, installerMiseAJour, etatAppel } from "./natif.js"
 import { creerVoix } from "./voix.js"
 import { reponseLocale } from "./reponses.js"
 import {
@@ -109,7 +109,7 @@ if (navigator.mediaDevices?.getDisplayMedia && !matchMedia("(pointer: coarse)").
 if (estAppli) {
     $("menu-bulle").querySelector('[data-m="flottante"]').hidden = false
     $("r-bulle-bloc").hidden = false
-    $("r-maj-bloc").hidden = false
+    $("r-maj-bloc").hidden = !estAndroid // la mise à jour intégrée n'existe que sur Android
     $("telecharger").hidden = true
 }
 $("menu-bulle").addEventListener("click", (e) => {
@@ -1050,10 +1050,13 @@ async function activerBulle() {
         dire(corps, "La bulle est déjà active. Va dans ta messagerie, ouvre le message qui te paraît louche et touche la bulle : je vérifie ce qui est à l'écran.", { traduire: false })
         return true
     }
-    dire(corps, "Je vais te demander deux autorisations : m'afficher par-dessus les autres applis, puis voir ton écran (choisis « Tout l'écran »). Je ne regarde l'écran que quand tu touches la bulle, et la capture reste dans ton téléphone.", { traduire: false })
+    if (estBureau) dire(corps, "Je vais veiller sur ton écran. La bulle apparaît dès que tu quittes cette fenêtre (ou que tu la réduis) : ouvre ton navigateur ou ta messagerie, affiche le message qui te paraît louche, puis clique sur la bulle. Je ne regarde l'écran que quand tu cliques dessus, et la capture reste sur ton ordinateur.", { traduire: false })
+    else dire(corps, "Je vais te demander deux autorisations : m'afficher par-dessus les autres applis, puis voir ton écran (choisis « Tout l'écran »). Je ne regarde l'écran que quand tu touches la bulle, et la capture reste dans ton téléphone.", { traduire: false })
     const r = await demarrerBulle()
     const MOTS = {
-        ok: "La bulle est prête ! Va dans ta messagerie, ouvre le message qui te paraît louche, puis touche la bulle KORA : je lis l'écran et je te dis si c'est une arnaque. Pour la fermer, glisse-la sur la croix en bas de l'écran.",
+        ok: estBureau
+            ? "La bulle est prête ! Passe sur une autre fenêtre : elle flotte par-dessus. Affiche le message qui te paraît louche, puis clique sur la bulle : je lis l'écran et je te dis si c'est une arnaque. Tu peux la déplacer en la faisant glisser ; clic droit pour l'arrêter."
+            : "La bulle est prête ! Va dans ta messagerie, ouvre le message qui te paraît louche, puis touche la bulle KORA : je lis l'écran et je te dis si c'est une arnaque. Pour la fermer, glisse-la sur la croix en bas de l'écran.",
         SUPERPOSITION: "Sans l'autorisation « Afficher par-dessus les autres applis », la bulle ne peut pas s'afficher. Tu peux réessayer quand tu veux depuis le menu de la mascotte.",
         CAPTURE: "Sans l'autorisation de voir l'écran, la bulle ne peut pas lire tes messages. Tu peux réessayer quand tu veux depuis le menu de la mascotte.",
     }
@@ -1065,6 +1068,11 @@ async function activerBulle() {
 /* ================= partager depuis une autre appli (Android, appli installée) ================= */
 async function expliquerPartage() {
     const corps = await nouveauTour()
+    if (estBureau) {
+        dire(corps, "Active la bulle KORA (menu de la mascotte) : elle flotte par-dessus tes autres fenêtres, et quand tu cliques dessus je vérifie ce qui est affiché à l'écran. Tu peux aussi coller un message ici, ou déposer une capture.", { traduire: false })
+        piloter({ emotion: "joyeux", bulle: "Montre-moi tes messages !" })
+        return
+    }
     if (estAppli) {
         dire(corps, "Depuis n'importe quelle appli : fais une capture d'écran du message, ou sélectionne son texte, appuie sur « Partager », puis choisis KORA-lite. Encore plus simple : active la bulle KORA (menu de la mascotte), elle flotte sur tes autres applis et vérifie l'écran quand tu la touches.", { traduire: false })
         piloter({ emotion: "joyeux", bulle: "Partage-moi tes messages !" })
@@ -1576,7 +1584,7 @@ appliquerReglages()
 // (qui demande toujours de confirmer : une appli hors Play Store ne peut pas se mettre à jour en silence).
 let majDispo = null
 async function verifierMaj({ manuel = false } = {}) {
-    if (!estAppli) return
+    if (!estAndroid) return
     const vu = Number(memoire("kora-maj-vu")) || 0
     if (!manuel && Date.now() - vu < 3 * 3600 * 1000) return // au plus toutes les 3 heures quand on est à jour
     if (manuel) $("r-maj-etat").textContent = "Recherche…"

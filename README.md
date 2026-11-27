@@ -10,6 +10,8 @@ KORA vérifie un **SMS**, un **message WhatsApp** ou une **capture d'écran** (e
 
 📱 **Application Android** : [télécharger l'APK](https://github.com/123Asoumi/kora-financial-model/releases/latest). Elle ajoute la **bulle KORA**, qui flotte par-dessus les autres applis comme les bulles de Messenger : on la touche dans WhatsApp ou dans ses SMS, elle capture l'écran et KORA dit si le message est une arnaque. Voir [ANDROID.md](ANDROID.md).
 
+💻 **Application Windows** : [télécharger l'installateur](https://github.com/123Asoumi/kora-financial-model/releases/latest) (`KORA-lite-…-Windows.exe`). Même KORA dans une fenêtre, avec la **bulle KORA** qui flotte par-dessus les autres fenêtres et vérifie l'écran quand on clique dessus. Voir [BUREAU.md](BUREAU.md).
+
 ---
 
 ## Ce qui est livré
@@ -17,6 +19,7 @@ KORA vérifie un **SMS**, un **message WhatsApp** ou une **capture d'écran** (e
 | Livrable | Où |
 |---|---|
 | Prototype utilisable | `web/` : application en ligne sur Vercel (voir ci-dessous) |
+| Application Windows | `desktop/` : la même application dans une fenêtre Electron, avec la bulle flottante ([BUREAU.md](BUREAU.md)) |
 | Application Android | `android/` : la même application emballée avec Capacitor, avec la bulle flottante et le partage vers KORA ; APK signée publiée par `.github/workflows/publier.yml` ([ANDROID.md](ANDROID.md)) |
 | Service fon et assistant | `space/` : Space Hugging Face (ZeroGPU) pour la traduction fon ⇄ français et la discussion avec KORA |
 | Prototype GPU | `notebooks/` : 5 notebooks Colab (données, cerveau AfroXLMR, reconnaissance vocale fon, démo vocale, entraînement de la reconnaissance vocale fon sur J'aime Ma Langue) |

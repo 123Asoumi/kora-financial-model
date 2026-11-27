@@ -2,7 +2,19 @@
 
 Une seule version pour tout le projet : celle de `package.json`. L'application web, l'application Android, le modèle (`web/kora_lite.json`) et le cache hors ligne portent le même numéro. `tests/test_version_unique.py` vérifie qu'aucun fichier n'a été oublié.
 
-Pour publier une nouvelle version : changer le numéro dans `package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée. Les téléphones la proposent ensuite à la mise à jour.
+Pour publier une nouvelle version : changer le numéro dans `package.json`, `desktop/package.json`, `web/kora_lite.json`, `web/sw.js` et `web/index.html` (le test indique ce qui manque), ajouter une section ici, puis envoyer sur `main`. Le workflow GitHub **« Publier une version »** se lance tout seul et crée la version GitHub avec l'APK Android signée et l'installateur Windows. Les téléphones la proposent ensuite à la mise à jour.
+
+## [1.0.14] — 2026-11-27
+
+### KORA pour Windows, avec la bulle
+- **Nouveau : l'appli de bureau Windows** (`desktop/`, Electron). C'est la même KORA que sur le téléphone (le dossier `web/`, embarqué dans l'appli : le modèle d'arnaques et la lecture des captures (OCR) tournent sur l'ordinateur), dans une fenêtre, avec l'installateur `KORA-lite-<version>-Windows.exe` attaché à chaque version GitHub.
+- **La bulle KORA existe aussi sur PC** : la mascotte flotte par-dessus les autres fenêtres. On clique dessus dans WhatsApp Web, un mail ou un SMS affiché à l'écran : KORA capture l'écran (celui où se trouve la bulle), lit le message et donne son verdict. On la déplace en la glissant, elle se colle au bord de l'écran. Clic droit ou icône de la zone de notification : vérifier l'écran, ouvrir KORA, arrêter la bulle, quitter.
+- Comme sur Android, la bulle se cache quand KORA est au premier plan et réapparaît quand on passe sur une autre fenêtre. Fermer la fenêtre de KORA ne ferme pas la bulle : elle reste active.
+- Sécurité : la page tourne sans accès à Node.js (isolation de contexte, bac à sable), ne peut ouvrir que `kora://app/` en interne, seul le micro est autorisé, et les liens externes s'ouvrent dans le navigateur.
+- Dans l'appli Windows, la dictée du navigateur (sans service derrière dans Electron) est remplacée par l'enregistrement du micro de KORA, comme dans un navigateur qui n'a pas la dictée.
+- Changements dans `web/` : `natif.js` (pont Windows à côté du pont Android : `estBureau`, `estAndroid`), `app.js` et `voix.js` (textes et réglages propres au PC).
+- `tests/test_version_unique.py` vérifie aussi la version de `desktop/`.
+- Pas encore signé : au premier lancement, Windows SmartScreen affiche « Windows a protégé votre PC » → « Informations complémentaires » → « Exécuter quand même ».
 
 ## [1.0.13] — 2026-11-26
 

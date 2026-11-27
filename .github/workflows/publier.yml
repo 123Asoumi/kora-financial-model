@@ -111,3 +111,35 @@ jobs:
       - name: Effacer la clé
         if: always()
         run: rm -f "$RUNNER_TEMP/kora.jks"
+
+  # L'installateur Windows : fabriqué sous Windows et attaché à la version créée ci-dessus.
+  bureau:
+    needs: [verifier, publier]
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Installateur
+        working-directory: desktop
+        run: |
+          npm ci
+          npm test
+          npm run dist
+      - name: Joindre à la version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verifier.outputs.version }}
+        run: |
+          EXE="desktop/dist/KORA-lite-$VERSION-Windows.exe"
+          test -f "$EXE"
+          SHA=$(sha256sum "$EXE" | awk '{print $1}')
+          echo "$SHA  KORA-lite-$VERSION-Windows.exe" > "$EXE.sha256"
+          gh release upload "v$VERSION" "$EXE" "$EXE.sha256" --repo "$GITHUB_REPOSITORY"
+          NOTES=$(gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json body -q .body)
+          printf '%s\nSHA-256 de l'"'"'installateur Windows : `%s` (installateur non signé : SmartScreen demande « Exécuter quand même »)\n' "$NOTES" "$SHA" > notes.md
+          gh release edit "v$VERSION" --repo "$GITHUB_REPOSITORY" --notes-file notes.md

@@ -1,26 +1,32 @@
-// Pont vers l'appli Android de KORA (Capacitor). Dans un navigateur, rien de tout ça n'est actif.
+// Pont vers l'appli Android de KORA (Capacitor) et vers l'appli de bureau Windows (Electron, dossier desktop/).
+// Dans un navigateur, rien de tout ça n'est actif.
 //
 // La bulle KORA : la mascotte flotte par-dessus les autres applis. Quand on la touche, elle
-// capture l'écran et ouvre KORA, qui lit le message sur la capture (Tesseract, dans le téléphone).
+// capture l'écran et ouvre KORA, qui lit le message sur la capture (Tesseract, dans l'appareil).
 import { Capacitor, registerPlugin } from "./vendor/capacitor-core.js"
 
-export const estAppli = Capacitor.isNativePlatform()
-const Bulle = estAppli ? registerPlugin("BulleKora") : null
+export const estBureau = !!globalThis.koraBureau // l'appli Windows : desktop/preload-kora.js
+export const estAndroid = Capacitor.isNativePlatform()
+export const estAppli = estAndroid || estBureau
+const Bulle = estAndroid ? registerPlugin("BulleKora") : null
 
 export const LIEN_APPLI = "https://github.com/123Asoumi/kora-financial-model/releases/latest"
 
 export async function etatBulle() {
+    if (estBureau) try { return await globalThis.koraBureau.etatBulle() } catch (_) { return { superposition: false, active: false } }
     if (!Bulle) return { superposition: false, active: false }
     try { return await Bulle.etat() } catch (_) { return { superposition: false, active: false } }
 }
 
 /** Lance la bulle. Renvoie "ok", ou le code d'erreur ("SUPERPOSITION", "CAPTURE", …). */
 export async function demarrerBulle() {
+    if (estBureau) try { return await globalThis.koraBureau.demarrerBulle() } catch (e) { return e?.code || "ERREUR" }
     if (!Bulle) return "INDISPONIBLE"
     try { await Bulle.demarrer(); return "ok" } catch (e) { return e?.code || "ERREUR" }
 }
 
 export async function arreterBulle() {
+    if (estBureau) { try { await globalThis.koraBureau.arreterBulle() } catch (_) {} return }
     if (Bulle) try { await Bulle.arreter() } catch (_) {}
 }
 
@@ -30,6 +36,10 @@ export async function arreterBulle() {
  * surAppel() : « Suivre un appel » choisi sur la bulle.
  */
 export function ecouterAppli({ surImage, surTexte, surAppel }) {
+    if (estBureau) {
+        globalThis.koraBureau.surCapture(({ png, etiquette }) => surImage(new File([png], "capture.png", { type: "image/png" }), etiquette))
+        return
+    }
     if (!Bulle) return
     Bulle.addListener("appel", () => surAppel?.())
     Bulle.addListener("capture", async ({ chemin, etiquette }) => {
@@ -44,12 +54,12 @@ export function ecouterAppli({ surImage, surTexte, surAppel }) {
 
 // La voix de KORA dans l'appli : voix française et dictée française du téléphone (VoixKoraPlugin).
 // Le moteur web d'Android n'a ni speechSynthesis ni reconnaissance vocale.
-export const VoixNative = estAppli ? registerPlugin("VoixKora") : null
+export const VoixNative = estAndroid ? registerPlugin("VoixKora") : null
 
 // Mises à jour de l'appli Android (installée hors Play Store) : au démarrage, KORA regarde la dernière
 // version publiée sur GitHub. S'il y en a une plus récente, il propose de la télécharger et d'ouvrir
 // l'installateur d'Android (même clé de signature, donc les données sont gardées).
-const MiseAJour = estAppli ? registerPlugin("MiseAJour") : null
+const MiseAJour = estAndroid ? registerPlugin("MiseAJour") : null
 const API_VERSIONS = "https://api.github.com/repos/123Asoumi/kora-financial-model/releases/latest"
 
 export function plusRecente(a, b) { // "1.0.10" > "1.0.9"
