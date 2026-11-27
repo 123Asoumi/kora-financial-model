@@ -1,6 +1,6 @@
 # Site de présentation de KORA
 
-Une page statique, sans outil de construction : `index.html` (styles et scripts inclus), l'image de la mascotte (`korachoupi.webp`) et l'icône (`icone-192.png`).
+Une page statique, sans outil de construction : `index.html` (styles et scripts inclus), l'image de la mascotte (`korachoupi.webp`) et l'icône (`icone.png`).
 
 - **Voir le site** : ouvrir `site/index.html` dans un navigateur.
 - **Le publier** : déployer le dossier `site/` tel quel (par exemple un projet Vercel dont le dossier racine est `site`).
