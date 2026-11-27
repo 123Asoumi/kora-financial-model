@@ -35,5 +35,9 @@ def test_page_a_propos():
     assert f"KORA-lite version {VERSION}" in lire("web", "index.html")
 
 
+def test_appli_windows():
+    assert json.loads(lire("desktop", "package.json"))["version"] == VERSION
+
+
 def test_journal_des_versions():
     assert f"## [{VERSION}]" in lire("CHANGELOG.md")

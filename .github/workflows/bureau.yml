@@ -1,0 +1,31 @@
+# Fabrique l'installateur Windows de KORA-lite (dossier desktop/) pour le tester : à chaque changement de
+# desktop/ ou web/, et à la demande. Le fichier est téléchargeable dans l'onglet Actions (rubrique Artifacts).
+# La publication sur la version GitHub se fait dans publier.yml.
+name: Appli Windows
+
+on:
+  push:
+    paths: ["desktop/**", "web/**", ".github/workflows/bureau.yml"]
+  pull_request:
+    paths: ["desktop/**", "web/**", ".github/workflows/bureau.yml"]
+  workflow_dispatch:
+
+jobs:
+  installateur:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm run dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KORA-lite-Windows
+          path: desktop/dist/*.exe
+          if-no-files-found: error

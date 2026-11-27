@@ -9,7 +9,7 @@
 //
 // Pendant que KORA parle, Korachoupi bouge la bouche : { parle: true|false } et { niveau: 0..1 }
 // (le volume réel de la voix fon ; pour la voix française, la bouche bouge toute seule).
-import { VoixNative, estAppli } from "./natif.js"
+import { VoixNative, estAppli, estBureau } from "./natif.js"
 
 const DELAI_VOIX_FON = 30000
 const DELAI_OREILLE_FON = 45000
@@ -19,7 +19,8 @@ export function creerVoix({ mascotte, service }) {
     let jeton = 0 // chaque nouvelle parole annule la précédente
     let audio = null
     let contexte = null
-    const Reco = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition
+    // Electron a la dictée du navigateur mais sans service derrière : dans l'appli Windows, KORA passe par son propre micro
+    const Reco = estBureau ? undefined : globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition
     const synthese = globalThis.speechSynthesis
     let ecouteNavigateur = null
 
