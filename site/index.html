@@ -60,24 +60,8 @@
   .menu a { text-decoration: none; font-weight: 800; font-size: 20px; padding: 13px 0; border-bottom: 1px solid var(--ligne); }
   @media (max-width: 800px) { .liens, .haut .bt { display: none; } .burger { display: grid; } }
 
-  /* ---------- héros : la carte d'accroche violette de l'appli, en grand ---------- */
-  .heros { padding: 14px 0 20px; }
-  .carte-hero { position: relative; overflow: hidden; border-radius: 40px; color: #fff; padding: 56px 52px 0; display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: end;
-    background: radial-gradient(520px 360px at 82% 18%, rgba(255, 217, 174, .22), transparent 70%), linear-gradient(135deg, #6A3BEA, #4A22BD); box-shadow: var(--ombre-violet); }
-  .carte-hero .txt { padding-bottom: 56px; align-self: center; }
-  .kicker { display: inline-block; font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--creme); }
-  .carte-hero h1 { margin-top: 16px; font-size: clamp(40px, 6vw, 68px); letter-spacing: -.04em; line-height: 1; }
   .souligne { position: relative; display: inline-block; }
   .souligne svg { position: absolute; left: -2%; bottom: -.14em; width: 104%; height: .2em; overflow: visible; }
-  .carte-hero .sous { margin-top: 24px; color: #EFE8FF; font-size: clamp(18px, 2.2vw, 21px); max-width: 26em; }
-  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-  .note { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 15px; font-weight: 700; color: #E6DDFF; }
-  .note .i { font-size: 18px; color: var(--creme); }
-  .vue { position: relative; min-height: 420px; }
-  .vue .cordes { position: absolute; right: 2%; top: 6%; height: 180px; }
-  .vue .mascotte { position: absolute; left: -34px; bottom: -8px; width: 270px; height: 380px; }
-  .vue .dit { position: absolute; left: 4%; top: 2%; }
-  .vue .chat { position: absolute; z-index: 2; right: 0; bottom: 56px; width: min(290px, 60%); display: grid; gap: 10px; justify-items: start; }
   /* la mascotte : l'image en attendant, puis la vraie mascotte 3D de l'appli (mascotte/korachoupi.html) qui cligne, réagit et change d'humeur */
   .vivante { position: relative; filter: drop-shadow(0 12px 12px rgba(20, 5, 80, .35)); }
   .vivante img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; transform-origin: 50% 100%; animation: balance 5s ease-in-out infinite; transition: opacity .45s; }
@@ -97,6 +81,45 @@
   .statut::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
   .p-arnaque { background: #FDE3E3; color: #B42318; } .p-sur { background: #D8F3E4; color: #0B6B3A; } .p-doute { background: #FFE9CC; color: #8A4A00; }
 
+  /* ---------- héros : titre centré, mascotte DERRIÈRE le titre (comme sur tenmin.ai), décor de montagnes et de nuages dans les violets de KORA ---------- */
+  .heros { position: relative; overflow: hidden; padding: 70px 0 160px; text-align: center;
+    background: radial-gradient(620px 340px at 14% 6%, rgba(255, 217, 174, .6), transparent 70%), radial-gradient(700px 380px at 90% 0%, rgba(122, 77, 240, .18), transparent 70%), linear-gradient(180deg, #EFE5FF 0%, #F3ECFF 58%, var(--fond) 100%); }
+  .heros .ct { position: relative; z-index: 2; }
+  .heros .decor { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 290px; z-index: 0; pointer-events: none; }
+  .heros .mascotte { position: absolute; z-index: 0; right: 0; top: -58px; width: 290px; height: 410px; }
+  .heros .mascotte iframe { pointer-events: none; }
+  .heros h1 { position: relative; z-index: 1; display: block; max-width: 8.8em; margin: 0 auto; font-size: clamp(46px, 9vw, 98px); letter-spacing: -.045em; line-height: .98; }
+  .heros .sous { position: relative; z-index: 1; margin: 26px auto 0; max-width: 27em; color: var(--doux); font-size: clamp(18px, 2.4vw, 22px); }
+  .heros .etincelle { position: absolute; z-index: 1; animation: scintille 2.6s ease-in-out infinite; }
+  .heros .e1 { left: 11%; top: 130px; width: 22px; fill: #FF8A2B; } .heros .e2 { left: 20%; top: 340px; width: 14px; fill: #7A4DF0; animation-delay: -1s; } .heros .e3 { left: 30%; top: 70px; width: 15px; fill: #FF8A2B; animation-delay: -1.8s; }
+  @keyframes scintille { 0%, 100% { transform: scale(.5) rotate(0); opacity: .5; } 50% { transform: scale(1.15) rotate(20deg); opacity: 1; } }
+  .badges { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 34px; }
+  .badge { display: inline-flex; align-items: center; gap: 12px; background: var(--encre); color: #fff; text-decoration: none; border-radius: 14px; padding: 9px 20px 9px 16px; text-align: left; transition: transform .15s; box-shadow: 0 14px 24px -14px rgba(30, 21, 53, .8); }
+  .badge:hover { transform: translateY(-3px); }
+  .badge .i { font-size: 30px; }
+  .badge small { display: block; font-size: 11px; font-weight: 500; letter-spacing: .04em; opacity: .85; line-height: 1.1; }
+  .badge b { display: block; font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+  .pastille-note { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; background: #fff; border-radius: 999px; padding: 9px 18px; font-size: 14px; font-weight: 700; box-shadow: var(--ombre-carte), 0 8px 24px -12px rgba(91, 47, 214, .35); }
+  .pastille-note .i { color: var(--bois); font-size: 17px; }
+
+  /* ---------- la scène des chiffres : la mascotte joue au milieu de quatre tuiles qui flottent ---------- */
+  .arene { position: relative; overflow: hidden; border-radius: 40px; min-height: 620px; border: 1px solid var(--violet-ligne);
+    background: radial-gradient(380px 380px at 50% 72%, rgba(255, 217, 174, .95), rgba(255, 217, 174, 0) 72%), linear-gradient(180deg, #EFE9FF 0%, #F9F2FF 100%); }
+  .arene .harpe { position: absolute; left: 0; right: 0; bottom: 0; height: 82%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4%; pointer-events: none; }
+  .arene .harpe i { width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--creme), var(--orange)); opacity: .75; animation: pince 2.6s ease-in-out infinite; }
+  .arene .harpe i:nth-child(3n) { animation-delay: .4s; } .arene .harpe i:nth-child(3n+1) { animation-delay: .9s; }
+  .arene .mascotte.centre { position: absolute; z-index: 2; left: 50%; bottom: -16px; width: 400px; height: 570px; margin-left: -200px; }
+  .tuile { border-radius: 28px; padding: 20px; color: #fff; display: grid; gap: 22px; align-content: space-between; box-shadow: 0 14px 24px -14px rgba(30, 21, 53, .6); }
+  .tuile.v { background: linear-gradient(150deg, #7A4DF0, #5B2FD6); } .tuile.g { background: linear-gradient(150deg, #12935A, #0B7A43); }
+  .tuile.o { background: linear-gradient(150deg, #FFB347, #FF8A2B); color: #2A1300; } .tuile.r { background: linear-gradient(150deg, #E5483C, #C0281C); }
+  .tuile .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255, 255, 255, .28); display: grid; place-items: center; font-size: 24px; }
+  .tuile b { display: block; font-size: clamp(30px, 4vw, 40px); font-weight: 800; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tuile small { display: block; margin-top: 6px; font-size: 14.5px; font-weight: 500; line-height: 1.3; opacity: .92; }
+  .arene .tuile { position: absolute; z-index: 3; width: min(250px, 26%); animation: flotte-t 6s ease-in-out infinite; transition: transform .25s, box-shadow .25s; }
+  .arene .t1 { left: 5%; top: 46px; } .arene .t2 { right: 5%; top: 84px; animation-delay: -1.5s; } .arene .t3 { left: 8%; bottom: 58px; animation-delay: -3s; } .arene .t4 { right: 8%; bottom: 42px; animation-delay: -4.5s; }
+  .arene .tuile.vif, .arene .tuile:hover { transform: scale(1.07) rotate(-1.5deg); box-shadow: 0 28px 38px -18px rgba(30, 21, 53, .7); z-index: 4; }
+  @keyframes flotte-t { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+
   /* ---------- pastilles qui défilent ---------- */
   .rubans { padding: 22px 0 6px; display: grid; gap: 12px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); overflow: hidden; }
   .ruban { display: flex; gap: 10px; width: max-content; animation: defile 46s linear infinite; }
@@ -114,12 +137,7 @@
   .etiq { font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--bois); }
 
   /* tuiles colorées (les « idées » de l'accueil de l'appli) */
-  .tuiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
   .tuile { border-radius: 28px; min-height: 190px; padding: 22px; color: #fff; display: grid; align-content: space-between; box-shadow: 0 12px 22px -14px rgba(30, 21, 53, .5); }
-  .tuile:nth-child(4n+1) { background: linear-gradient(150deg, #7A4DF0, #5B2FD6); }
-  .tuile:nth-child(4n+2) { background: linear-gradient(150deg, #12935A, #0B7A43); }
-  .tuile:nth-child(4n+3) { background: linear-gradient(150deg, #FFB347, #FF8A2B); color: #2A1300; }
-  .tuile:nth-child(4n+4) { background: linear-gradient(150deg, #E5483C, #C0281C); }
   .tuile .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255, 255, 255, .28); display: grid; place-items: center; font-size: 24px; }
   .tuile b { display: block; font-size: clamp(30px, 4vw, 40px); font-weight: 800; letter-spacing: -.04em; line-height: 1; }
   .tuile small { display: block; margin-top: 6px; font-size: 14.5px; font-weight: 500; line-height: 1.3; opacity: .92; }
@@ -211,16 +229,18 @@
   .pied .bas img { height: 54px; width: auto; flex: none; }
 
   @media (max-width: 860px) {
-    .carte-hero { grid-template-columns: 1fr; padding: 40px 24px 0; border-radius: 32px; }
-    .carte-hero .txt { padding-bottom: 0; }
-    .vue { min-height: 360px; } .vue .mascotte { width: 220px; height: 320px; left: -26px; } .vue .chat { bottom: 40px; width: min(280px, 64%); } .vue .cordes { height: 120px; }
-    .tuiles { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 620px) {
+    .heros { padding: 52px 0 130px; }
+    .heros .ct { padding-top: 132px; }
+    .heros .mascotte { width: 150px; height: 215px; right: 9%; top: -8px; }
+    .heros .e1, .heros .e2, .heros .e3 { display: none; }
+    .arene { min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 14px 20px; border-radius: 32px; }
+    .arene .mascotte.centre { position: relative; grid-column: 1 / -1; left: auto; bottom: auto; margin: 0 auto; width: 270px; height: 380px; order: -1; }
+    .arene .tuile { position: relative; width: auto; left: auto; right: auto; top: auto; bottom: auto; padding: 16px; gap: 14px; }
     section { padding: 56px 0; }
     .tuile { min-height: 170px; padding: 18px; border-radius: 24px; }
     .scene, .appel { border-radius: 32px; } .scene { min-height: 560px; } .scene.orange { min-height: 640px; }
-    .vue .dit { font-size: 13px; padding: 8px 14px; }
     .appel .sol .dit { font-size: 13px; padding: 8px 12px; } .appel .sol .dit.g { left: 0; top: 70px; } .appel .sol .dit.d { right: -4px; top: 14px; }
     .rail { grid-template-columns: 34px 1fr 34px; } .rail button.fleche { width: 34px; height: 34px; }
     .scene > .cordes { height: 100px; } .scene > .cordes.d { height: 90px; }
@@ -275,28 +295,23 @@
 
 <main>
   <div class="heros">
+    <svg class="decor" viewBox="0 0 1440 290" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M0 290V150L120 92 230 150 340 72 470 160 600 100 720 170 860 82 990 160 1110 112 1240 172 1340 122 1440 162V290Z" fill="#E3D8FB" opacity=".8"/>
+      <path d="M0 290V196L140 146 260 204 400 136 540 210 680 154 820 218 960 146 1100 214 1250 156 1440 208V290Z" fill="#D5C7F6" opacity=".9"/>
+      <g fill="#fff" opacity=".9"><ellipse cx="86" cy="214" rx="80" ry="26"/><ellipse cx="150" cy="196" rx="50" ry="26"/><ellipse cx="1340" cy="206" rx="92" ry="28"/><ellipse cx="1280" cy="188" rx="52" ry="26"/></g>
+      <path d="M0 290V240L180 204 340 248 520 212 700 252 900 208 1080 248 1260 216 1440 248V290Z" fill="#F6F3FF"/>
+    </svg>
+    <svg class="etincelle e1" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6Z"/></svg><svg class="etincelle e2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6Z"/></svg><svg class="etincelle e3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6Z"/></svg>
     <div class="ct">
-      <div class="carte-hero">
-        <div class="txt">
-          <span class="kicker">Bouclier anti-arnaque Mobile Money</span>
-          <h1><span class="souligne">Vérifie<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9 C 38 2, 74 13, 112 6 S 176 3, 197 8" fill="none" stroke="#FF8A2B" stroke-width="5" stroke-linecap="round"/></svg></span> avant de payer.</h1>
-          <p class="sous">Un vrai prêt ne demande jamais de frais d'avance. KORA le sait, et il te le dit.</p>
-          <div class="actions">
-            <a class="bt clair" href="https://kora-0-01.vercel.app"><svg class="i"><use href="#i-globe"/></svg>Essayer dans le navigateur</a>
-            <a class="bt verre" href="#telecharger">Télécharger l'appli</a>
-          </div>
-          <p class="note"><svg class="i"><use href="#i-lock"/></svg>L'analyse se fait dans ton téléphone</p>
-        </div>
-        <div class="vue">
-          <div class="cordes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-          <span class="dit">Arnaque ! Ne donne rien.</span>
-          <div class="chat">
-            <div class="bulle">Bjr c'est l'agent MTN, envoie-moi le code que tu vas recevoir stp</div>
-            <span class="statut p-arnaque">Arnaque probable</span>
-          </div>
-          <div class="mascotte vivante" data-scenario="hero" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
-        </div>
+      <div class="mascotte vivante" data-scenario="hero" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
+      <h1><span class="souligne">Vérifie<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9 C 38 2, 74 13, 112 6 S 176 3, 197 8" fill="none" stroke="#FF8A2B" stroke-width="5" stroke-linecap="round"/></svg></span> avant de payer.</h1>
+      <p class="sous">Un vrai prêt ne demande jamais de frais d'avance. KORA le sait, et il te le dit.</p>
+      <div class="badges">
+        <a class="badge" href="https://kora-0-01.vercel.app"><svg class="i"><use href="#i-globe"/></svg><span><small>Essayer dans le</small><b>Navigateur</b></span></a>
+        <a class="badge" href="https://github.com/123Asoumi/kora-financial-model/releases/latest"><svg class="i"><use href="#i-phone"/></svg><span><small>Télécharger pour</small><b>Android</b></span></a>
+        <a class="badge" href="https://github.com/123Asoumi/kora-financial-model/releases/latest"><svg class="i"><use href="#i-pc"/></svg><span><small>Télécharger pour</small><b>Windows</b></span></a>
       </div>
+      <div class="pastille-note"><svg class="i"><use href="#i-lock"/></svg>L'analyse se fait dans ton téléphone</div>
     </div>
   </div>
 
@@ -317,11 +332,13 @@
         <span class="etiq">En chiffres</span>
         <h2>Un petit modèle, une grande protection.</h2>
       </div>
-      <div class="tuiles">
-        <div class="tuile"><span class="ic"><svg class="i"><use href="#i-cube"/></svg></span><div><b>964 Ko</b><small>le modèle, dans ton téléphone</small></div></div>
-        <div class="tuile"><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span><div><b>5 types</b><small>de messages reconnus</small></div></div>
-        <div class="tuile"><span class="ic"><svg class="i"><use href="#i-lang"/></svg></span><div><b>2 langues</b><small>le français et le fon</small></div></div>
-        <div class="tuile"><span class="ic"><svg class="i"><use href="#i-screens"/></svg></span><div><b>3 écrans</b><small>web, Android, Windows</small></div></div>
+      <div class="arene" id="arene">
+        <div class="harpe" aria-hidden="true"><i style="height:34%"></i><i style="height:52%"></i><i style="height:70%"></i><i style="height:46%"></i><i style="height:88%"></i><i style="height:60%"></i><i style="height:40%"></i><i style="height:76%"></i><i style="height:54%"></i><i style="height:92%"></i><i style="height:64%"></i><i style="height:44%"></i><i style="height:72%"></i><i style="height:38%"></i></div>
+        <div class="mascotte vivante centre" data-scenario="arene" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
+        <div class="tuile v t1" data-e="surpris"><span class="ic"><svg class="i"><use href="#i-cube"/></svg></span><div><b><span data-n="964">964</span> Ko</b><small>le modèle, dans ton téléphone</small></div></div>
+        <div class="tuile g t2" data-e="content"><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span><div><b><span data-n="5">5</span> types</b><small>de messages reconnus</small></div></div>
+        <div class="tuile o t3" data-e="joyeux"><span class="ic"><svg class="i"><use href="#i-lang"/></svg></span><div><b><span data-n="2">2</span> langues</b><small>le français et le fon</small></div></div>
+        <div class="tuile r t4" data-e="amoureux"><span class="ic"><svg class="i"><use href="#i-screens"/></svg></span><div><b><span data-n="3">3</span> écrans</b><small>web, Android, Windows</small></div></div>
       </div>
     </div>
   </section>
@@ -478,24 +495,36 @@
   montrer(0);
 
 
-  // la mascotte 3D : montée seulement quand elle est à l'écran (une seule page 3D à la fois par endroit, pour rester léger), puis pilotée par message.
+  // la mascotte 3D : montée seulement quand elle est à l'écran, puis pilotée par message (humeur, note, tour sur elle-même, « ? »). Elle suit aussi le curseur.
   const calme = matchMedia("(prefers-reduced-motion: reduce)").matches || (navigator.connection && navigator.connection.saveData);
-  const SCENARIOS = { // [message, durée en ms] : de petites scènes qui bouclent
-    hero: [[{ emotion: "content" }, 2800], [{ emotion: "surpris" }, 1600], [{ emotion: "fache" }, 2600], [{ emotion: "joyeux", gratter: true }, 2800]],
+  const PI = Math.PI;
+  const tuileVive = (i) => document.querySelectorAll("#arene .tuile").forEach((t, j) => t.classList.toggle("vif", j === i));
+  const SCENARIOS = { // [message, durée en ms, action] : de petites scènes qui bouclent, pensées pour chaque endroit de la page
+    hero: [[{ emotion: "content" }, 4200], [{ emotion: "joyeux", gratter: true }, 2600], [{ emotion: "content" }, 4200], [{ emotion: "surpris", interroge: true }, 2400], [{ emotion: "content", interroge: false }, 3000]],
     regarde: [[{ emotion: "content", interroge: true }, 3000], [{ emotion: "surpris", interroge: false }, 1500], [{ emotion: "content" }, 2400]],
     regles: [[{ emotion: "content" }, 2800], [{ emotion: "joyeux", gratter: true }, 2800], [{ emotion: "amoureux" }, 2400]],
     fin: [[{ emotion: "joyeux", gratter: true }, 3200], [{ emotion: "content" }, 2200], [{ emotion: "surpris" }, 1500]],
+    arene: [ // elle passe d'une tuile à l'autre : étonnée par le poids, contente des types, se retourne l'air malin pour les langues, amoureuse des écrans
+      [{ emotion: "surpris" }, 2800, () => tuileVive(0)],
+      [{ emotion: "content", gratter: true }, 2800, () => tuileVive(1)],
+      [{ emotion: "joyeux", tourne: PI }, 1700, () => tuileVive(2)],
+      [{ emotion: "surpris", tourne: 0 }, 2200, () => tuileVive(2)],
+      [{ emotion: "amoureux", gratter: true }, 2800, () => tuileVive(3)],
+    ],
   };
-  function dire(el, msg) {
-    el._dernier = Object.assign(el._dernier || {}, msg);
+  function dire(el, msg, memo = true) {
+    if (memo) el._dernier = Object.assign(el._dernier || {}, msg);
+    if (typeof msg.tourne === "number") { el._spin = msg.tourne !== 0; el._angle = msg.tourne; }
     const f = el.querySelector("iframe");
     if (f && el.classList.contains("pret")) try { f.contentWindow.postMessage({ kora: msg }, "*"); } catch (_) {}
   }
   function jouer(el, nom, i = 0) {
+    clearTimeout(el._minuteur);
     const sc = SCENARIOS[nom]; if (!sc) return;
-    const [msg, duree] = sc[i % sc.length];
-    dire(el, msg);
-    el._minuteur = setTimeout(() => jouer(el, nom, i + 1), duree);
+    el._etape = i % sc.length;
+    const [msg, duree, action] = sc[el._etape];
+    if (!el._pause) { dire(el, msg); if (action) action(); }
+    el._minuteur = setTimeout(() => jouer(el, nom, el._etape + 1), duree);
   }
   function monter(el) {
     if (calme || el.querySelector("iframe")) return;
@@ -505,7 +534,7 @@
     el.append(f);
   }
   function demonter(el) {
-    clearTimeout(el._minuteur); el.classList.remove("pret");
+    clearTimeout(el._minuteur); el.classList.remove("pret"); el._pause = false; el._spin = false;
     const f = el.querySelector("iframe"); if (f) f.remove();
   }
   window.addEventListener("message", (e) => {
@@ -514,7 +543,7 @@
       const f = el.querySelector("iframe");
       if (f && f.contentWindow === e.source && !el.classList.contains("pret")) {
         el.classList.add("pret");
-        if (el._dernier) dire(el, el._dernier); // l'humeur demandée avant que la 3D soit prête
+        if (el._dernier) dire(el, el._dernier, false); // l'humeur demandée avant que la 3D soit prête
         if (el.dataset.scenario !== "verdict") jouer(el, el.dataset.scenario);
       }
     }
@@ -522,6 +551,46 @@
   if ("IntersectionObserver" in window && !calme) {
     const vu = new IntersectionObserver((lignes) => { for (const l of lignes) l.isIntersecting ? monter(l.target) : demonter(l.target); }, { rootMargin: "160px" });
     document.querySelectorAll(".vivante").forEach((el) => vu.observe(el));
+  }
+
+  // elle suit le curseur : elle se tourne vers lui (sauf quand elle fait son tour sur elle-même)
+  const ptr = { x: 0, actif: false };
+  addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") { ptr.x = e.clientX; ptr.actif = true; } }, { passive: true });
+  let derniereMaj = 0;
+  function suivre(t) {
+    requestAnimationFrame(suivre);
+    if (!ptr.actif || t - derniereMaj < 60) return;
+    derniereMaj = t;
+    for (const el of document.querySelectorAll(".vivante.pret")) {
+      if (el._spin) continue;
+      const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) continue;
+      const dx = (ptr.x - (r.left + r.width / 2)) / Math.max(320, innerWidth * .45);
+      const a = Math.max(-1, Math.min(1, dx)) * .5;
+      if (Math.abs(a - (el._angle || 0)) > .04) dire(el, { tourne: a }, false);
+    }
+  }
+  if (!calme) requestAnimationFrame(suivre);
+
+  // des réactions placées avec sens : survoler un bouton de la page d'accueil la rend joyeuse ; survoler une tuile des chiffres la fait réagir à ce chiffre
+  const mascHero = document.querySelector('.vivante[data-scenario="hero"]'), mascArene = document.querySelector('.vivante[data-scenario="arene"]');
+  document.querySelectorAll(".heros .badge").forEach((b) => {
+    b.addEventListener("pointerenter", () => { mascHero._pause = true; dire(mascHero, { emotion: "joyeux", gratter: true }); });
+    b.addEventListener("pointerleave", () => { mascHero._pause = false; dire(mascHero, { emotion: "content" }); });
+  });
+  document.querySelectorAll("#arene .tuile").forEach((t, i) => {
+    t.addEventListener("pointerenter", (e) => { if (e.pointerType !== "mouse") return; mascArene._pause = true; mascArene._spin = false; tuileVive(i); dire(mascArene, { emotion: t.dataset.e, tourne: 0, gratter: i % 2 === 1 }); });
+    t.addEventListener("pointerleave", (e) => { if (e.pointerType !== "mouse") return; mascArene._pause = false; tuileVive(-1); });
+  });
+
+  // les chiffres se comptent quand ils arrivent à l'écran
+  if ("IntersectionObserver" in window && !calme) {
+    const comptes = new IntersectionObserver((lignes) => { for (const l of lignes) if (l.isIntersecting) { comptes.unobserve(l.target); compter(l.target); } }, { threshold: .5 });
+    document.querySelectorAll("[data-n]").forEach((el) => comptes.observe(el));
+  }
+  function compter(el) {
+    const n = +el.dataset.n, t0 = performance.now();
+    const pas = (t) => { const k = Math.min(1, (t - t0) / 1200); el.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(pas); };
+    requestAnimationFrame(pas);
   }
 
   // le carrousel des réflexes
