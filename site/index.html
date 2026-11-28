@@ -75,9 +75,15 @@
   .note .i { font-size: 18px; color: var(--creme); }
   .vue { position: relative; min-height: 420px; }
   .vue .cordes { position: absolute; right: 2%; top: 6%; height: 180px; }
-  .vue .mascotte { position: absolute; left: -8px; bottom: 0; height: 330px; width: auto; filter: drop-shadow(0 14px 14px rgba(20, 5, 80, .45)); transform-origin: 50% 100%; animation: balance 5s ease-in-out infinite; }
+  .vue .mascotte { position: absolute; left: -34px; bottom: -8px; width: 270px; height: 380px; }
   .vue .dit { position: absolute; left: 4%; top: 2%; }
   .vue .chat { position: absolute; z-index: 2; right: 0; bottom: 56px; width: min(290px, 60%); display: grid; gap: 10px; justify-items: start; }
+  /* la mascotte : l'image en attendant, puis la vraie mascotte 3D de l'appli (mascotte/korachoupi.html) qui cligne, réagit et change d'humeur */
+  .vivante { position: relative; filter: drop-shadow(0 12px 12px rgba(20, 5, 80, .35)); }
+  .vivante img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; transform-origin: 50% 100%; animation: balance 5s ease-in-out infinite; transition: opacity .45s; }
+  .vivante iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; color-scheme: normal; opacity: 0; transition: opacity .45s; }
+  .vivante.pret iframe { opacity: 1; } .vivante.pret img { opacity: 0; }
+  @media (pointer: coarse) { .vivante iframe { pointer-events: none; } }
   .cordes { display: flex; gap: 14px; height: 132px; }
   .cordes i { display: block; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--creme) 0%, var(--orange) 100%); animation: pince 2.2s ease-in-out infinite; }
   .cordes i:nth-child(1) { height: 70%; align-self: end; } .cordes i:nth-child(2) { height: 85%; align-self: end; animation-delay: .14s; } .cordes i:nth-child(3) { height: 100%; animation-delay: .28s; }
@@ -134,8 +140,8 @@
   .tel .haut-tel { position: absolute; top: 14px; left: 20px; right: 20px; display: grid; gap: 1px; text-align: left; }
   .tel .haut-tel b { font-size: 18px; font-weight: 800; } .tel .haut-tel b small { font-size: 11px; color: var(--bois); margin-left: 2px; }
   .tel .haut-tel span { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--sur); } .tel .haut-tel span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sur); }
-  .tel .mascotte { height: 132px; width: auto; margin-bottom: 4px; filter: drop-shadow(0 8px 8px rgba(60, 30, 140, .25)); transform-origin: 50% 100%; animation: balance 5s ease-in-out infinite; }
-  .tel .legende { font-size: 15px; font-weight: 700; color: var(--discret); }
+  .tel .mascotte { width: 170px; height: 190px; margin-bottom: 12px; }
+  .tel .legende { position: relative; z-index: 1; font-size: 15px; font-weight: 700; color: var(--discret); }
   .flottante { position: absolute; z-index: 2; left: 50%; top: 40px; transform: translateX(-50%); width: min(380px, 88%); background: #fff; border-radius: 28px; padding: 18px; text-align: left; box-shadow: 0 24px 40px -18px rgba(20, 5, 80, .55); display: grid; gap: 12px; justify-items: start; }
   .flottante .bulle { box-shadow: none; background: var(--violet-pale); }
   .faire { border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.4; background: color-mix(in srgb, var(--c, #5B2FD6) 12%, #fff); }
@@ -183,8 +189,8 @@
   .appel > p { color: #E6DDFF; font-size: 19px; }
   .appel > h2, .appel > p, .appel > .actions { position: relative; z-index: 2; }
   .appel .actions { justify-content: center; margin-top: 12px; }
-  .appel .sol { position: relative; z-index: 2; margin-top: 30px; width: 100%; max-width: 640px; height: 250px; }
-  .appel .sol .mascotte { position: absolute; left: 50%; bottom: 0; height: 240px; width: auto; transform-origin: 50% 100%; margin-left: -58px; filter: drop-shadow(0 14px 14px rgba(20, 5, 80, .5)); animation: balance 5s ease-in-out infinite; }
+  .appel .sol { position: relative; z-index: 2; margin-top: 26px; width: 100%; max-width: 640px; height: 290px; }
+  .appel .sol .mascotte { position: absolute; left: 50%; bottom: -6px; width: 220px; height: 310px; margin-left: -110px; }
   .appel .sol .cordes { position: absolute; bottom: 0; height: 130px; } .appel .sol .cordes.g { left: 6%; } .appel .sol .cordes.d { right: 6%; }
   .appel .sol .dit { position: absolute; } .appel .sol .dit.g { left: 4%; top: 28px; color: #B42318; } .appel .sol .dit.d { right: 4%; top: 78px; color: #0B6B3A; }
 
@@ -207,7 +213,7 @@
   @media (max-width: 860px) {
     .carte-hero { grid-template-columns: 1fr; padding: 40px 24px 0; border-radius: 32px; }
     .carte-hero .txt { padding-bottom: 0; }
-    .vue { min-height: 340px; } .vue .mascotte { height: 270px; } .vue .chat { bottom: 40px; width: min(280px, 64%); } .vue .cordes { height: 120px; }
+    .vue { min-height: 360px; } .vue .mascotte { width: 220px; height: 320px; left: -26px; } .vue .chat { bottom: 40px; width: min(280px, 64%); } .vue .cordes { height: 120px; }
     .tuiles { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 620px) {
@@ -215,7 +221,7 @@
     .tuile { min-height: 170px; padding: 18px; border-radius: 24px; }
     .scene, .appel { border-radius: 32px; } .scene { min-height: 560px; } .scene.orange { min-height: 640px; }
     .vue .dit { font-size: 13px; padding: 8px 14px; }
-    .appel .sol .dit.g { left: 0; } .appel .sol .dit.d { right: 0; }
+    .appel .sol .dit { font-size: 13px; padding: 8px 12px; } .appel .sol .dit.g { left: 0; top: 70px; } .appel .sol .dit.d { right: -4px; top: 14px; }
     .rail { grid-template-columns: 34px 1fr 34px; } .rail button.fleche { width: 34px; height: 34px; }
     .scene > .cordes { height: 100px; } .scene > .cordes.d { height: 90px; }
   }
@@ -288,7 +294,7 @@
             <div class="bulle">Bjr c'est l'agent MTN, envoie-moi le code que tu vas recevoir stp</div>
             <span class="statut p-arnaque">Arnaque probable</span>
           </div>
-          <img class="mascotte" src="korachoupi.webp" alt="Korachoupi, la mascotte de KORA" width="174" height="360">
+          <div class="mascotte vivante" data-scenario="hero" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
         </div>
       </div>
     </div>
@@ -331,7 +337,7 @@
       <div class="scene violet">
         <div class="cordes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="cordes d" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
         <div class="flottante ouvre"><span class="ic-rond"><svg class="i"><use href="#i-bulle"/></svg></span>Touche la bulle KORA pour vérifier l'écran !</div>
-        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><img class="mascotte" src="korachoupi.webp" alt="" width="174" height="360"><span class="legende">Je regarde…</span></div>
+        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><div class="mascotte vivante" data-scenario="regarde" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div><span class="legende">Je regarde…</span></div>
       </div>
 
       <div class="fonction">
@@ -345,7 +351,7 @@
           <span class="statut p-arnaque" id="d-statut">Arnaque probable</span>
           <div class="faire"><b>Que faire :</b> <span id="d-faire"></span></div>
         </div>
-        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><img class="mascotte" src="korachoupi.webp" alt="" width="174" height="360"><span class="legende" id="d-leg">Je réfléchis…</span></div>
+        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><div class="mascotte vivante" data-scenario="verdict" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div><span class="legende" id="d-leg">Je réfléchis…</span></div>
       </div>
       <div class="essai" role="tablist" aria-label="Exemples de messages">
         <button role="tab" aria-selected="true" data-i="0">Faux prêt</button>
@@ -364,7 +370,7 @@
           <div class="objectif"><span class="ic-rond"><svg class="i"><use href="#i-lock"/></svg></span><div><small>Règle d'or n°1</small><b>Ne donne jamais ton code</b></div></div>
           <div class="objectif pale"><span class="ic-rond"><svg class="i"><use href="#i-call"/></svg></span><div><small>Règle d'or n°2</small><b>Vérifie auprès du service client officiel</b></div></div>
         </div>
-        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><img class="mascotte" src="korachoupi.webp" alt="" width="174" height="360"><span class="legende">Je te rappelle…</span></div>
+        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><div class="mascotte vivante" data-scenario="regles" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div><span class="legende">Je te rappelle…</span></div>
       </div>
 
       <div class="aussi">
@@ -407,7 +413,7 @@
         <div class="sol">
           <div class="cordes g" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="cordes d" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
           <span class="dit g">Arnaque !</span><span class="dit d">Ça a l'air normal.</span>
-          <img class="mascotte" src="korachoupi.webp" alt="" width="174" height="360">
+          <div class="mascotte vivante" data-scenario="fin" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
         </div>
       </div>
     </div>
@@ -466,9 +472,57 @@
     $("d-msg").textContent = e.msg; $("d-faire").textContent = e.faire; $("d-leg").textContent = e.leg; $("d-pourquoi").innerHTML = e.pq;
     const s = $("d-statut"); s.textContent = e.statut; s.className = "statut " + (sur ? "p-sur" : "p-arnaque");
     document.querySelectorAll(".essai button").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.i === i)));
+    const v = document.querySelector('.vivante[data-scenario="verdict"]'); if (v) dire(v, sur ? { emotion: "joyeux", gratter: true } : { emotion: "fache" });
   }
   document.querySelectorAll(".essai button").forEach((b) => b.addEventListener("click", () => montrer(+b.dataset.i)));
   montrer(0);
+
+
+  // la mascotte 3D : montée seulement quand elle est à l'écran (une seule page 3D à la fois par endroit, pour rester léger), puis pilotée par message.
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches || (navigator.connection && navigator.connection.saveData);
+  const SCENARIOS = { // [message, durée en ms] : de petites scènes qui bouclent
+    hero: [[{ emotion: "content" }, 2800], [{ emotion: "surpris" }, 1600], [{ emotion: "fache" }, 2600], [{ emotion: "joyeux", gratter: true }, 2800]],
+    regarde: [[{ emotion: "content", interroge: true }, 3000], [{ emotion: "surpris", interroge: false }, 1500], [{ emotion: "content" }, 2400]],
+    regles: [[{ emotion: "content" }, 2800], [{ emotion: "joyeux", gratter: true }, 2800], [{ emotion: "amoureux" }, 2400]],
+    fin: [[{ emotion: "joyeux", gratter: true }, 3200], [{ emotion: "content" }, 2200], [{ emotion: "surpris" }, 1500]],
+  };
+  function dire(el, msg) {
+    el._dernier = Object.assign(el._dernier || {}, msg);
+    const f = el.querySelector("iframe");
+    if (f && el.classList.contains("pret")) try { f.contentWindow.postMessage({ kora: msg }, "*"); } catch (_) {}
+  }
+  function jouer(el, nom, i = 0) {
+    const sc = SCENARIOS[nom]; if (!sc) return;
+    const [msg, duree] = sc[i % sc.length];
+    dire(el, msg);
+    el._minuteur = setTimeout(() => jouer(el, nom, i + 1), duree);
+  }
+  function monter(el) {
+    if (calme || el.querySelector("iframe")) return;
+    const f = document.createElement("iframe");
+    f.title = "Korachoupi, la mascotte de KORA"; f.setAttribute("aria-hidden", "true"); f.tabIndex = -1; f.setAttribute("allowtransparency", "true");
+    f.src = "mascotte/korachoupi.html?embed&fond=transparent";
+    el.append(f);
+  }
+  function demonter(el) {
+    clearTimeout(el._minuteur); el.classList.remove("pret");
+    const f = el.querySelector("iframe"); if (f) f.remove();
+  }
+  window.addEventListener("message", (e) => {
+    if (!e.data || e.data.korachoupi !== "pret") return;
+    for (const el of document.querySelectorAll(".vivante")) {
+      const f = el.querySelector("iframe");
+      if (f && f.contentWindow === e.source && !el.classList.contains("pret")) {
+        el.classList.add("pret");
+        if (el._dernier) dire(el, el._dernier); // l'humeur demandée avant que la 3D soit prête
+        if (el.dataset.scenario !== "verdict") jouer(el, el.dataset.scenario);
+      }
+    }
+  });
+  if ("IntersectionObserver" in window && !calme) {
+    const vu = new IntersectionObserver((lignes) => { for (const l of lignes) l.isIntersecting ? monter(l.target) : demonter(l.target); }, { rootMargin: "160px" });
+    document.querySelectorAll(".vivante").forEach((el) => vu.observe(el));
+  }
 
   // le carrousel des réflexes
   const diapos = [...document.querySelectorAll(".diapo")], pts = $("points"); let k = 0, auto = null;
