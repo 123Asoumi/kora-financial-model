@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KORA, le bouclier anti-arnaque Mobile Money</title>
+<meta name="description" content="Colle un SMS, un message WhatsApp ou une capture d'écran, en français ou en fon : KORA dit si c'est une arnaque, explique pourquoi et donne le bon réflexe, avant que tu paies.">
+<meta name="theme-color" content="#F6F3FF">
+<link rel="icon" href="icone.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap">
+<style>
+  /* Direction artistique de l'appli KORA (web/theme.css) : fond lavande, violet principal, crème et orange du bois de la kora,
+     cartes colorées à gros arrondis (violet, vert, orange, rouge), bulles de message, pastilles d'état avec un point,
+     cordes orange qui vibrent (écran de chargement), Plus Jakarta Sans en gras. Un seul thème clair, comme l'appli. */
+  :root {
+    color-scheme: light;
+    --fond: #F6F3FF; --surface: #FFFFFF; --violet-pale: #EFE9FF; --violet-ligne: #E2D8FB;
+    --encre: #1E1535; --doux: #5E5478; --discret: #6B6283; --ligne: rgba(30, 21, 53, .10);
+    --bois: #5B2FD6; --bois-clair: #7A4DF0; --bois-fonce: #4A22BD; --nuit: #24096B;
+    --creme: #FFD9AE; --orange: #FF8A2B; --orange-clair: #FFB347;
+    --alerte: #D92D20; --sur: #0B7A43;
+    --police: "Plus Jakarta Sans", "Noto Fon", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --ombre-violet: 0 16px 30px -14px rgba(91, 47, 214, .7);
+    --ombre-carte: 0 1px 0 var(--ligne);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body { margin: 0; background: var(--fond); color: var(--encre); font-family: var(--police); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  p { margin: 0; }
+  h1, h2, h3, h4 { margin: 0; font-weight: 800; letter-spacing: -.03em; line-height: 1.08; text-wrap: balance; }
+  :focus-visible { outline: 3px solid var(--bois-clair); outline-offset: 3px; border-radius: 10px; }
+  .ct { width: 100%; max-width: 1040px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  .i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- boutons : ceux de l'appli (blanc, verre, principal violet) ---------- */
+  .bt { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 26px; border-radius: 999px; border: 0; font: 800 16px var(--police); text-decoration: none; cursor: pointer; transition: transform .15s, filter .15s; }
+  .bt:hover { transform: translateY(-2px); }
+  .bt .i { font-size: 20px; }
+  .bt.clair { background: #fff; color: var(--bois-fonce); }
+  .bt.verre { background: rgba(255, 255, 255, .22); color: #fff; }
+  .bt.principal { background: var(--bois); color: #fff; box-shadow: 0 10px 20px -8px rgba(91, 47, 214, .6); }
+
+  /* ---------- en-tête, comme celui de l'appli : « KORA lite » ---------- */
+  .haut { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--fond) 90%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding-top: env(safe-area-inset-top, 0px); }
+  .haut .ct { display: flex; align-items: center; height: 66px; gap: 24px; }
+  .marque { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 24px; letter-spacing: -.01em; }
+  .marque img { width: 36px; height: 36px; border-radius: 11px; }
+  .marque small { font-size: 13px; font-weight: 700; color: var(--bois); margin-left: -4px; align-self: flex-end; padding-bottom: 5px; }
+  .liens { display: flex; gap: 6px; margin-left: auto; }
+  .liens a { text-decoration: none; font-weight: 700; font-size: 15px; color: var(--doux); padding: 8px 14px; border-radius: 999px; } .liens a:hover { background: var(--violet-pale); color: var(--encre); }
+  .haut .bt { min-height: 42px; padding: 0 20px; font-size: 15px; }
+  .burger { display: none; margin-left: auto; width: 44px; height: 44px; border: 0; background: #fff; box-shadow: var(--ombre-carte); color: var(--encre); cursor: pointer; border-radius: 50%; place-items: center; }
+  .burger .i { font-size: 22px; }
+  .menu { display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--fond); border-bottom: 1px solid var(--ligne); padding: 6px max(20px, env(safe-area-inset-left, 0px)) 18px; }
+  .menu.ouvert { display: grid; }
+  .menu a { text-decoration: none; font-weight: 800; font-size: 20px; padding: 13px 0; border-bottom: 1px solid var(--ligne); }
+  @media (max-width: 800px) { .liens, .haut .bt { display: none; } .burger { display: grid; } }
+
+  .souligne { position: relative; display: inline-block; }
+  .souligne svg { position: absolute; left: -2%; bottom: -.14em; width: 104%; height: .2em; overflow: visible; }
+  /* la mascotte : l'image en attendant, puis la vraie mascotte 3D de l'appli (mascotte/korachoupi.html) qui cligne, réagit et change d'humeur */
+  .vivante { position: relative; filter: drop-shadow(0 12px 12px rgba(20, 5, 80, .35)); }
+  .vivante img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; transform-origin: 50% 100%; animation: balance 5s ease-in-out infinite; transition: opacity .45s; }
+  .vivante iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; color-scheme: normal; opacity: 0; transition: opacity .45s; }
+  .vivante.pret iframe { opacity: 1; } .vivante.pret img { opacity: 0; }
+  @media (pointer: coarse) { .vivante iframe { pointer-events: none; } }
+  .cordes { display: flex; gap: 14px; height: 132px; }
+  .cordes i { display: block; width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--creme) 0%, var(--orange) 100%); animation: pince 2.2s ease-in-out infinite; }
+  .cordes i:nth-child(1) { height: 70%; align-self: end; } .cordes i:nth-child(2) { height: 85%; align-self: end; animation-delay: .14s; } .cordes i:nth-child(3) { height: 100%; animation-delay: .28s; }
+  .cordes i:nth-child(4) { height: 85%; align-self: end; animation-delay: .42s; } .cordes i:nth-child(5) { height: 70%; align-self: end; animation-delay: .56s; }
+  @keyframes pince { 0%, 60%, 100% { transform: translateX(0); opacity: .75; } 64% { transform: translateX(4px); opacity: 1; } 69% { transform: translateX(-3px); } 74% { transform: translateX(2px); } 79% { transform: translateX(-1px); } }
+  @keyframes balance { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) translateY(-4px); } }
+  .dit { background: #fff; color: var(--encre); border-radius: 999px; padding: 10px 18px; font-weight: 800; font-size: 15px; box-shadow: 0 12px 24px -12px rgba(20, 5, 80, .6); }
+  /* la bulle de message et la pastille d'état, comme dans la discussion de l'appli */
+  .bulle { background: #fff; color: var(--encre); border-radius: 24px 24px 24px 6px; padding: 14px 18px; font-size: 16px; line-height: 1.4; box-shadow: var(--ombre-carte), 0 14px 26px -16px rgba(20, 5, 80, .5); text-align: left; font-weight: 500; }
+  .statut { display: inline-flex; align-items: center; gap: 9px; border-radius: 999px; padding: 8px 16px 8px 14px; font-weight: 800; font-size: 15px; }
+  .statut::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+  .p-arnaque { background: #FDE3E3; color: #B42318; } .p-sur { background: #D8F3E4; color: #0B6B3A; } .p-doute { background: #FFE9CC; color: #8A4A00; }
+
+  /* ---------- héros : titre centré, mascotte DERRIÈRE le titre (comme sur tenmin.ai), décor de montagnes et de nuages dans les violets de KORA ---------- */
+  .heros { position: relative; overflow: hidden; padding: 70px 0 160px; text-align: center;
+    background: radial-gradient(620px 340px at 14% 6%, rgba(255, 217, 174, .6), transparent 70%), radial-gradient(700px 380px at 90% 0%, rgba(122, 77, 240, .18), transparent 70%), linear-gradient(180deg, #EFE5FF 0%, #F3ECFF 58%, var(--fond) 100%); }
+  .heros .ct { position: relative; z-index: 2; }
+  .heros .decor { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 290px; z-index: 0; pointer-events: none; }
+  .heros .mascotte { position: absolute; z-index: 0; right: 0; top: -58px; width: 290px; height: 410px; }
+  .heros .mascotte iframe { pointer-events: none; }
+  .heros h1 { position: relative; z-index: 1; display: block; max-width: 8.8em; margin: 0 auto; font-size: clamp(46px, 9vw, 98px); letter-spacing: -.045em; line-height: .98; }
+  .heros .sous { position: relative; z-index: 1; margin: 26px auto 0; max-width: 27em; color: var(--doux); font-size: clamp(18px, 2.4vw, 22px); }
+  .heros .etincelle { position: absolute; z-index: 1; animation: scintille 2.6s ease-in-out infinite; }
+  .heros .e1 { left: 11%; top: 130px; width: 22px; fill: #FF8A2B; } .heros .e2 { left: 20%; top: 340px; width: 14px; fill: #7A4DF0; animation-delay: -1s; } .heros .e3 { left: 30%; top: 70px; width: 15px; fill: #FF8A2B; animation-delay: -1.8s; }
+  @keyframes scintille { 0%, 100% { transform: scale(.5) rotate(0); opacity: .5; } 50% { transform: scale(1.15) rotate(20deg); opacity: 1; } }
+  .badges { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 34px; }
+  .badge { display: inline-flex; align-items: center; gap: 12px; background: var(--encre); color: #fff; text-decoration: none; border-radius: 14px; padding: 9px 20px 9px 16px; text-align: left; transition: transform .15s; box-shadow: 0 14px 24px -14px rgba(30, 21, 53, .8); }
+  .badge:hover { transform: translateY(-3px); }
+  .badge .i { font-size: 30px; }
+  .badge small { display: block; font-size: 11px; font-weight: 500; letter-spacing: .04em; opacity: .85; line-height: 1.1; }
+  .badge b { display: block; font-size: 20px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+  .pastille-note { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; background: #fff; border-radius: 999px; padding: 9px 18px; font-size: 14px; font-weight: 700; box-shadow: var(--ombre-carte), 0 8px 24px -12px rgba(91, 47, 214, .35); }
+  .pastille-note .i { color: var(--bois); font-size: 17px; }
+
+  /* ---------- la scène des chiffres : la mascotte joue au milieu de quatre tuiles qui flottent ---------- */
+  .arene { position: relative; overflow: hidden; border-radius: 40px; min-height: 620px; border: 1px solid var(--violet-ligne);
+    background: radial-gradient(380px 380px at 50% 72%, rgba(255, 217, 174, .95), rgba(255, 217, 174, 0) 72%), linear-gradient(180deg, #EFE9FF 0%, #F9F2FF 100%); }
+  .arene .harpe { position: absolute; left: 0; right: 0; bottom: 0; height: 82%; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4%; pointer-events: none; }
+  .arene .harpe i { width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--creme), var(--orange)); opacity: .75; animation: pince 2.6s ease-in-out infinite; }
+  .arene .harpe i:nth-child(3n) { animation-delay: .4s; } .arene .harpe i:nth-child(3n+1) { animation-delay: .9s; }
+  .arene .mascotte.centre { position: absolute; z-index: 2; left: 50%; bottom: -16px; width: 400px; height: 570px; margin-left: -200px; }
+  .tuile { border-radius: 28px; padding: 20px; color: #fff; display: grid; gap: 22px; align-content: space-between; box-shadow: 0 14px 24px -14px rgba(30, 21, 53, .6); }
+  .tuile.v { background: linear-gradient(150deg, #7A4DF0, #5B2FD6); } .tuile.g { background: linear-gradient(150deg, #12935A, #0B7A43); }
+  .tuile.o { background: linear-gradient(150deg, #FFB347, #FF8A2B); color: #2A1300; } .tuile.r { background: linear-gradient(150deg, #E5483C, #C0281C); }
+  .tuile .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255, 255, 255, .28); display: grid; place-items: center; font-size: 24px; }
+  .tuile b { display: block; font-size: clamp(30px, 4vw, 40px); font-weight: 800; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tuile small { display: block; margin-top: 6px; font-size: 14.5px; font-weight: 500; line-height: 1.3; opacity: .92; }
+  .arene .tuile { position: absolute; z-index: 3; width: min(250px, 26%); animation: flotte-t 6s ease-in-out infinite; transition: transform .25s, box-shadow .25s; }
+  .arene .t1 { left: 5%; top: 46px; } .arene .t2 { right: 5%; top: 84px; animation-delay: -1.5s; } .arene .t3 { left: 8%; bottom: 58px; animation-delay: -3s; } .arene .t4 { right: 8%; bottom: 42px; animation-delay: -4.5s; }
+  .arene .tuile.vif, .arene .tuile:hover { transform: scale(1.07) rotate(-1.5deg); box-shadow: 0 28px 38px -18px rgba(30, 21, 53, .7); z-index: 4; }
+  @keyframes flotte-t { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+
+  /* ---------- pastilles qui défilent ---------- */
+  .rubans { padding: 22px 0 6px; display: grid; gap: 12px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); overflow: hidden; }
+  .ruban { display: flex; gap: 10px; width: max-content; animation: defile 46s linear infinite; }
+  .ruban.inverse { animation-direction: reverse; animation-duration: 54s; }
+  @keyframes defile { to { transform: translateX(-50%); } }
+  .pil { display: inline-flex; align-items: center; gap: 10px; background: #fff; box-shadow: var(--ombre-carte); border-radius: 999px; padding: 8px 20px 8px 8px; font-weight: 700; font-size: 16px; white-space: nowrap; }
+  .pil .ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--violet-pale); color: var(--bois); font-size: 18px; }
+  .pil.rouge .ic { background: #FDE3E3; color: #B42318; } .pil.vert .ic { background: #D8F3E4; color: #0B6B3A; }
+
+  /* ---------- sections ---------- */
+  section { padding: 76px 0; }
+  .tete { max-width: 640px; margin: 0 auto 38px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+  .tete h2, .titre-section { font-size: clamp(32px, 5.4vw, 54px); letter-spacing: -.035em; }
+  .tete p { color: var(--doux); font-size: 19px; }
+  .etiq { font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--bois); }
+
+  /* tuiles colorées (les « idées » de l'accueil de l'appli) */
+  .tuile { border-radius: 28px; min-height: 190px; padding: 22px; color: #fff; display: grid; align-content: space-between; box-shadow: 0 12px 22px -14px rgba(30, 21, 53, .5); }
+  .tuile .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255, 255, 255, .28); display: grid; place-items: center; font-size: 24px; }
+  .tuile b { display: block; font-size: clamp(30px, 4vw, 40px); font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+  .tuile small { display: block; margin-top: 6px; font-size: 14.5px; font-weight: 500; line-height: 1.3; opacity: .92; }
+
+  /* scènes : une grande carte colorée avec un téléphone aux couleurs de l'appli */
+  .fonction { text-align: center; margin-top: 64px; display: grid; justify-items: center; gap: 12px; }
+  .fonction h3 { font-size: clamp(28px, 4.6vw, 42px); }
+  .fonction p { max-width: 30em; color: var(--doux); font-size: 19px; }
+  .scene { position: relative; overflow: hidden; border-radius: 40px; margin-top: 30px; min-height: 520px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; color: var(--encre); transition: background .5s; box-shadow: var(--ombre-violet); }
+  .scene > .cordes { position: absolute; left: 7%; top: 12%; height: 150px; opacity: .9; }
+  .scene > .cordes.d { left: auto; right: 7%; top: auto; bottom: 22%; height: 120px; }
+  .scene.violet { background: linear-gradient(150deg, #7A4DF0, #5B2FD6); }
+  .scene.orange { min-height: 590px; background: linear-gradient(150deg, #FFB347, #FF8A2B); box-shadow: 0 16px 30px -16px rgba(255, 138, 43, .8); }
+  .scene.orange .cordes i { background: linear-gradient(180deg, #fff, #FFE3C2); }
+  .scene.verdict { background: linear-gradient(150deg, #E5483C, #C0281C); box-shadow: 0 16px 30px -16px rgba(192, 40, 28, .75); }
+  .scene.verdict[data-etat="sur"] { background: linear-gradient(150deg, #12935A, #0B7A43); box-shadow: 0 16px 30px -16px rgba(11, 122, 67, .75); }
+  .tel { position: relative; z-index: 1; width: min(300px, 78%); height: 340px; background: var(--fond); border: 14px solid var(--encre); border-bottom: 0; border-radius: 46px 46px 0 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 18px; }
+  .tel .haut-tel { position: absolute; top: 14px; left: 20px; right: 20px; display: grid; gap: 1px; text-align: left; }
+  .tel .haut-tel b { font-size: 18px; font-weight: 800; } .tel .haut-tel b small { font-size: 11px; color: var(--bois); margin-left: 2px; }
+  .tel .haut-tel span { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--sur); } .tel .haut-tel span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sur); }
+  .tel .mascotte { width: 170px; height: 190px; margin-bottom: 12px; }
+  .tel .legende { position: relative; z-index: 1; font-size: 15px; font-weight: 700; color: var(--discret); }
+  .flottante { position: absolute; z-index: 2; left: 50%; top: 40px; transform: translateX(-50%); width: min(380px, 88%); background: #fff; border-radius: 28px; padding: 18px; text-align: left; box-shadow: 0 24px 40px -18px rgba(20, 5, 80, .55); display: grid; gap: 12px; justify-items: start; }
+  .flottante .bulle { box-shadow: none; background: var(--violet-pale); }
+  .faire { border-radius: 18px; padding: 12px 14px; font-size: 15px; line-height: 1.4; background: color-mix(in srgb, var(--c, #5B2FD6) 12%, #fff); }
+  .faire b { font-weight: 800; }
+  .flottante.ouvre { text-align: center; justify-items: center; font-weight: 800; font-size: 19px; line-height: 1.25; }
+  .flottante .ic-rond { width: 46px; height: 46px; border-radius: 14px; background: var(--violet-pale); color: var(--bois); display: grid; place-items: center; font-size: 24px; }
+  .objectifs { position: absolute; z-index: 2; left: 50%; top: 40px; transform: translateX(-50%); width: min(400px, 88%); display: grid; gap: 12px; }
+  .objectif { background: #fff; border-radius: 24px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; text-align: left; box-shadow: 0 20px 36px -18px rgba(90, 40, 0, .55); }
+  .objectif .ic-rond { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: #FFE9CC; color: #C25E00; font-size: 24px; }
+  .objectif small { display: block; font-size: 13px; color: var(--discret); font-weight: 700; }
+  .objectif b { font-size: 18px; line-height: 1.2; letter-spacing: -.01em; }
+  .objectif.pale { opacity: .55; }
+  .essai { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .essai button { font: 700 15px var(--police); color: var(--encre); background: #fff; box-shadow: var(--ombre-carte); border: 0; border-radius: 999px; padding: 10px 18px; cursor: pointer; transition: background .15s; }
+  .essai button:hover { background: var(--violet-pale); }
+  .essai button[aria-selected="true"] { background: var(--bois); color: #fff; }
+  .pourquoi { text-align: center; margin: 16px auto 0; max-width: 34em; color: var(--doux); font-size: 16px; min-height: 3.2em; }
+  .pourquoi b { color: var(--encre); }
+
+  .aussi { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 64px; }
+  .mini { background: #fff; box-shadow: var(--ombre-carte); border-radius: 24px; padding: 20px; display: grid; gap: 8px; align-content: start; }
+  .mini .ic { width: 42px; height: 42px; border-radius: 14px; background: var(--violet-pale); color: var(--bois); display: grid; place-items: center; font-size: 22px; }
+  .mini h4 { font-size: 17px; letter-spacing: -.02em; }
+  .mini p { color: var(--doux); font-size: 15px; line-height: 1.45; }
+
+  /* ---------- carrousel des réflexes ---------- */
+  .avis { text-align: center; padding: 30px 0 64px; }
+  .rail { position: relative; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; }
+  .rail button.fleche { width: 44px; height: 44px; border: 0; background: #fff; box-shadow: var(--ombre-carte); color: var(--encre); cursor: pointer; border-radius: 50%; display: grid; place-items: center; font-size: 20px; }
+  .rail button.fleche:hover { background: var(--violet-pale); }
+  .diapos { display: grid; min-height: 270px; }
+  .diapo { grid-area: 1 / 1; display: grid; align-content: center; justify-items: center; gap: 22px; opacity: 0; visibility: hidden; transition: opacity .5s; }
+  .diapo.actif { opacity: 1; visibility: visible; }
+  .diapo blockquote { margin: 0; font-size: clamp(24px, 4.2vw, 38px); font-weight: 800; letter-spacing: -.03em; line-height: 1.14; max-width: 22em; text-wrap: balance; }
+  .diapo blockquote em { font-style: normal; color: var(--orange); }
+  .diapo .qui { display: inline-flex; align-items: center; gap: 10px; color: var(--discret); font-weight: 700; font-size: 16px; }
+  .diapo .qui img { height: 30px; width: auto; }
+  .points { display: flex; justify-content: center; gap: 8px; margin-top: 26px; }
+  .points button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 99px; background: var(--violet-ligne); cursor: pointer; transition: width .3s, background .3s; }
+  .points button[aria-current="true"] { width: 46px; background: var(--bois); }
+
+  /* ---------- grande carte de téléchargement : l'écran de chargement de l'appli ---------- */
+  .appel { position: relative; overflow: hidden; border-radius: 40px; text-align: center; color: #fff; padding: 64px 22px 0; display: grid; justify-items: center; align-content: start; gap: 14px; background: linear-gradient(160deg, #6A3BEA, #3B1A9E); box-shadow: var(--ombre-violet); }
+  .appel h2 { font-size: clamp(32px, 5.6vw, 54px); max-width: 11em; letter-spacing: -.04em; }
+  .appel > p { color: #E6DDFF; font-size: 19px; }
+  .appel > h2, .appel > p, .appel > .actions { position: relative; z-index: 2; }
+  .appel .actions { justify-content: center; margin-top: 12px; }
+  .appel .sol { position: relative; z-index: 2; margin-top: 26px; width: 100%; max-width: 640px; height: 290px; }
+  .appel .sol .mascotte { position: absolute; left: 50%; bottom: -6px; width: 220px; height: 310px; margin-left: -110px; }
+  .appel .sol .cordes { position: absolute; bottom: 0; height: 130px; } .appel .sol .cordes.g { left: 6%; } .appel .sol .cordes.d { right: 6%; }
+  .appel .sol .dit { position: absolute; } .appel .sol .dit.g { left: 4%; top: 28px; color: #B42318; } .appel .sol .dit.d { right: 4%; top: 78px; color: #0B6B3A; }
+
+  /* ---------- questions ---------- */
+  .faq { display: grid; gap: 12px; max-width: 800px; margin: 0 auto; }
+  details { background: #fff; box-shadow: var(--ombre-carte); border-radius: 28px; padding: 0 24px; }
+  summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 0; font-weight: 800; font-size: clamp(17px, 2.6vw, 20px); letter-spacing: -.02em; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; flex: none; width: 42px; height: 42px; border-radius: 50%; background: var(--violet-pale); color: var(--bois); display: grid; place-items: center; font-size: 26px; font-weight: 500; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { color: var(--doux); padding: 0 0 22px; max-width: 40em; }
+
+  footer { padding: 6px 0 calc(34px + env(safe-area-inset-bottom, 0px)); }
+  .pied { background: var(--violet-pale); border-radius: 36px; padding: 40px 34px 30px; display: grid; gap: 30px; }
+  .pied .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 40px; }
+  .pied a { text-decoration: none; color: var(--doux); font-size: 17px; font-weight: 700; } .pied a:hover { color: var(--bois); }
+  .pied .bas { border-top: 1px solid var(--violet-ligne); padding-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; color: var(--discret); font-size: 14.5px; }
+  .pied .bas img { height: 54px; width: auto; flex: none; }
+
+  @media (max-width: 860px) {
+  }
+  @media (max-width: 620px) {
+    .heros { padding: 52px 0 130px; }
+    .heros .ct { padding-top: 132px; }
+    .heros .mascotte { width: 150px; height: 215px; right: 9%; top: -8px; }
+    .heros .e1, .heros .e2, .heros .e3 { display: none; }
+    .arene { min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px 14px 20px; border-radius: 32px; }
+    .arene .mascotte.centre { position: relative; grid-column: 1 / -1; left: auto; bottom: auto; margin: 0 auto; width: 270px; height: 380px; order: -1; }
+    .arene .tuile { position: relative; width: auto; left: auto; right: auto; top: auto; bottom: auto; padding: 16px; gap: 14px; }
+    section { padding: 56px 0; }
+    .tuile { min-height: 170px; padding: 18px; border-radius: 24px; }
+    .scene, .appel { border-radius: 32px; } .scene { min-height: 560px; } .scene.orange { min-height: 640px; }
+    .appel .sol .dit { font-size: 13px; padding: 8px 12px; } .appel .sol .dit.g { left: 0; top: 70px; } .appel .sol .dit.d { right: -4px; top: 14px; }
+    .rail { grid-template-columns: 34px 1fr 34px; } .rail button.fleche { width: 34px; height: 34px; }
+    .scene > .cordes { height: 100px; } .scene > .cordes.d { height: 90px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .rubans { -webkit-mask-image: none; mask-image: none; } .ruban { flex-wrap: wrap; justify-content: center; width: auto; } .ruban [aria-hidden="true"] { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sms" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M8 21v-4M8 9h8M8 12.5h5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V4h6v1M9 11h6M9 15h4"/></symbol>
+  <symbol id="i-call" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-lang" viewBox="0 0 24 24"><path d="M4 6h9M8.5 4v2M6 6c.5 4 3 6.5 6 8M11 6c-.5 3-3 6-7 8M13 20l4-9 4 9M14.5 17h5"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10v.01M18 14v.01"/></symbol>
+  <symbol id="i-userx" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M17 9l4 4M21 9l-4 4"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="1.5"/><path d="M3 13h18M12 9v12M12 9C10 5 6 6 7 9c.5 1.5 3 1 5 0Zm0 0c2-4 6-3 5 0-.5 1.5-3 1-5 0Z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3Z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-bulle" viewBox="0 0 24 24"><circle cx="15" cy="9" r="5.5"/><path d="M3 14v5a2 2 0 0 0 2 2h9"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6 12.5a9.5 9.5 0 0 1 12 0M9 16a5 5 0 0 1 6 0M12 19.5v.01"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></symbol>
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
+  <symbol id="i-screens" viewBox="0 0 24 24"><rect x="3" y="4" width="14" height="10" rx="2"/><rect x="15" y="10" width="6" height="10" rx="1.5"/><path d="M8 18h4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4Z"/><path d="M12 10v4M12 17v.01"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-4 4-4 14 0 18M12 3c4 4 4 14 0 18"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="3"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-pc" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8M12 16v5"/></symbol>
+</svg>
+
+<header class="haut">
+  <div class="ct">
+    <a class="marque" href="#"><img src="icone.png" alt="">KORA<small>lite</small></a>
+    <nav class="liens" aria-label="Navigation principale">
+      <a href="#fonctions">Fonctions</a><a href="#reflexes">Réflexes</a><a href="#telecharger">Télécharger</a><a href="#faq">Questions</a>
+    </nav>
+    <a class="bt principal" href="https://kora-0-01.vercel.app">Essayer KORA</a>
+    <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu"><svg class="i"><use href="#i-menu"/></svg></button>
+  </div>
+  <div class="menu" id="menu"><a href="#fonctions">Fonctions</a><a href="#reflexes">Réflexes</a><a href="#telecharger">Télécharger</a><a href="#faq">Questions</a></div>
+</header>
+
+<main>
+  <div class="heros">
+    <svg class="decor" viewBox="0 0 1440 290" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M0 290V150L120 92 230 150 340 72 470 160 600 100 720 170 860 82 990 160 1110 112 1240 172 1340 122 1440 162V290Z" fill="#E3D8FB" opacity=".8"/>
+      <path d="M0 290V196L140 146 260 204 400 136 540 210 680 154 820 218 960 146 1100 214 1250 156 1440 208V290Z" fill="#D5C7F6" opacity=".9"/>
+      <g fill="#fff" opacity=".9"><ellipse cx="86" cy="214" rx="80" ry="26"/><ellipse cx="150" cy="196" rx="50" ry="26"/><ellipse cx="1340" cy="206" rx="92" ry="28"/><ellipse cx="1280" cy="188" rx="52" ry="26"/></g>
+      <path d="M0 290V240L180 204 340 248 520 212 700 252 900 208 1080 248 1260 216 1440 248V290Z" fill="#F6F3FF"/>
+    </svg>
+    <svg class="etincelle e1" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6Z"/></svg><svg class="etincelle e2" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6Z"/></svg><svg class="etincelle e3" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0l2.6 9.4L24 12l-9.4 2.6L12 24l-2.6-9.4L0 12l9.4-2.6Z"/></svg>
+    <div class="ct">
+      <div class="mascotte vivante" data-scenario="hero" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
+      <h1><span class="souligne">Vérifie<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9 C 38 2, 74 13, 112 6 S 176 3, 197 8" fill="none" stroke="#FF8A2B" stroke-width="5" stroke-linecap="round"/></svg></span> avant de payer.</h1>
+      <p class="sous">Un vrai prêt ne demande jamais de frais d'avance. KORA le sait, et il te le dit.</p>
+      <div class="badges">
+        <a class="badge" href="https://kora-0-01.vercel.app"><svg class="i"><use href="#i-globe"/></svg><span><small>Essayer dans le</small><b>Navigateur</b></span></a>
+        <a class="badge" href="https://github.com/123Asoumi/kora-financial-model/releases/latest"><svg class="i"><use href="#i-phone"/></svg><span><small>Télécharger pour</small><b>Android</b></span></a>
+        <a class="badge" href="https://github.com/123Asoumi/kora-financial-model/releases/latest"><svg class="i"><use href="#i-pc"/></svg><span><small>Télécharger pour</small><b>Windows</b></span></a>
+      </div>
+      <div class="pastille-note"><svg class="i"><use href="#i-lock"/></svg>L'analyse se fait dans ton téléphone</div>
+    </div>
+  </div>
+
+  <div class="rubans" aria-label="Ce que KORA vérifie">
+    <div class="ruban">
+      <span class="pil"><span class="ic"><svg class="i"><use href="#i-sms"/></svg></span>SMS</span><span class="pil"><span class="ic"><svg class="i"><use href="#i-chat"/></svg></span>WhatsApp</span><span class="pil"><span class="ic"><svg class="i"><use href="#i-cam"/></svg></span>Capture d'écran</span><span class="pil"><span class="ic"><svg class="i"><use href="#i-clip"/></svg></span>Texte collé</span><span class="pil"><span class="ic"><svg class="i"><use href="#i-call"/></svg></span>Appel en haut-parleur</span><span class="pil"><span class="ic"><svg class="i"><use href="#i-lang"/></svg></span>Français</span><span class="pil"><span class="ic"><svg class="i"><use href="#i-mic"/></svg></span>Fon</span>
+      <span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-sms"/></svg></span>SMS</span><span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-chat"/></svg></span>WhatsApp</span><span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-cam"/></svg></span>Capture d'écran</span><span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-clip"/></svg></span>Texte collé</span><span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-call"/></svg></span>Appel en haut-parleur</span><span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-lang"/></svg></span>Français</span><span class="pil" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-mic"/></svg></span>Fon</span>
+    </div>
+    <div class="ruban inverse">
+      <span class="pil rouge"><span class="ic"><svg class="i"><use href="#i-cash"/></svg></span>Faux prêt</span><span class="pil rouge"><span class="ic"><svg class="i"><use href="#i-userx"/></svg></span>Faux agent</span><span class="pil rouge"><span class="ic"><svg class="i"><use href="#i-swap"/></svg></span>Faux dépôt</span><span class="pil rouge"><span class="ic"><svg class="i"><use href="#i-gift"/></svg></span>Faux gain</span><span class="pil rouge"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span>Compte bloqué</span><span class="pil rouge"><span class="ic"><svg class="i"><use href="#i-link"/></svg></span>Lien piégé</span><span class="pil vert"><span class="ic"><svg class="i"><use href="#i-ok"/></svg></span>Vrai SMS</span>
+      <span class="pil rouge" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-cash"/></svg></span>Faux prêt</span><span class="pil rouge" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-userx"/></svg></span>Faux agent</span><span class="pil rouge" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-swap"/></svg></span>Faux dépôt</span><span class="pil rouge" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-gift"/></svg></span>Faux gain</span><span class="pil rouge" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span>Compte bloqué</span><span class="pil rouge" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-link"/></svg></span>Lien piégé</span><span class="pil vert" aria-hidden="true"><span class="ic"><svg class="i"><use href="#i-ok"/></svg></span>Vrai SMS</span>
+    </div>
+  </div>
+
+  <section style="padding-bottom:0">
+    <div class="ct">
+      <div class="tete">
+        <span class="etiq">En chiffres</span>
+        <h2>Un petit modèle, une grande protection.</h2>
+      </div>
+      <div class="arene" id="arene">
+        <div class="harpe" aria-hidden="true"><i style="height:34%"></i><i style="height:52%"></i><i style="height:70%"></i><i style="height:46%"></i><i style="height:88%"></i><i style="height:60%"></i><i style="height:40%"></i><i style="height:76%"></i><i style="height:54%"></i><i style="height:92%"></i><i style="height:64%"></i><i style="height:44%"></i><i style="height:72%"></i><i style="height:38%"></i></div>
+        <div class="mascotte vivante centre" data-scenario="arene" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
+        <div class="tuile v t1" data-e="surpris"><span class="ic"><svg class="i"><use href="#i-cube"/></svg></span><div><b><span data-n="964">964</span> Ko</b><small>le modèle, dans ton téléphone</small></div></div>
+        <div class="tuile g t2" data-e="content"><span class="ic"><svg class="i"><use href="#i-shield"/></svg></span><div><b><span data-n="5">5</span> types</b><small>de messages reconnus</small></div></div>
+        <div class="tuile o t3" data-e="joyeux"><span class="ic"><svg class="i"><use href="#i-lang"/></svg></span><div><b><span data-n="2">2</span> langues</b><small>le français et le fon</small></div></div>
+        <div class="tuile r t4" data-e="amoureux"><span class="ic"><svg class="i"><use href="#i-screens"/></svg></span><div><b><span data-n="3">3</span> écrans</b><small>web, Android, Windows</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fonctions">
+    <div class="ct">
+      <h2 class="titre-section" style="text-align:center">Ton bouclier,<br>dans ta poche.</h2>
+
+      <div class="fonction">
+        <h3>Montre-lui le message.</h3>
+        <p>Colle le texte, envoie une capture, ou touche la bulle KORA qui flotte par-dessus WhatsApp. Il lit l'écran et s'occupe du reste.</p>
+      </div>
+      <div class="scene violet">
+        <div class="cordes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="cordes d" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="flottante ouvre"><span class="ic-rond"><svg class="i"><use href="#i-bulle"/></svg></span>Touche la bulle KORA pour vérifier l'écran !</div>
+        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><div class="mascotte vivante" data-scenario="regarde" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div><span class="legende">Je regarde…</span></div>
+      </div>
+
+      <div class="fonction">
+        <h3>Reçois un verdict en direct.</h3>
+        <p>KORA classe le message, explique pourquoi en mots simples et te dit quoi faire. Essaie avec trois exemples : la carte change de couleur selon le verdict.</p>
+      </div>
+      <div class="scene verdict" id="d-scene" data-etat="arnaque" aria-live="polite">
+        <div class="cordes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="cordes d" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="flottante" id="d-flot" style="--c:#D92D20">
+          <div class="bulle" id="d-msg"></div>
+          <span class="statut p-arnaque" id="d-statut">Arnaque probable</span>
+          <div class="faire"><b>Que faire :</b> <span id="d-faire"></span></div>
+        </div>
+        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><div class="mascotte vivante" data-scenario="verdict" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div><span class="legende" id="d-leg">Je réfléchis…</span></div>
+      </div>
+      <div class="essai" role="tablist" aria-label="Exemples de messages">
+        <button role="tab" aria-selected="true" data-i="0">Faux prêt</button>
+        <button role="tab" aria-selected="false" data-i="1">Faux agent</button>
+        <button role="tab" aria-selected="false" data-i="2">Vrai SMS</button>
+      </div>
+      <p class="pourquoi" id="d-pourquoi"></p>
+
+      <div class="fonction">
+        <h3>Garde les bons réflexes.</h3>
+        <p>KORA te rappelle les deux règles d'or, te lit ses conseils à voix haute et peut prévenir un proche pour toi.</p>
+      </div>
+      <div class="scene orange">
+        <div class="cordes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="cordes d" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="objectifs">
+          <div class="objectif"><span class="ic-rond"><svg class="i"><use href="#i-lock"/></svg></span><div><small>Règle d'or n°1</small><b>Ne donne jamais ton code</b></div></div>
+          <div class="objectif pale"><span class="ic-rond"><svg class="i"><use href="#i-call"/></svg></span><div><small>Règle d'or n°2</small><b>Vérifie auprès du service client officiel</b></div></div>
+        </div>
+        <div class="tel"><div class="haut-tel"><b>KORA<small>lite</small></b><span>Prêt à vérifier</span></div><div class="mascotte vivante" data-scenario="regles" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div><span class="legende">Je te rappelle…</span></div>
+      </div>
+
+      <div class="aussi">
+        <div class="mini"><span class="ic"><svg class="i"><use href="#i-bulle"/></svg></span><h4>La bulle</h4><p>Elle flotte par-dessus tes autres applis. Android et Windows.</p></div>
+        <div class="mini"><span class="ic"><svg class="i"><use href="#i-call"/></svg></span><h4>Suivre un appel</h4><p>Haut-parleur, trois questions, verdict à voix haute. Android.</p></div>
+        <div class="mini"><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><h4>Chez toi</h4><p>Un message en français ne quitte jamais ton appareil.</p></div>
+        <div class="mini"><span class="ic"><svg class="i"><use href="#i-search"/></svg></span><h4>Raisons vérifiables</h4><p>Des règles écrites, jamais une raison inventée.</p></div>
+        <div class="mini"><span class="ic"><svg class="i"><use href="#i-signal"/></svg></span><h4>Sans internet</h4><p>L'analyse et les conseils de base marchent hors connexion.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reflexes" class="avis" style="padding-top:20px">
+    <div class="ct">
+      <div class="rail">
+        <button class="fleche" id="prec" type="button" aria-label="Réflexe précédent">‹</button>
+        <div class="diapos" id="diapos">
+          <div class="diapo actif"><blockquote>« Ne donne <em>jamais</em> ton code, même à quelqu'un qui se dit de l'opérateur. »</blockquote><span class="qui"><img src="korachoupi.webp" alt="">Un réflexe KORA</span></div>
+          <div class="diapo"><blockquote>« Un vrai prêt se signe <em>en agence</em>, sans frais envoyés par Mobile Money. »</blockquote><span class="qui"><img src="korachoupi.webp" alt="">Un réflexe KORA</span></div>
+          <div class="diapo"><blockquote>« Si tu n'as joué à rien, tu n'as <em>rien gagné</em>. »</blockquote><span class="qui"><img src="korachoupi.webp" alt="">Un réflexe KORA</span></div>
+          <div class="diapo"><blockquote>« Un proche te demande de l'argent sur WhatsApp ? <em>Appelle-le</em> avant d'envoyer. »</blockquote><span class="qui"><img src="korachoupi.webp" alt="">Un réflexe KORA</span></div>
+          <div class="diapo"><blockquote>« Vérifie toujours auprès du <em>service client officiel</em>. »</blockquote><span class="qui"><img src="korachoupi.webp" alt="">Un réflexe KORA</span></div>
+        </div>
+        <button class="fleche" id="suiv" type="button" aria-label="Réflexe suivant">›</button>
+      </div>
+      <div class="points" id="points"></div>
+    </div>
+  </section>
+
+  <section id="telecharger" style="padding-top:0">
+    <div class="ct">
+      <div class="appel">
+        <h2>Ton premier message vérifié est à un clic.</h2>
+        <p>Sans compte, sans formulaire.</p>
+        <div class="actions">
+          <a class="bt clair" href="https://kora-0-01.vercel.app"><svg class="i"><use href="#i-globe"/></svg>Navigateur</a>
+          <a class="bt verre" href="https://github.com/123Asoumi/kora-financial-model/releases/latest"><svg class="i"><use href="#i-phone"/></svg>Android</a>
+          <a class="bt verre" href="https://github.com/123Asoumi/kora-financial-model/releases/latest"><svg class="i"><use href="#i-pc"/></svg>Windows</a>
+        </div>
+        <div class="sol">
+          <div class="cordes g" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="cordes d" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <span class="dit g">Arnaque !</span><span class="dit d">Ça a l'air normal.</span>
+          <div class="mascotte vivante" data-scenario="fin" role="img" aria-label="Korachoupi, la mascotte de KORA"><img src="korachoupi.webp" alt="" width="174" height="360"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" style="padding-top:0">
+    <div class="ct">
+      <div class="tete"><span class="etiq">Questions</span><h2>Ce qu'on nous demande souvent</h2></div>
+      <div class="faq">
+        <details><summary>C'est quoi KORA ?</summary><p>Un bouclier contre les arnaques Mobile Money. Tu lui montres un SMS, un message WhatsApp ou une capture d'écran, en français ou en fon. Il dit si c'est une arnaque, explique pourquoi et donne le bon réflexe.</p></details>
+        <details><summary>Mes messages sont-ils envoyés quelque part ?</summary><p>Non. L'analyse d'un message en français se fait dans ton appareil et il ne le quitte pas. Seuls le fon (traduction, voix) et les questions libres à l'assistant passent par un service en ligne.</p></details>
+        <details><summary>KORA peut-il se tromper ?</summary><p>Oui, aucun outil n'est parfait. C'est pour cela que KORA explique ses raisons et rappelle deux règles simples : ne jamais donner ton code et vérifier auprès du service client officiel. En cas de doute, ne paie pas.</p></details>
+        <details><summary>Ça marche sans internet ?</summary><p>Oui pour l'analyse des messages en français et pour les conseils de base. Le fon et l'assistant ont besoin d'une connexion.</p></details>
+        <details><summary>Que fait la bulle exactement ?</summary><p>Elle flotte au-dessus des autres applis. Quand tu la touches, elle capture ton écran et KORA lit le message affiché. Elle ne regarde l'écran que quand tu la touches, et la capture reste sur ton appareil.</p></details>
+        <details><summary>Pourquoi Android ou Windows m'avertissent à l'installation ?</summary><p>L'application Android n'est pas sur le Play Store : Android te demande de confirmer l'installation. L'installateur Windows n'est pas encore signé : Windows affiche « Windows a protégé votre PC ». Clique sur « Informations complémentaires », puis « Exécuter quand même ».</p></details>
+        <details><summary>Qui a fait KORA ?</summary><p>KORA est un projet du GPU Challenge 2026 (Epitech Bénin, UDU Technologies, Alliance Fintech UEMOA), pour le cas d'usage n°7 : la détection des arnaques financières numériques. Il s'appuie sur des messages inspirés d'arnaques réelles au Bénin et sur le jeu de données public stop-arnaque-237.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="ct">
+    <div class="pied">
+      <div class="cols">
+        <a href="#fonctions">Fonctions</a><a href="#reflexes">Réflexes</a><a href="#telecharger">Télécharger</a><a href="#faq">Questions</a>
+        <a href="https://github.com/123Asoumi/kora-financial-model">Code source</a><a href="https://github.com/123Asoumi/kora-financial-model/blob/main/CHANGELOG.md">Journal des versions</a>
+      </div>
+      <div class="bas"><span>© 2026 KORA. GPU Challenge 2026 · Epitech Bénin × UDU Technologies × Alliance Fintech UEMOA.</span><img src="korachoupi.webp" alt=""></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // menu du téléphone
+  const burger = document.getElementById("burger"), menu = document.getElementById("menu");
+  burger.addEventListener("click", () => { const o = menu.classList.toggle("ouvert"); burger.setAttribute("aria-expanded", String(o)); });
+  menu.addEventListener("click", (e) => { if (e.target.closest("a")) { menu.classList.remove("ouvert"); burger.setAttribute("aria-expanded", "false"); } });
+
+  // la démonstration : trois messages d'exemple avec le verdict que donne KORA (la scène prend la couleur du verdict, comme dans l'appli)
+  const EX = [
+    { etat: "arnaque", statut: "Arnaque probable", leg: "Je réfléchis…", msg: "Prêt rapide sans garantie : recevez 300 000 F en 10 minutes. Payez d'abord 7 500 F de frais.",
+      faire: "Ne paie aucun frais. Un vrai prêt se signe en agence.",
+      pq: "<b>Pourquoi ?</b> On te demande de payer des frais pour recevoir quelque chose. On te propose un prêt trop facile, ou qui demande de payer avant de recevoir." },
+    { etat: "arnaque", statut: "Arnaque probable", leg: "Attention !", msg: "Bjr c'est l'agent MTN, envoie-moi le code que tu vas recevoir stp",
+      faire: "Ne donne jamais ton code. Appelle toi-même le service client officiel.",
+      pq: "<b>Pourquoi ?</b> On te demande un code secret ou un code reçu par SMS. La personne se présente comme un agent de l'opérateur ou de la banque." },
+    { etat: "sur", statut: "Ça a l'air normal", leg: "Tout va bien.", msg: "Vous avez reçu 5 000 F de Awa. Nouveau solde : 12 300 F.",
+      faire: "Rien à faire : aucun lien, aucune demande d'argent ni de code.",
+      pq: "<b>Pourquoi ?</b> Aucun lien, aucune demande d'argent ni de code : KORA ne crie pas à l'arnaque pour rien." },
+  ];
+  const $ = (id) => document.getElementById(id);
+  function montrer(i) {
+    const e = EX[i], sur = e.etat === "sur";
+    $("d-scene").dataset.etat = e.etat; $("d-flot").style.setProperty("--c", sur ? "#0B7A43" : "#D92D20");
+    $("d-msg").textContent = e.msg; $("d-faire").textContent = e.faire; $("d-leg").textContent = e.leg; $("d-pourquoi").innerHTML = e.pq;
+    const s = $("d-statut"); s.textContent = e.statut; s.className = "statut " + (sur ? "p-sur" : "p-arnaque");
+    document.querySelectorAll(".essai button").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.i === i)));
+    const v = document.querySelector('.vivante[data-scenario="verdict"]'); if (v) dire(v, sur ? { emotion: "joyeux", gratter: true } : { emotion: "fache" });
+  }
+  document.querySelectorAll(".essai button").forEach((b) => b.addEventListener("click", () => montrer(+b.dataset.i)));
+  montrer(0);
+
+
+  // la mascotte 3D : montée seulement quand elle est à l'écran, puis pilotée par message (humeur, note, tour sur elle-même, « ? »). Elle suit aussi le curseur.
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches || (navigator.connection && navigator.connection.saveData);
+  const PI = Math.PI;
+  const tuileVive = (i) => document.querySelectorAll("#arene .tuile").forEach((t, j) => t.classList.toggle("vif", j === i));
+  const SCENARIOS = { // [message, durée en ms, action] : de petites scènes qui bouclent, pensées pour chaque endroit de la page
+    hero: [[{ emotion: "content" }, 4200], [{ emotion: "joyeux", gratter: true }, 2600], [{ emotion: "content" }, 4200], [{ emotion: "surpris", interroge: true }, 2400], [{ emotion: "content", interroge: false }, 3000]],
+    regarde: [[{ emotion: "content", interroge: true }, 3000], [{ emotion: "surpris", interroge: false }, 1500], [{ emotion: "content" }, 2400]],
+    regles: [[{ emotion: "content" }, 2800], [{ emotion: "joyeux", gratter: true }, 2800], [{ emotion: "amoureux" }, 2400]],
+    fin: [[{ emotion: "joyeux", gratter: true }, 3200], [{ emotion: "content" }, 2200], [{ emotion: "surpris" }, 1500]],
+    arene: [ // elle passe d'une tuile à l'autre : étonnée par le poids, contente des types, se retourne l'air malin pour les langues, amoureuse des écrans
+      [{ emotion: "surpris" }, 2800, () => tuileVive(0)],
+      [{ emotion: "content", gratter: true }, 2800, () => tuileVive(1)],
+      [{ emotion: "joyeux", tourne: PI }, 1700, () => tuileVive(2)],
+      [{ emotion: "surpris", tourne: 0 }, 2200, () => tuileVive(2)],
+      [{ emotion: "amoureux", gratter: true }, 2800, () => tuileVive(3)],
+    ],
+  };
+  function dire(el, msg, memo = true) {
+    if (memo) el._dernier = Object.assign(el._dernier || {}, msg);
+    if (typeof msg.tourne === "number") { el._spin = msg.tourne !== 0; el._angle = msg.tourne; }
+    const f = el.querySelector("iframe");
+    if (f && el.classList.contains("pret")) try { f.contentWindow.postMessage({ kora: msg }, "*"); } catch (_) {}
+  }
+  function jouer(el, nom, i = 0) {
+    clearTimeout(el._minuteur);
+    const sc = SCENARIOS[nom]; if (!sc) return;
+    el._etape = i % sc.length;
+    const [msg, duree, action] = sc[el._etape];
+    if (!el._pause) { dire(el, msg); if (action) action(); }
+    el._minuteur = setTimeout(() => jouer(el, nom, el._etape + 1), duree);
+  }
+  function monter(el) {
+    if (calme || el.querySelector("iframe")) return;
+    const f = document.createElement("iframe");
+    f.title = "Korachoupi, la mascotte de KORA"; f.setAttribute("aria-hidden", "true"); f.tabIndex = -1; f.setAttribute("allowtransparency", "true");
+    f.src = "mascotte/korachoupi.html?embed&fond=transparent";
+    el.append(f);
+  }
+  function demonter(el) {
+    clearTimeout(el._minuteur); el.classList.remove("pret"); el._pause = false; el._spin = false;
+    const f = el.querySelector("iframe"); if (f) f.remove();
+  }
+  window.addEventListener("message", (e) => {
+    if (!e.data || e.data.korachoupi !== "pret") return;
+    for (const el of document.querySelectorAll(".vivante")) {
+      const f = el.querySelector("iframe");
+      if (f && f.contentWindow === e.source && !el.classList.contains("pret")) {
+        el.classList.add("pret");
+        if (el._dernier) dire(el, el._dernier, false); // l'humeur demandée avant que la 3D soit prête
+        if (el.dataset.scenario !== "verdict") jouer(el, el.dataset.scenario);
+      }
+    }
+  });
+  if ("IntersectionObserver" in window && !calme) {
+    const vu = new IntersectionObserver((lignes) => { for (const l of lignes) l.isIntersecting ? monter(l.target) : demonter(l.target); }, { rootMargin: "160px" });
+    document.querySelectorAll(".vivante").forEach((el) => vu.observe(el));
+  }
+
+  // elle suit le curseur : elle se tourne vers lui (sauf quand elle fait son tour sur elle-même)
+  const ptr = { x: 0, actif: false };
+  addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") { ptr.x = e.clientX; ptr.actif = true; } }, { passive: true });
+  let derniereMaj = 0;
+  function suivre(t) {
+    requestAnimationFrame(suivre);
+    if (!ptr.actif || t - derniereMaj < 60) return;
+    derniereMaj = t;
+    for (const el of document.querySelectorAll(".vivante.pret")) {
+      if (el._spin) continue;
+      const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) continue;
+      const dx = (ptr.x - (r.left + r.width / 2)) / Math.max(320, innerWidth * .45);
+      const a = Math.max(-1, Math.min(1, dx)) * .5;
+      if (Math.abs(a - (el._angle || 0)) > .04) dire(el, { tourne: a }, false);
+    }
+  }
+  if (!calme) requestAnimationFrame(suivre);
+
+  // des réactions placées avec sens : survoler un bouton de la page d'accueil la rend joyeuse ; survoler une tuile des chiffres la fait réagir à ce chiffre
+  const mascHero = document.querySelector('.vivante[data-scenario="hero"]'), mascArene = document.querySelector('.vivante[data-scenario="arene"]');
+  document.querySelectorAll(".heros .badge").forEach((b) => {
+    b.addEventListener("pointerenter", () => { mascHero._pause = true; dire(mascHero, { emotion: "joyeux", gratter: true }); });
+    b.addEventListener("pointerleave", () => { mascHero._pause = false; dire(mascHero, { emotion: "content" }); });
+  });
+  document.querySelectorAll("#arene .tuile").forEach((t, i) => {
+    t.addEventListener("pointerenter", (e) => { if (e.pointerType !== "mouse") return; mascArene._pause = true; mascArene._spin = false; tuileVive(i); dire(mascArene, { emotion: t.dataset.e, tourne: 0, gratter: i % 2 === 1 }); });
+    t.addEventListener("pointerleave", (e) => { if (e.pointerType !== "mouse") return; mascArene._pause = false; tuileVive(-1); });
+  });
+
+  // les chiffres se comptent quand ils arrivent à l'écran
+  if ("IntersectionObserver" in window && !calme) {
+    const comptes = new IntersectionObserver((lignes) => { for (const l of lignes) if (l.isIntersecting) { comptes.unobserve(l.target); compter(l.target); } }, { threshold: .5 });
+    document.querySelectorAll("[data-n]").forEach((el) => comptes.observe(el));
+  }
+  function compter(el) {
+    const n = +el.dataset.n, t0 = performance.now();
+    const pas = (t) => { const k = Math.min(1, (t - t0) / 1200); el.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(pas); };
+    requestAnimationFrame(pas);
+  }
+
+  // le carrousel des réflexes
+  const diapos = [...document.querySelectorAll(".diapo")], pts = $("points"); let k = 0, auto = null;
+  diapos.forEach((_, i) => { const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-label", "Réflexe " + (i + 1)); b.addEventListener("click", () => aller(i, true)); pts.append(b); });
+  function aller(i, manuel) {
+    k = (i + diapos.length) % diapos.length;
+    diapos.forEach((d, j) => d.classList.toggle("actif", j === k));
+    [...pts.children].forEach((b, j) => (j === k ? b.setAttribute("aria-current", "true") : b.removeAttribute("aria-current")));
+    if (manuel) relancer();
+  }
+  function relancer() { clearInterval(auto); if (!matchMedia("(prefers-reduced-motion: reduce)").matches) auto = setInterval(() => aller(k + 1), 6500); }
+  $("prec").addEventListener("click", () => aller(k - 1, true)); $("suiv").addEventListener("click", () => aller(k + 1, true));
+  aller(0); relancer();
+</script>
+</body>
+</html>
